@@ -116,7 +116,7 @@ function Home() {
         <p className="error">{error}</p>
         ) : !historyLoading && (
         <div className="history">
-            <h2>Recipe History:</h2>
+            <h2>Recipe History</h2>
             {history.length > 0 ? (
             <div className="history-buttons">
                 {history.map((item, index) => (
