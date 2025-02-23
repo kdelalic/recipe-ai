@@ -103,6 +103,20 @@ def get_recipe_history():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/api/recipe/<recipe_id>", methods=["DELETE"])
+def delete_recipe(recipe_id):
+    try:
+        doc_ref = db.collection("recipes").document(recipe_id)
+        doc = doc_ref.get()
+        if not doc.exists:
+            return jsonify({"error": "Recipe not found"}), 404
+        doc_ref.delete()
+        return jsonify({"message": "Recipe deleted successfully"}), 200
+    except Exception as e:
+        print(f"Error deleting recipe: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/api/generate-image", methods=["POST"])
 def generate_image():
     enable_flag = os.getenv("ENABLE_IMAGE_GENERATION", "false").lower() == "true"

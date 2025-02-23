@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import api from './api';
 import './Home.css';
 
 function RecipeDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [recipe, setRecipe] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -14,8 +15,7 @@ function RecipeDetail() {
     try {
       const response = await api.get(`/api/recipe/${id}`);
       if (response.status !== 200) throw new Error('Network response was not ok');
-      const data = await response.data;
-      setRecipe(data.recipe);
+      setRecipe(response.data.recipe);
     } catch (err) {
       console.error('Error fetching recipe:', err);
       setError('There was an error fetching the recipe.');
@@ -26,6 +26,18 @@ function RecipeDetail() {
   useEffect(() => {
     fetchRecipe();
   }, [id]);
+
+  const handleDelete = async () => {
+    try {
+      const response = await api.delete(`/api/recipe/${id}`);
+      if (response.status !== 200) throw new Error('Failed to delete recipe');
+      // After deletion, navigate back to home
+      navigate('/');
+    } catch (err) {
+      console.error('Error deleting recipe:', err);
+      setError('There was an error deleting the recipe.');
+    }
+  };
 
   return (
     <div className="App">
@@ -38,6 +50,9 @@ function RecipeDetail() {
       ) : (
         <div className="recipe">
           <ReactMarkdown>{recipe}</ReactMarkdown>
+          <button onClick={handleDelete} className="link-button" style={{ marginTop: '1rem' }}>
+            Delete Recipe
+          </button>
         </div>
       )}
     </div>
