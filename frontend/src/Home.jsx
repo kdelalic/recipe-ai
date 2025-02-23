@@ -112,24 +112,26 @@ function Home() {
           )}
         </div>
       )}
-        {error ? (
+      {error ? (
         <p className="error">{error}</p>
-        ) : !historyLoading && (
+      ) : historyLoading ? (
+        <p>Loading history...</p>
+      ) : (
         <div className="history">
-            <h2>Recipe History</h2>
-            {history.length > 0 ? (
+          <h2>Recipe History</h2>
+          {history.length > 0 ? (
             <div className="history-buttons">
-                {history.map((item, index) => (
+              {history.map((item, index) => (
                 <Link key={index} to={`/recipe/${item.id}`} className="link-button">
-                    {item.title}
+                  {item.title}
                 </Link>
-                ))}
+              ))}
             </div>
-            ) : (
+          ) : (
             <p>No recipes generated yet.</p>
-            )}
+          )}
         </div>
-        )}
+      )}
     </div>
   );
 }
