@@ -29,8 +29,8 @@ function RecipeDetail() {
 
   const handleDelete = async () => {
     try {
-      const response = await api.delete(`/api/recipe/${id}`);
-      if (response.status !== 200) throw new Error('Failed to delete recipe');
+      const response = await api.patch(`/api/recipe/${id}/archive`);
+      if (response.status !== 200) throw new Error('Failed to archive recipe');
       // After deletion, navigate back to home
       navigate('/');
     } catch (err) {
