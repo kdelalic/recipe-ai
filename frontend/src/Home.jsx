@@ -13,6 +13,7 @@ function Home() {
   const [currentRecipe, setCurrentRecipe] = useState('');
   const [history, setHistory] = useState([]); // Array of { id, title, recipe }
   const [loading, setLoading] = useState(false);
+  const [historyLoading, setHistoryLoading] = useState(true);
   const [error, setError] = useState('');
   const enableImageGeneration = import.meta.env.VITE_ENABLE_IMAGE_GENERATION === 'true';
   const [imageUrl, setImageUrl] = useState('');
@@ -30,6 +31,7 @@ function Home() {
       console.error('Error fetching history:', err);
       setError('There was an error fetching the recipe history.');
     }
+    setHistoryLoading(false);
   };
 
   useEffect(() => {
@@ -83,6 +85,10 @@ function Home() {
     setImageLoading(false);
   };
 
+  const handleHistoryClick = (recipe) => {
+    setCurrentRecipe(recipe);
+  };
+
   return (
     <div className="App">
       <h1>AI Recipe Generator</h1>
@@ -97,7 +103,6 @@ function Home() {
           {loading ? 'Generating...' : 'Generate Recipe'}
         </button>
       </form>
-      {error && <p className="error">{error}</p>}
       {currentRecipe && (
         <div className="recipe">
           <ReactMarkdown>{currentRecipe}</ReactMarkdown>
@@ -114,22 +119,24 @@ function Home() {
           )}
         </div>
       )}
-      {history.length > 0 && (
+        {error ? (
+        <p className="error">{error}</p>
+        ) : !historyLoading && (
         <div className="history">
-          <h2>Recipe History:</h2>
-          <div className="history-buttons">
-            {history.map((item, index) => (
-                <Link
-                key={index}
-                to={`/recipe/${item.id}`}
-                className="link-button"
-                >
-                {item.title}
+            <h2>Recipe History:</h2>
+            {history.length > 0 ? (
+            <div className="history-buttons">
+                {history.map((item, index) => (
+                <Link key={index} to={`/recipe/${item.id}`} className="link-button">
+                    {item.title}
                 </Link>
-            ))}
-          </div>
+                ))}
+            </div>
+            ) : (
+            <p>No recipes generated yet.</p>
+            )}
         </div>
-      )}
+        )}
     </div>
   );
 }
