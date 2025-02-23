@@ -8,6 +8,7 @@ function RecipeDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [recipe, setRecipe] = useState('');
+  const [timestamp, setTimestamp] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
 
@@ -16,6 +17,7 @@ function RecipeDetail() {
       const response = await api.get(`/api/recipe/${id}`);
       if (response.status !== 200) throw new Error('Network response was not ok');
       setRecipe(response.data.recipe);
+      setTimestamp(response.data.timestamp);
     } catch (err) {
       console.error('Error fetching recipe:', err);
       setError('There was an error fetching the recipe.');
@@ -48,7 +50,12 @@ function RecipeDetail() {
       ) : error ? (
         <p className="error">{error}</p>
       ) : (
-        <div className="recipe">
+          <div className="recipe">
+          <p>{new Date(timestamp).toLocaleDateString(undefined, { 
+            day: 'numeric', 
+            month: 'short', 
+            year: 'numeric' 
+          })}</p>
           <ReactMarkdown>{recipe}</ReactMarkdown>
           <button onClick={handleDelete} className="link-button" style={{ marginTop: '1rem' }}>
             Delete Recipe

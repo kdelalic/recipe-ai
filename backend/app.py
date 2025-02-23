@@ -55,7 +55,8 @@ Ensure that the markdown headers are exactly as specified."""
         recipe_data = {
             "prompt": prompt,
             "recipe": recipe,
-            "timestamp": datetime.datetime.utcnow(),
+            "timestamp": datetime.datetime.now(datetime.timezone.utc),
+            "archived": False,
         }
         # 'add' returns a tuple (update_time, doc_ref)
         _, doc_ref = db.collection("recipes").add(recipe_data)
@@ -73,7 +74,9 @@ def get_recipe(recipe_id):
         if not doc.exists:
             return jsonify({"error": "Recipe not found"}), 404
         data = doc.to_dict()
-        return jsonify({"recipe": data.get("recipe", "")})
+        recipe = data.get("recipe", "")
+        timestamp = data.get("timestamp", "")
+        return jsonify({"recipe": data.get("recipe", ""), "timestamp": timestamp})
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({"error": str(e)}), 500
@@ -82,20 +85,23 @@ def get_recipe(recipe_id):
 @app.route("/api/recipe-history", methods=["GET"])
 def get_recipe_history():
     try:
-        recipes_ref = db.collection("recipes").order_by(
-            "timestamp", direction=firestore.Query.DESCENDING
+        recipes_ref = (
+            db.collection("recipes")
+            .where("archived", "==", False)
+            .order_by("timestamp", direction=firestore.Query.DESCENDING)
         )
         docs = recipes_ref.stream()
         history = []
         for doc in docs:
             data = doc.to_dict()
-            # Extract the title assuming the recipe begins with a Markdown title (e.g., "# Dish Title")
-            import re
-
             match = re.search(r"^# (.*)", data.get("recipe", ""), re.MULTILINE)
             title = match.group(1).strip() if match else "Recipe"
             history.append(
-                {"id": doc.id, "title": title, "recipe": data.get("recipe", "")}
+                {
+                    "id": doc.id,
+                    "title": title,
+                    "recipe": data.get("recipe", ""),
+                }
             )
         return jsonify({"history": history})
     except Exception as e:
@@ -111,7 +117,12 @@ def archive_recipe(recipe_id):
         if not doc.exists:
             return jsonify({"error": "Recipe not found"}), 404
 
-        doc_ref.update({"archived": True, "archivedAt": datetime.datetime.utcnow()})
+        doc_ref.update(
+            {
+                "archived": True,
+                "archivedAt": datetime.datetime.now(datetime.timezone.utc),
+            }
+        )
         return jsonify({"message": "Recipe archived successfully"}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
