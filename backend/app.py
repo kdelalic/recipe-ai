@@ -6,6 +6,7 @@ from flask import Flask, request, jsonify
 import firebase_admin
 from firebase_admin import credentials, firestore
 from dotenv import load_dotenv
+from flask_cors import CORS
 
 load_dotenv()
 
@@ -18,6 +19,9 @@ db = firestore.client()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 app = Flask(__name__)
+
+frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+CORS(app, resources={r"/api/*": {"origins": [frontend_url, "http://localhost:5173"]}})
 
 
 @app.route("/api/generate-recipe", methods=["POST"])

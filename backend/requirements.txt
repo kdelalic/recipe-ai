@@ -11,6 +11,7 @@ cryptography==44.0.1
 distro==1.9.0
 firebase-admin==6.6.0
 Flask==3.1.0
+Flask-Cors==5.0.0
 google-api-core==2.24.1
 google-api-python-client==2.161.0
 google-auth==2.38.0

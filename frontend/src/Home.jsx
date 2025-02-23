@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { Link } from 'react-router-dom';
+import api from './api';
 import './Home.css';
 
 function extractTitle(recipeText) {
@@ -21,11 +22,11 @@ function Home() {
 
   const fetchHistory = async () => {
     try {
-      const response = await fetch('/api/recipe-history');
-      if (!response.ok) {
+      const response = await api.get('/api/recipe-history');
+      if (response.status !== 200) {
         throw new Error('Network response was not ok');
       }
-      const data = await response.json();
+      const data = await response.data;
       setHistory(data.history || []);
     } catch (err) {
       console.error('Error fetching history:', err);
@@ -46,13 +47,9 @@ function Home() {
     setImageUrl('');
 
     try {
-      const response = await fetch('/api/generate-recipe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: input }),
-      });
-      if (!response.ok) throw new Error('Network response was not ok');
-      const data = await response.json();
+      const response = await api.post('/api/generate-recipe', { prompt: input });
+      if (response.status !== 200) throw new Error('Network response was not ok');
+      const data = await response.data;
       const recipeText = data.recipe;
       const title = extractTitle(recipeText);
       setCurrentRecipe(recipeText);
@@ -70,13 +67,9 @@ function Home() {
   const handleGenerateImage = async (recipeText) => {
     setImageLoading(true);
     try {
-      const response = await fetch('/api/generate-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ recipe: recipeText }),
-      });
-      if (!response.ok) throw new Error('Image generation failed');
-      const data = await response.json();
+      const response = await api.post('/api/generate-image', { recipe: recipeText });
+      if (response.status !== 200) throw new Error('Image generation failed');
+      const data = await response.data;
       setImageUrl(data.image_url);
     } catch (err) {
       console.error('Error generating image:', err);
