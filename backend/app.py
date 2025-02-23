@@ -170,5 +170,10 @@ def generate_image():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/api/health", methods=["GET"])
+def health():
+    return jsonify({"status": "ok"}), 200
+
+
 if __name__ == "__main__":
     app.run(debug=True, port=5001)
