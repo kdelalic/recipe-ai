@@ -24,6 +24,10 @@ button {
   cursor: pointer;
 }
 
+button:hover {
+  background-color: #27914b;    /* Slightly darker green on hover */
+}
+
 button:disabled {
   background-color: #a5d6a7;
   cursor: not-allowed;
@@ -54,4 +58,20 @@ button:disabled {
   height: auto;
   border-radius: 4px;
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.link-button {
+  text-decoration: none;
+  padding: 0.6rem 1rem;
+  border-radius: 4px;
+  background-color: #2e8555;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  margin: 0.3rem;
+  display: inline-block;
+}
+
+.link-button:hover {
+  background-color: #27914b;
 }

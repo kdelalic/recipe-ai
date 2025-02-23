@@ -23,6 +23,7 @@ app = Flask(__name__)
 @app.route("/api/generate-recipe", methods=["POST"])
 def generate_recipe():
     data = request.get_json()
+    print(f"Request body: {data}")
     prompt = data.get("prompt", "")
     if not prompt:
         return jsonify({"error": "No prompt provided"}), 400
@@ -32,7 +33,7 @@ The output must include:
 - A title as a level 1 header.
 - An 'Ingredients:' section as a level 4 header with a bullet list.
 - An 'Instructions:' section as a level 4 header with a numbered list.
-- A 'Notes:' section as a level 3 header with a bullet list.
+- A 'Notes:' section as a level 4 header with a bullet list.
 Ensure that the markdown headers are exactly as specified."""
     try:
         response = client.chat.completions.create(
@@ -52,9 +53,49 @@ Ensure that the markdown headers are exactly as specified."""
             "recipe": recipe,
             "timestamp": datetime.datetime.utcnow(),
         }
-        db.collection("recipes").add(recipe_data)
-        return jsonify({"recipe": recipe})
+        # 'add' returns a tuple (update_time, doc_ref)
+        _, doc_ref = db.collection("recipes").add(recipe_data)
+        return jsonify({"recipe": recipe, "id": doc_ref.id})
     except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/recipe/<recipe_id>", methods=["GET"])
+def get_recipe(recipe_id):
+    try:
+        doc_ref = db.collection("recipes").document(recipe_id)
+        doc = doc_ref.get()
+        if not doc.exists:
+            return jsonify({"error": "Recipe not found"}), 404
+        data = doc.to_dict()
+        return jsonify({"recipe": data.get("recipe", "")})
+    except Exception as e:
+        print(f"Error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/recipe-history", methods=["GET"])
+def get_recipe_history():
+    try:
+        recipes_ref = db.collection("recipes").order_by(
+            "timestamp", direction=firestore.Query.DESCENDING
+        )
+        docs = recipes_ref.stream()
+        history = []
+        for doc in docs:
+            data = doc.to_dict()
+            # Extract the title assuming the recipe begins with a Markdown title (e.g., "# Dish Title")
+            import re
+
+            match = re.search(r"^# (.*)", data.get("recipe", ""), re.MULTILINE)
+            title = match.group(1).strip() if match else "Recipe"
+            history.append(
+                {"id": doc.id, "title": title, "recipe": data.get("recipe", "")}
+            )
+        return jsonify({"history": history})
+    except Exception as e:
+        print(f"Error: {e}")
         return jsonify({"error": str(e)}), 500
 
 
@@ -91,25 +132,6 @@ def generate_image():
         return jsonify({"image_url": image_url})
     except Exception as e:
         print(f"Error generating image: {e}")
-        return jsonify({"error": str(e)}), 500
-
-
-@app.route("/api/recipe-history", methods=["GET"])
-def get_recipe_history():
-    try:
-        recipes_ref = db.collection("recipes").order_by(
-            "timestamp", direction=firestore.Query.DESCENDING
-        )
-        docs = recipes_ref.stream()
-        history = []
-        for doc in docs:
-            data = doc.to_dict()
-            # Extract the title assuming the recipe begins with a Markdown title (e.g., "# Dish Title")
-            match = re.search(r"^# (.*)", data.get("recipe", ""), re.MULTILINE)
-            title = match.group(1).strip() if match else "Recipe"
-            history.append({"title": title, "recipe": data.get("recipe", "")})
-        return jsonify({"history": history})
-    except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 
