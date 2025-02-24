@@ -5,6 +5,7 @@ from openai import OpenAI
 from flask import Flask, request, jsonify
 import firebase_admin
 from firebase_admin import credentials, firestore
+from google.cloud.firestore_v1.base_query import FieldFilter
 from dotenv import load_dotenv
 from flask_cors import CORS
 
@@ -93,7 +94,7 @@ def get_recipe_history():
     try:
         recipes_ref = (
             db.collection("recipes")
-            .where("archived", "==", False)
+            .where(filter=FieldFilter("archived", "==", False))
             .order_by("timestamp", direction=firestore.Query.DESCENDING)
         )
         docs = recipes_ref.stream()
