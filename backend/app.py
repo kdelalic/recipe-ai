@@ -21,8 +21,11 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 app = Flask(__name__)
 
-frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
-CORS(app, resources={r"/api/*": {"origins": [frontend_url, "http://localhost:5173"]}})
+frontend_urls = os.getenv("FRONTEND_URLS", "http://localhost:5173").split(",")
+CORS(
+    app,
+    resources={r"/api/*": {"origins": frontend_urls + ["http://localhost:5173"]}},
+)
 
 
 @app.route("/api/generate-recipe", methods=["POST"])
@@ -40,9 +43,9 @@ In addition to the title, include a short description immediately below the titl
 The output must include:
 - A title as a level 1 header.
 - A short description immediately under the title.
-- An 'Ingredients:' section as a level 2 header with a bullet list.
-- An 'Instructions:' section as a level 2 header with a numbered list.
-- A 'Notes:' section as a level 2 header with a bullet list.
+- An 'Ingredients' section as a level 2 header with a bullet list.
+- An 'Instructions' section as a level 2 header with a numbered list.
+- A 'Notes' section as a level 2 header with a bullet list.
 
 Ensure that the markdown headers are exactly as specified."""
 

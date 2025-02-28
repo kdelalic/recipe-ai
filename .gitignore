@@ -25,3 +25,6 @@ dist-ssr
 
 serviceAccountKey.json
 *.pyc
+
+.venv
+__pycache__
