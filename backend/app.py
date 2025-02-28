@@ -56,10 +56,12 @@ Ensure that the markdown headers are exactly as specified."""
                 {"role": "system", "content": system_message},
                 {"role": "user", "content": prompt},
             ],
-            max_tokens=500,
+            max_tokens=1000,
         )
+
+        print(response.to_json())
+
         recipe = response.choices[0].message.content.strip()
-        print(f"Generated recipe: {recipe}")
 
         # Save the generated recipe into Firestore
         recipe_data = {
