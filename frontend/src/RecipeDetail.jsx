@@ -90,7 +90,7 @@ function RecipeDetail() {
               value={modification}
               onChange={(e) => setModification(e.target.value)}
             />
-            <button onClick={handleUpdateRecipe} className="link-button" disabled={updateLoading || !modification}>
+            <button type="submit" onClick={handleUpdateRecipe} disabled={updateLoading || !modification}>
               {updateLoading ? 'Updating...' : 'Update Recipe'}
             </button>
           </div>

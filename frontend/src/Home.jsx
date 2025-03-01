@@ -133,7 +133,7 @@ function Home() {
               value={modification}
               onChange={(e) => setModification(e.target.value)}
             />
-            <button onClick={handleUpdateRecipe} disabled={loading || !modification}>
+            <button type="submit" onClick={handleUpdateRecipe} disabled={loading || !modification}>
               Update Recipe
             </button>
           </div>
