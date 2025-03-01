@@ -19,6 +19,7 @@ function Home() {
   const enableImageGeneration = import.meta.env.VITE_ENABLE_IMAGE_GENERATION === 'true';
   const [imageUrl, setImageUrl] = useState('');
   const [imageLoading, setImageLoading] = useState(false);
+  const [modification, setModification] = useState('');
 
   const fetchHistory = async () => {
     try {
@@ -78,9 +79,24 @@ function Home() {
     setImageLoading(false);
   };
 
-  const handleHistoryClick = (recipe) => {
-    setCurrentRecipe(recipe);
-  };
+  const handleUpdateRecipe = async () => {
+    if (!modification) return;
+    setUpdateLoading(true);
+    try {
+      const response = await api.post('/api/update-recipe', {
+        id,  // Recipe ID from the URL parameters or state.
+        original_recipe: recipe,
+        modifications: modification,
+      });
+      if (response.status !== 200) throw new Error('Update failed');
+      setRecipe(response.data.recipe);
+      setModification('');
+    } catch (err) {
+      console.error('Error updating recipe:', err);
+      setError('There was an error updating the recipe.');
+    }
+    setUpdateLoading(false);
+  };  
 
   return (
     <div className="App">
@@ -110,6 +126,17 @@ function Home() {
               ) : null}
             </>
           )}
+          <div className="modification-section">
+            <input
+              type="text"
+              placeholder="Enter modifications (e.g., remove pork belly)"
+              value={modification}
+              onChange={(e) => setModification(e.target.value)}
+            />
+            <button onClick={handleUpdateRecipe} disabled={loading || !modification}>
+              Update Recipe
+            </button>
+          </div>
         </div>
       )}
       {error ? (

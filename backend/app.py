@@ -28,6 +28,15 @@ CORS(
 )
 
 
+format = """- A title as a level 1 header.
+- A short description immediately under the title.
+- An 'Ingredients' section as a level 2 header with a bullet list.
+- An 'Instructions' section as a level 2 header with a numbered list.
+- A 'Notes' section as a level 2 header with a bullet list.
+
+Ensure that the markdown headers are exactly as specified."""
+
+
 @app.route("/api/generate-recipe", methods=["POST"])
 def generate_recipe():
     data = request.get_json()
@@ -36,18 +45,14 @@ def generate_recipe():
     if not prompt:
         return jsonify({"error": "No prompt provided"}), 400
 
-    system_message = """You are a creative chef with the precision and depth of recipes found on Serious Eats and the expertise of Kenji J. Alt-Lopez. 
+    system_message = (
+        """You are a creative chef with the precision and depth of recipes found on Serious Eats and the expertise of Kenji J. Alt-Lopez. 
 When given a prompt, generate a recipe that is both detailed and practical, reflecting the thorough testing and clear instructions characteristic of those sources. 
 In addition to the title, include a short description immediately below the title that summarizes the dish.
 
-The output must include:
-- A title as a level 1 header.
-- A short description immediately under the title.
-- An 'Ingredients' section as a level 2 header with a bullet list.
-- An 'Instructions' section as a level 2 header with a numbered list.
-- A 'Notes' section as a level 2 header with a bullet list.
-
-Ensure that the markdown headers are exactly as specified."""
+The output must include:"""
+        + format
+    )
 
     try:
         response = client.chat.completions.create(
@@ -59,7 +64,7 @@ Ensure that the markdown headers are exactly as specified."""
             max_tokens=1000,
         )
 
-        print(response.to_json())
+        print(f"Response: {response.to_json()}")
 
         recipe = response.choices[0].message.content.strip()
 
@@ -75,6 +80,65 @@ Ensure that the markdown headers are exactly as specified."""
         return jsonify({"recipe": recipe, "id": doc_ref.id})
     except Exception as e:
         print(f"Error: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/update-recipe", methods=["POST"])
+def update_recipe():
+    data = request.get_json()
+    recipe_id = data.get("id")
+    original_recipe = data.get("original_recipe", "")
+    modifications = data.get("modifications", "")
+
+    if not recipe_id or not original_recipe or not modifications:
+        return (
+            jsonify(
+                {"error": "Recipe ID, original recipe, and modifications are required"}
+            ),
+            400,
+        )
+
+    # Build a prompt that instructs the model to update the recipe while preserving its original structure.
+    update_prompt = (
+        "Below is a recipe:\n\n"
+        f"{original_recipe}\n\n"
+        "Modify this recipe based on the following instructions, changing only the specified parts:\n\n"
+        f"{modifications}\n\n"
+        "Keep the same markdown format as before:\n\n"
+        f"{format}"
+    )
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are a creative chef who is skilled at editing recipes while preserving their original structure and style.",
+                },
+                {"role": "user", "content": update_prompt},
+            ],
+            max_tokens=1000,
+        )
+
+        print(f"Response: {response.to_json()}")
+
+        updated_recipe = response.choices[0].message.content.strip()
+
+        # Update the existing document in Firestore with the new recipe content.
+        doc_ref = db.collection("recipes").document(recipe_id)
+        doc_ref.update(
+            {
+                "recipe": updated_recipe,
+                "timestamp": datetime.datetime.now(
+                    datetime.timezone.utc
+                ),  # Update timestamp as well.
+            }
+        )
+
+        return jsonify({"recipe": updated_recipe})
+    except Exception as e:
+        print(f"Error updating recipe: {e}")
         return jsonify({"error": str(e)}), 500
 
 
