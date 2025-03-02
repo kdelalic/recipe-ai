@@ -7,11 +7,13 @@
 }
 
 input[type="text"] {
-  width: 70%;
+  font-size: 16px;
+  width: 100%;
   padding: 0.5rem;
-  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
   border: 1px solid #ccc;
   border-radius: 4px;
+  box-sizing: border-box;
 }
 
 button {
@@ -22,10 +24,11 @@ button {
   color: white;
   font-size: 1rem;
   cursor: pointer;
+  transition: background-color 0.2s;
 }
 
 button:hover {
-  background-color: #27914b;    /* Slightly darker green on hover */
+  background-color: #27914b;
 }
 
 button:disabled {
@@ -47,7 +50,6 @@ button:disabled {
   margin-top: 1rem;
 }
 
-/* New styles for image preview */
 .image-preview {
   margin-top: 1.5rem;
   text-align: center;
@@ -74,4 +76,32 @@ button:disabled {
 
 .link-button:hover {
   background-color: #27914b;
+}
+
+/* Mobile-specific styling */
+@media (max-width: 600px) {
+  .App {
+    margin: 1rem;
+    padding: 0.5rem;
+  }
+  
+  input[type="text"] {
+    width: 100%;
+    margin: 0 0 0.5rem 0;
+  }
+  
+  button {
+    width: 100%;
+    margin-bottom: 0.5rem;
+  }
+  
+  .recipe {
+    padding: 0.75rem;
+  }
+  
+  .link-button {
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0.25rem 0;
+  }
 }
