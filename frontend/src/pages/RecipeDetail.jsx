@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
-import api from './api';
-import './Home.css';
+import api from '../utils/api';
+import '../styles/Home.css';
 
 function RecipeDetail() {
   const { id } = useParams();

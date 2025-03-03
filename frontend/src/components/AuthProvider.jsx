@@ -1,6 +1,6 @@
 // AuthProvider.jsx
 import { useEffect, useState } from 'react';
-import { auth, onAuthStateChanged } from './firebase';
+import { auth, onAuthStateChanged } from '../utils/firebase';
 
 function AuthProvider({ children }) {
   const [user, setUser] = useState(null);

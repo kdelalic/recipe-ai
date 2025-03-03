@@ -1,9 +1,9 @@
 // Login.jsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { auth } from './firebase';
+import { auth } from '../utils/firebase';
 import { signInWithEmailAndPassword, signInAnonymously } from 'firebase/auth';
-import './Login.css';
+import '../styles/Login.css';
 
 function Login() {
   const [email, setEmail] = useState('');

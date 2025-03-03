@@ -1,9 +1,8 @@
-// App.jsx
 import { Routes, Route } from 'react-router-dom';
-import Home from './Home';
-import RecipeDetail from './RecipeDetail';
-import Login from './Login';
-import ProtectedRoute from './ProtectedRoute';
+import Home from './pages/Home';
+import RecipeDetail from './pages/RecipeDetail';
+import Login from './pages/Login';
+import ProtectedRoute from './components/ProtectedRoute';
 
 function App({ user }) {
   return (

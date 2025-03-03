@@ -1,0 +1,13 @@
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  .logo {
+    text-decoration: none;
+    color: #2e8555;
+    font-size: 1.5rem;
+    font-weight: bold;
+  }
+  

@@ -1,16 +1,19 @@
 import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
-import { Link } from 'react-router-dom';
-import api from './api';
-import './Home.css';
+import api from '../utils/api';
+import { auth } from '../utils/firebase';
+import '../styles/Home.css';
 
 function extractTitle(recipeText) {
   const match = recipeText.match(/^# (.*)/m);
   return match ? match[1].trim() : 'Recipe';
 }
 
-function Home() {
+function Home({ user }) {
+  const navigate = useNavigate();
   const [input, setInput] = useState('');
+  const [currentId, setCurrentId] = useState('');
   const [currentRecipe, setCurrentRecipe] = useState('');
   const [history, setHistory] = useState([]); // Array of { id, title, recipe }
   const [loading, setLoading] = useState(false);
@@ -44,6 +47,7 @@ function Home() {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setCurrentId('');
     setCurrentRecipe('');
     setImageUrl('');
 
@@ -53,6 +57,7 @@ function Home() {
       const data = await response.data;
       const recipeText = data.recipe;
       const title = extractTitle(recipeText);
+      setCurrentId(data.id);
       setCurrentRecipe(recipeText);
       setHistory((prevHistory) => [{ id: data.id, title, recipe: recipeText }, ...prevHistory]);
       if (enableImageGeneration) {
@@ -81,26 +86,41 @@ function Home() {
 
   const handleUpdateRecipe = async () => {
     if (!modification) return;
-    setUpdateLoading(true);
+    setLoading(true);
     try {
       const response = await api.post('/api/update-recipe', {
-        id,  // Recipe ID from the URL parameters or state.
-        original_recipe: recipe,
+        id: currentId,
+        original_recipe: currentRecipe,
         modifications: modification,
       });
       if (response.status !== 200) throw new Error('Update failed');
-      setRecipe(response.data.recipe);
+      setCurrentRecipe(response.data.recipe);
       setModification('');
     } catch (err) {
       console.error('Error updating recipe:', err);
       setError('There was an error updating the recipe.');
     }
-    setUpdateLoading(false);
-  };  
+    setLoading(false);
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await auth.signOut();
+      navigate('/login');
+    } catch (err) {
+      console.error('Error signing out:', err);
+      setError('There was an error signing out.');
+    }
+  };
 
   return (
     <div className="App">
-      <h1>AI Recipe Generator</h1>
+      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h1>AI Recipe Generator</h1>
+        <button className="link-button" onClick={handleSignOut}>
+          Sign Out
+        </button>
+      </header>
       <form onSubmit={handleSubmit}>
         <input
           type="text"
@@ -112,6 +132,7 @@ function Home() {
           {loading ? 'Generating...' : 'Generate Recipe'}
         </button>
       </form>
+      {error && <p className="error">{error}</p>}
       {currentRecipe && (
         <div className="recipe">
           <ReactMarkdown>{currentRecipe}</ReactMarkdown>
@@ -134,14 +155,12 @@ function Home() {
               onChange={(e) => setModification(e.target.value)}
             />
             <button type="submit" onClick={handleUpdateRecipe} disabled={loading || !modification}>
-              Update Recipe
+              {loading ? 'Updating...' : 'Update Recipe'}
             </button>
           </div>
         </div>
       )}
-      {error ? (
-        <p className="error">{error}</p>
-      ) : historyLoading ? (
+      {historyLoading ? (
         <p>Loading history...</p>
       ) : (
         <div className="history">

@@ -5,6 +5,7 @@ from openai import OpenAI
 from flask import Flask, request, jsonify
 import firebase_admin
 from firebase_admin import credentials, firestore
+from firebase_admin import auth as firebase_auth
 from google.cloud.firestore_v1.base_query import FieldFilter
 from dotenv import load_dotenv
 from flask_cors import CORS
@@ -39,6 +40,16 @@ Ensure that the markdown headers are exactly as specified."""
 
 @app.route("/api/generate-recipe", methods=["POST"])
 def generate_recipe():
+    auth_header = request.headers.get("Authorization")
+    if not auth_header:
+        return jsonify({"error": "Authorization header missing"}), 401
+    token = auth_header.split("Bearer ")[-1]
+    try:
+        decoded_token = firebase_auth.verify_id_token(token)
+        uid = decoded_token["uid"]
+    except Exception as e:
+        return jsonify({"error": "Invalid token: " + str(e)}), 401
+
     data = request.get_json()
     print(f"Request body: {data}")
     prompt = data.get("prompt", "")
@@ -70,6 +81,7 @@ The output must include:"""
 
         # Save the generated recipe into Firestore
         recipe_data = {
+            "uid": uid,
             "prompt": prompt,
             "recipe": recipe,
             "timestamp": datetime.datetime.now(datetime.timezone.utc),
@@ -160,9 +172,20 @@ def get_recipe(recipe_id):
 
 @app.route("/api/recipe-history", methods=["GET"])
 def get_recipe_history():
+    auth_header = request.headers.get("Authorization")
+    if not auth_header:
+        return jsonify({"error": "Authorization header missing"}), 401
+    token = auth_header.split("Bearer ")[-1]
+    try:
+        decoded_token = firebase_auth.verify_id_token(token)
+        uid = decoded_token["uid"]
+    except Exception as e:
+        return jsonify({"error": "Invalid token: " + str(e)}), 401
+
     try:
         recipes_ref = (
             db.collection("recipes")
+            .where(filter=FieldFilter("uid", "==", uid))
             .where(filter=FieldFilter("archived", "==", False))
             .order_by("timestamp", direction=firestore.Query.DESCENDING)
         )
@@ -187,11 +210,24 @@ def get_recipe_history():
 
 @app.route("/api/recipe/<recipe_id>/archive", methods=["PATCH"])
 def archive_recipe(recipe_id):
+    auth_header = request.headers.get("Authorization")
+    if not auth_header:
+        return jsonify({"error": "Authorization header missing"}), 401
+    token = auth_header.split("Bearer ")[-1]
+    try:
+        decoded_token = firebase_auth.verify_id_token(token)
+        uid = decoded_token["uid"]
+    except Exception as e:
+        return jsonify({"error": "Invalid token: " + str(e)}), 401
+
     try:
         doc_ref = db.collection("recipes").document(recipe_id)
         doc = doc_ref.get()
         if not doc.exists:
             return jsonify({"error": "Recipe not found"}), 404
+        data = doc.to_dict()
+        if data.get("uid") != uid:
+            return jsonify({"error": "Unauthorized access"}), 403
 
         doc_ref.update(
             {
