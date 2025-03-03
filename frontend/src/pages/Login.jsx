@@ -1,4 +1,3 @@
-// Login.jsx
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../utils/firebase';
@@ -17,10 +16,8 @@ function Login() {
     setError('');
     try {
       if (isSignUp) {
-        // Create a new user with email and password
         await createUserWithEmailAndPassword(auth, email, password);
       } else {
-        // Sign in with email and password
         await signInWithEmailAndPassword(auth, email, password);
       }
       navigate('/');
@@ -58,15 +55,18 @@ function Login() {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-        <button type="submit">{isSignUp ? 'Sign Up' : 'Login'}</button>
+        <button 
+          type="submit" 
+          className={isSignUp ? 'signup-button' : 'login-button'}
+        >
+          {isSignUp ? 'Sign Up' : 'Login'}
+        </button>
       </form>
+      <hr />
       <button onClick={handleAnonymousLogin}>Continue as Guest</button>
       <p>
         {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
-        <span
-          className="toggle-auth"
-          onClick={() => setIsSignUp(!isSignUp)}
-        >
+        <span className="toggle-auth" onClick={() => setIsSignUp(!isSignUp)}>
           {isSignUp ? 'Login' : 'Sign Up'}
         </span>
       </p>
