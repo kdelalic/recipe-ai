@@ -186,7 +186,16 @@ def get_recipe(recipe_id):
         recipe = data.get("recipe", "")
         uid = data.get("uid", "")
         timestamp = data.get("timestamp", "")
-        return jsonify({"recipe": recipe, "timestamp": timestamp, "uid": uid})
+        user = firebase_auth.get_user(uid)
+        displayName = user.display_name if user.display_name else ""
+        return jsonify(
+            {
+                "recipe": recipe,
+                "timestamp": timestamp,
+                "uid": uid,
+                "displayName": displayName,
+            }
+        )
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({"error": str(e)}), 500

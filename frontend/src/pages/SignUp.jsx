@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { auth } from '../utils/firebase';
-import { EmailAuthProvider, createUserWithEmailAndPassword, linkWithCredential } from 'firebase/auth';
+import { EmailAuthProvider, createUserWithEmailAndPassword, linkWithCredential, updateProfile } from 'firebase/auth';
 import '../styles/Login.css';
 
 function SignUp() {
@@ -16,14 +16,17 @@ function SignUp() {
     e.preventDefault();
     setError('');
     try {
-      // If the current user is anonymous, link the email/password credential to upgrade the account
+      let userCredential;
       if (auth.currentUser && auth.currentUser.isAnonymous) {
+        // If the current user is anonymous, link the email/password credential to upgrade the account.
         const credential = EmailAuthProvider.credential(email, password);
-        await linkWithCredential(auth.currentUser, credential);
+        userCredential = await linkWithCredential(auth.currentUser, credential);
       } else {
-        // Otherwise, create a new user account
-        await createUserWithEmailAndPassword(auth, email, password);
+        // Otherwise, create a new user account.
+        userCredential = await createUserWithEmailAndPassword(auth, email, password);
       }
+      // Update the display name on the user profile.
+      await updateProfile(auth.currentUser, { displayName });
       navigate('/');
     } catch (err) {
       setError(err.message);

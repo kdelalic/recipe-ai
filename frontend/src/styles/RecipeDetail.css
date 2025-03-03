@@ -1,0 +1,11 @@
+.recipe-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.recipe-info p {
+  margin: 0;
+  font-size: 0.9rem;
+}

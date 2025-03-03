@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import Header from '../components/Header';
 import api from '../utils/api';
-import '../styles/Home.css';
+import '../styles/RecipeDetail.css';
 
 function RecipeDetail({ user }) {
   const { id } = useParams();
@@ -11,6 +11,7 @@ function RecipeDetail({ user }) {
   const [recipe, setRecipe] = useState('');
   const [recipeUID, setRecipeUID] = useState('');
   const [timestamp, setTimestamp] = useState('');
+  const [displayName, setDisplayName] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [modification, setModification] = useState('');
@@ -23,7 +24,8 @@ function RecipeDetail({ user }) {
       const data = response.data;
       setRecipe(data.recipe);
       setTimestamp(data.timestamp);
-      setRecipeUID(data.uid); // Set the UID from the recipe document
+      setRecipeUID(data.uid);
+      setDisplayName(data.displayName);
     } catch (err) {
       console.error('Error fetching recipe:', err);
       setError('There was an error fetching the recipe.');
@@ -36,7 +38,6 @@ function RecipeDetail({ user }) {
   }, [id]);
 
   const handleDelete = async () => {
-    // Add confirmation before deletion
     const confirmed = window.confirm("Are you sure you want to delete this recipe? This action cannot be undone.");
     if (!confirmed) return;
     
@@ -79,13 +80,16 @@ function RecipeDetail({ user }) {
         <p className="error">{error}</p>
       ) : (
         <div className="recipe">
-          <p>
-            {new Date(timestamp).toLocaleDateString(undefined, {
-              day: 'numeric',
-              month: 'short',
-              year: 'numeric',
-            })}
-          </p>
+          <div className="recipe-info">
+            <p>{displayName}</p>
+            <p>
+              {new Date(timestamp).toLocaleDateString(undefined, {
+                day: 'numeric',
+                month: 'short',
+                year: 'numeric',
+              })}
+            </p>
+          </div>
           <ReactMarkdown>{recipe}</ReactMarkdown>
           {user && recipeUID === user.uid && (
             <div className="update-section" style={{ marginTop: '1rem' }}>
