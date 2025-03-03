@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { auth } from '../utils/firebase';
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { EmailAuthProvider, createUserWithEmailAndPassword, linkWithCredential } from 'firebase/auth';
 import '../styles/Login.css';
 
 function SignUp() {
@@ -16,9 +16,14 @@ function SignUp() {
     e.preventDefault();
     setError('');
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      // Optionally, update the user's profile with a display name
-      await updateProfile(userCredential.user, { displayName });
+      // If the current user is anonymous, link the email/password credential to upgrade the account
+      if (auth.currentUser && auth.currentUser.isAnonymous) {
+        const credential = EmailAuthProvider.credential(email, password);
+        await linkWithCredential(auth.currentUser, credential);
+      } else {
+        // Otherwise, create a new user account
+        await createUserWithEmailAndPassword(auth, email, password);
+      }
       navigate('/');
     } catch (err) {
       setError(err.message);
