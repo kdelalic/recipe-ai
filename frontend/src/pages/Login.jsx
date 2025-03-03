@@ -2,20 +2,27 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { auth } from '../utils/firebase';
-import { signInWithEmailAndPassword, signInAnonymously } from 'firebase/auth';
+import { signInWithEmailAndPassword, signInAnonymously, createUserWithEmailAndPassword } from 'firebase/auth';
 import '../styles/Login.css';
 
 function Login() {
+  const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
+  const handleEmailAuth = async (e) => {
     e.preventDefault();
     setError('');
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      if (isSignUp) {
+        // Create a new user with email and password
+        await createUserWithEmailAndPassword(auth, email, password);
+      } else {
+        // Sign in with email and password
+        await signInWithEmailAndPassword(auth, email, password);
+      }
       navigate('/');
     } catch (err) {
       setError(err.message);
@@ -34,9 +41,9 @@ function Login() {
 
   return (
     <div className="login-container">
-      <h1>Login</h1>
+      <h1>{isSignUp ? 'Sign Up' : 'Login'}</h1>
       {error && <p className="error">{error}</p>}
-      <form onSubmit={handleLogin}>
+      <form onSubmit={handleEmailAuth}>
         <input
           type="email"
           placeholder="Email"
@@ -51,10 +58,18 @@ function Login() {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-        <button type="submit">Login</button>
+        <button type="submit">{isSignUp ? 'Sign Up' : 'Login'}</button>
       </form>
-      <hr />
       <button onClick={handleAnonymousLogin}>Continue as Guest</button>
+      <p>
+        {isSignUp ? 'Already have an account?' : "Don't have an account?"}{' '}
+        <span
+          className="toggle-auth"
+          onClick={() => setIsSignUp(!isSignUp)}
+        >
+          {isSignUp ? 'Login' : 'Sign Up'}
+        </span>
+      </p>
     </div>
   );
 }
