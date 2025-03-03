@@ -84,21 +84,20 @@ button:disabled {
     margin: 1rem;
     padding: 0.5rem;
   }
-  
+
   input[type="text"] {
     width: 100%;
     margin: 0 0 0.5rem 0;
   }
-  
+
   button {
     width: 100%;
-    margin-bottom: 0.5rem;
   }
-  
+
   .recipe {
     padding: 0.75rem;
   }
-  
+
   .link-button {
     width: 100%;
     box-sizing: border-box;
