@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import api from '../utils/api';
 import { auth } from '../utils/firebase';
 import '../styles/Home.css';
+import Header from '../components/Header';
 
 function extractTitle(recipeText) {
   const match = recipeText.match(/^# (.*)/m);
@@ -103,24 +104,9 @@ function Home({ user }) {
     setLoading(false);
   };
 
-  const handleSignOut = async () => {
-    try {
-      await auth.signOut();
-      navigate('/login');
-    } catch (err) {
-      console.error('Error signing out:', err);
-      setError('There was an error signing out.');
-    }
-  };
-
   return (
     <div className="App">
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1>AI Recipe Generator</h1>
-        <button className="link-button" onClick={handleSignOut}>
-          Sign Out
-        </button>
-      </header>
+      <Header user={user} />
       <form onSubmit={handleSubmit}>
         <input
           type="text"

@@ -1,12 +1,12 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { auth, signOut } from '../utils/firebase';
-import './Header.css';
+import { auth } from '../utils/firebase';
+import '../styles/Header.css';
 
 function Header({ user }) {
   const navigate = useNavigate();
   const handleSignOut = async () => {
     try {
-      await signOut(auth);
+      await auth.signOut(auth);
       navigate('/login');
     } catch (err) {
       console.error('Error signing out:', err);

@@ -29,6 +29,19 @@ CORS(
 )
 
 
+def get_uid_from_request(request):
+    auth_header = request.headers.get("Authorization")
+    if not auth_header:
+        return None, jsonify({"error": "Authorization header missing"}), 401
+    token = auth_header.split("Bearer ")[-1]
+    try:
+        decoded_token = firebase_auth.verify_id_token(token)
+        uid = decoded_token["uid"]
+        return uid, None, None
+    except Exception as e:
+        return None, jsonify({"error": "Invalid token: " + str(e)}), 401
+
+
 format = """- A title as a level 1 header.
 - A short description immediately under the title.
 - An 'Ingredients' section as a level 2 header with a bullet list.
@@ -40,15 +53,9 @@ Ensure that the markdown headers are exactly as specified."""
 
 @app.route("/api/generate-recipe", methods=["POST"])
 def generate_recipe():
-    auth_header = request.headers.get("Authorization")
-    if not auth_header:
-        return jsonify({"error": "Authorization header missing"}), 401
-    token = auth_header.split("Bearer ")[-1]
-    try:
-        decoded_token = firebase_auth.verify_id_token(token)
-        uid = decoded_token["uid"]
-    except Exception as e:
-        return jsonify({"error": "Invalid token: " + str(e)}), 401
+    uid, error_response, status_code = get_uid_from_request(request)
+    if error_response:
+        return error_response, status_code
 
     data = request.get_json()
     print(f"Request body: {data}")
@@ -110,6 +117,20 @@ def update_recipe():
             400,
         )
 
+    uid, error_response, status_code = get_uid_from_request(request)
+    if error_response:
+        return error_response, status_code
+
+    doc_ref = db.collection("recipes").document(recipe_id)
+    doc = doc_ref.get()
+    if not doc.exists:
+        return jsonify({"error": "Recipe not found"}), 404
+    data_doc = doc.to_dict()
+
+    # Check if the recipe belongs to the current user
+    if data_doc.get("uid") != uid:
+        return jsonify({"error": "Unauthorized access"}), 403
+
     # Build a prompt that instructs the model to update the recipe while preserving its original structure.
     update_prompt = (
         "Below is a recipe:\n\n"
@@ -163,8 +184,9 @@ def get_recipe(recipe_id):
             return jsonify({"error": "Recipe not found"}), 404
         data = doc.to_dict()
         recipe = data.get("recipe", "")
+        uid = data.get("uid", "")
         timestamp = data.get("timestamp", "")
-        return jsonify({"recipe": data.get("recipe", ""), "timestamp": timestamp})
+        return jsonify({"recipe": recipe, "timestamp": timestamp, "uid": uid})
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({"error": str(e)}), 500
@@ -172,15 +194,9 @@ def get_recipe(recipe_id):
 
 @app.route("/api/recipe-history", methods=["GET"])
 def get_recipe_history():
-    auth_header = request.headers.get("Authorization")
-    if not auth_header:
-        return jsonify({"error": "Authorization header missing"}), 401
-    token = auth_header.split("Bearer ")[-1]
-    try:
-        decoded_token = firebase_auth.verify_id_token(token)
-        uid = decoded_token["uid"]
-    except Exception as e:
-        return jsonify({"error": "Invalid token: " + str(e)}), 401
+    uid, error_response, status_code = get_uid_from_request(request)
+    if error_response:
+        return error_response, status_code
 
     try:
         recipes_ref = (
@@ -210,15 +226,9 @@ def get_recipe_history():
 
 @app.route("/api/recipe/<recipe_id>/archive", methods=["PATCH"])
 def archive_recipe(recipe_id):
-    auth_header = request.headers.get("Authorization")
-    if not auth_header:
-        return jsonify({"error": "Authorization header missing"}), 401
-    token = auth_header.split("Bearer ")[-1]
-    try:
-        decoded_token = firebase_auth.verify_id_token(token)
-        uid = decoded_token["uid"]
-    except Exception as e:
-        return jsonify({"error": "Invalid token: " + str(e)}), 401
+    uid, error_response, status_code = get_uid_from_request(request)
+    if error_response:
+        return error_response, status_code
 
     try:
         doc_ref = db.collection("recipes").document(recipe_id)

@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
+import Header from '../components/Header';
 import api from '../utils/api';
 import '../styles/Home.css';
 
-function RecipeDetail() {
+function RecipeDetail({ user }) {
   const { id } = useParams();
   const navigate = useNavigate();
   const [recipe, setRecipe] = useState('');
+  const [recipeUID, setRecipeUID] = useState('');
   const [timestamp, setTimestamp] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
@@ -18,8 +20,10 @@ function RecipeDetail() {
     try {
       const response = await api.get(`/api/recipe/${id}`);
       if (response.status !== 200) throw new Error('Network response was not ok');
-      setRecipe(response.data.recipe);
-      setTimestamp(response.data.timestamp);
+      const data = response.data;
+      setRecipe(data.recipe);
+      setTimestamp(data.timestamp);
+      setRecipeUID(data.uid); // Set the UID from the recipe document
     } catch (err) {
       console.error('Error fetching recipe:', err);
       setError('There was an error fetching the recipe.');
@@ -67,7 +71,7 @@ function RecipeDetail() {
 
   return (
     <div className="App">
-      <h1>Recipe Detail</h1>
+      <Header user={user} />
       <Link to="/" className="link-button">Back to Home</Link>
       {loading ? (
         <p>Loading recipe...</p>
@@ -83,22 +87,26 @@ function RecipeDetail() {
             })}
           </p>
           <ReactMarkdown>{recipe}</ReactMarkdown>
-          <div className="update-section" style={{ marginTop: '1rem' }}>
-            <input
-              type="text"
-              placeholder="Enter modifications (e.g., remove pork belly)"
-              value={modification}
-              onChange={(e) => setModification(e.target.value)}
-            />
-            <button type="submit" onClick={handleUpdateRecipe} disabled={updateLoading || !modification}>
-              {updateLoading ? 'Updating...' : 'Update Recipe'}
-            </button>
-          </div>
-          <div className="recipe-actions">
-            <button onClick={handleDelete} className="link-button" style={{ marginTop: '1rem' }}>
-              Delete Recipe
-            </button>
-          </div>
+          {user && recipeUID === user.uid && (
+            <div className="update-section" style={{ marginTop: '1rem' }}>
+              <input
+                type="text"
+                placeholder="Enter modifications (e.g., remove pork belly)"
+                value={modification}
+                onChange={(e) => setModification(e.target.value)}
+              />
+              <button type="submit" onClick={handleUpdateRecipe} disabled={updateLoading || !modification}>
+                {updateLoading ? 'Updating...' : 'Update Recipe'}
+              </button>
+            </div>
+          )}
+          {user && recipeUID === user.uid && (
+            <div className="recipe-actions">
+              <button onClick={handleDelete} className="link-button" style={{ marginTop: '1rem' }}>
+                Delete Recipe
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>
