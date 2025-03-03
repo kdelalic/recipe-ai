@@ -7,8 +7,6 @@ import '../styles/Header.css';
 function Header({ user }) {
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
-
-  // A ref to the container that holds the icon and dropdown
   const dropdownRef = useRef(null);
 
   const handleSignOut = async () => {
@@ -20,6 +18,10 @@ function Header({ user }) {
     }
   };
 
+  const handleSignUp = () => {
+    navigate('/signup');
+  };
+
   const toggleDropdown = () => {
     setDropdownOpen((prev) => !prev);
   };
@@ -27,14 +29,10 @@ function Header({ user }) {
   // Close dropdown if clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setDropdownOpen(false);
       }
     }
-    // Listen for clicks anywhere in the document
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
@@ -46,12 +44,14 @@ function Header({ user }) {
       <Link to="/" className="logo">AI Recipe Generator</Link>
       {user && (
         <div className="profile-menu" ref={dropdownRef}>
-          <FaUserCircle
-            className="profile-icon"
-            onClick={toggleDropdown}
-          />
+          <FaUserCircle className="profile-icon" onClick={toggleDropdown} />
           {dropdownOpen && (
             <div className="dropdown">
+              {user.isAnonymous && (
+                <button onClick={handleSignUp} className="dropdown-item">
+                  Sign Up
+                </button>
+              )}
               <button onClick={handleSignOut} className="dropdown-item">
                 Sign Out
               </button>

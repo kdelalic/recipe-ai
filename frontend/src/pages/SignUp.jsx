@@ -1,31 +1,24 @@
-// pages/Login.jsx
+// pages/SignUp.jsx
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { auth } from '../utils/firebase';
-import { signInWithEmailAndPassword, signInAnonymously } from 'firebase/auth';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import '../styles/Login.css';
 
-function Login() {
+function SignUp() {
+  const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleEmailAuth = async (e) => {
+  const handleSignUp = async (e) => {
     e.preventDefault();
     setError('');
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      navigate('/');
-    } catch (err) {
-      setError(err.message);
-    }
-  };
-
-  const handleAnonymousLogin = async () => {
-    setError('');
-    try {
-      await signInAnonymously(auth);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      // Optionally, update the user's profile with a display name
+      await updateProfile(userCredential.user, { displayName });
       navigate('/');
     } catch (err) {
       setError(err.message);
@@ -34,9 +27,16 @@ function Login() {
 
   return (
     <div className="login-container">
-      <h1>Login</h1>
+      <h1>Sign Up</h1>
       {error && <p className="error">{error}</p>}
-      <form onSubmit={handleEmailAuth}>
+      <form onSubmit={handleSignUp}>
+        <input
+          type="text"
+          placeholder="Display Name"
+          value={displayName}
+          onChange={(e) => setDisplayName(e.target.value)}
+          required
+        />
         <input
           type="email"
           placeholder="Email"
@@ -51,16 +51,13 @@ function Login() {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
-        <button type="submit" className="login-button">Login</button>
+        <button type="submit" className="signup-button">Sign Up</button>
       </form>
       <p>
-        Don't have an account?{' '}
-        <Link to="/signup" className="toggle-auth">Sign Up</Link>
+        Already have an account? <Link to="/login" className="toggle-auth">Login</Link>
       </p>
-      <hr />
-      <button onClick={handleAnonymousLogin}>Continue as Guest</button>
     </div>
   );
 }
 
-export default Login;
+export default SignUp;
