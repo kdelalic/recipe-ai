@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
+import rehypeRaw from 'rehype-raw';
 import api from '../utils/api';
-import { auth } from '../utils/firebase';
 import '../styles/Home.css';
+import { computeInlineDiff } from '../utils/diffHelper';
 import Header from '../components/Header';
 
 function extractTitle(recipeText) {
@@ -12,10 +13,11 @@ function extractTitle(recipeText) {
 }
 
 function Home({ user }) {
-  const navigate = useNavigate();
+  const recipeRef = useRef(null);
   const [input, setInput] = useState('');
   const [currentId, setCurrentId] = useState('');
   const [currentRecipe, setCurrentRecipe] = useState('');
+  const [prevRecipe, setPrevRecipe] = useState('');
   const [history, setHistory] = useState([]); // Array of { id, title, recipe }
   const [loading, setLoading] = useState(false);
   const [historyLoading, setHistoryLoading] = useState(true);
@@ -60,6 +62,7 @@ function Home({ user }) {
       const title = extractTitle(recipeText);
       setCurrentId(data.id);
       setCurrentRecipe(recipeText);
+      setPrevRecipe(data.recipe);
       setHistory((prevHistory) => [{ id: data.id, title, recipe: recipeText }, ...prevHistory]);
       if (enableImageGeneration) {
         handleGenerateImage(recipeText);
@@ -89,6 +92,7 @@ function Home({ user }) {
     if (!modification) return;
     setLoading(true);
     try {
+      setPrevRecipe(currentRecipe);
       const response = await api.post('/api/update-recipe', {
         id: currentId,
         original_recipe: currentRecipe,
@@ -97,12 +101,20 @@ function Home({ user }) {
       if (response.status !== 200) throw new Error('Update failed');
       setCurrentRecipe(response.data.recipe);
       setModification('');
+
+      // Scroll the recipe element into view
+      if (recipeRef.current) {
+        recipeRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
     } catch (err) {
       console.error('Error updating recipe:', err);
       setError('There was an error updating the recipe.');
     }
     setLoading(false);
   };
+
+  // Compute the diff HTML for inline highlighting.
+  const diffHtml = prevRecipe !== currentRecipe ? computeInlineDiff(prevRecipe, currentRecipe) : currentRecipe;
 
   return (
     <div className="App">
@@ -120,8 +132,8 @@ function Home({ user }) {
       </form>
       {error && <p className="error">{error}</p>}
       {currentRecipe && (
-        <div className="recipe">
-          <ReactMarkdown>{currentRecipe}</ReactMarkdown>
+        <div className="recipe" ref={recipeRef}>
+          <ReactMarkdown rehypePlugins={[rehypeRaw]}>{diffHtml}</ReactMarkdown>
           {enableImageGeneration && (
             <>
               {imageLoading ? (

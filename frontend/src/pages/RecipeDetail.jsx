@@ -1,14 +1,18 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
+import rehypeRaw from 'rehype-raw';
 import Header from '../components/Header';
 import api from '../utils/api';
+import { computeInlineDiff } from '../utils/diffHelper';
 import '../styles/RecipeDetail.css';
 
 function RecipeDetail({ user }) {
+  const recipeRef = useRef(null);
   const { id } = useParams();
   const navigate = useNavigate();
   const [recipe, setRecipe] = useState('');
+  const [prevRecipe, setPrevRecipe] = useState('');
   const [recipeUID, setRecipeUID] = useState('');
   const [timestamp, setTimestamp] = useState('');
   const [displayName, setDisplayName] = useState('');
@@ -23,6 +27,7 @@ function RecipeDetail({ user }) {
       if (response.status !== 200) throw new Error('Network response was not ok');
       const data = response.data;
       setRecipe(data.recipe);
+      setPrevRecipe(data.recipe);
       setTimestamp(data.timestamp);
       setRecipeUID(data.uid);
       setDisplayName(data.displayName);
@@ -55,20 +60,29 @@ function RecipeDetail({ user }) {
     if (!modification) return;
     setUpdateLoading(true);
     try {
+      setPrevRecipe(recipe);
       const response = await api.post('/api/update-recipe', {
-        id,  // Recipe ID from the URL parameters or state.
+        id,
         original_recipe: recipe,
         modifications: modification,
       });
       if (response.status !== 200) throw new Error('Update failed');
       setRecipe(response.data.recipe);
       setModification('');
+      
+      // Scroll the recipe element into view
+      if (recipeRef.current) {
+        recipeRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
     } catch (err) {
       console.error('Error updating recipe:', err);
       setError('There was an error updating the recipe.');
     }
     setUpdateLoading(false);
   };
+
+  // Compute the diff HTML for inline highlighting.
+  const diffHtml = prevRecipe !== recipe ? computeInlineDiff(prevRecipe, recipe) : recipe;
 
   return (
     <div className="App">
@@ -79,7 +93,7 @@ function RecipeDetail({ user }) {
       ) : error ? (
         <p className="error">{error}</p>
       ) : (
-        <div className="recipe">
+        <div className="recipe" ref={recipeRef}>
           <div className="recipe-info">
             <p>{displayName}</p>
             <p>
@@ -90,7 +104,7 @@ function RecipeDetail({ user }) {
               })}
             </p>
           </div>
-          <ReactMarkdown>{recipe}</ReactMarkdown>
+          <ReactMarkdown rehypePlugins={[rehypeRaw]}>{diffHtml}</ReactMarkdown>
           {user && recipeUID === user.uid && (
             <div className="update-section" style={{ marginTop: '1rem' }}>
               <input

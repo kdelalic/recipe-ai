@@ -9,3 +9,12 @@
   margin: 0;
   font-size: 0.9rem;
 }
+
+.diff-added {
+  background-color: #d4fcbc;
+}
+
+.diff-removed {
+  background-color: #fbb6c2;
+  text-decoration: line-through;
+}
