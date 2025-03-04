@@ -78,6 +78,10 @@ button:disabled {
   background-color: #27914b;
 }
 
+.recipe-skeleton {
+  text-align: left;
+}
+
 /* Mobile-specific styling */
 @media (max-width: 600px) {
   .App {

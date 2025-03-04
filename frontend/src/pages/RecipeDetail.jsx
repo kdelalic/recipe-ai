@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import Header from '../components/Header';
+import RecipeSkeleton from '../components/RecipeSkeleton';
 import api from '../utils/api';
 import { computeInlineDiff } from '../utils/diffHelper';
 import '../styles/RecipeDetail.css';
@@ -89,7 +90,7 @@ function RecipeDetail({ user }) {
       <Header user={user} />
       <Link to="/" className="link-button">Back to Home</Link>
       {loading ? (
-        <p>Loading recipe...</p>
+        <RecipeSkeleton />
       ) : error ? (
         <p className="error">{error}</p>
       ) : (

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
+import RecipeSkeleton from '../components/RecipeSkeleton';
 import api from '../utils/api';
 import '../styles/Home.css';
 import { computeInlineDiff } from '../utils/diffHelper';
@@ -131,32 +132,37 @@ function Home({ user }) {
         </button>
       </form>
       {error && <p className="error">{error}</p>}
-      {currentRecipe && (
-        <div className="recipe" ref={recipeRef}>
-          <ReactMarkdown rehypePlugins={[rehypeRaw]}>{diffHtml}</ReactMarkdown>
-          {enableImageGeneration && (
-            <>
-              {imageLoading ? (
-                <p>Generating image...</p>
-              ) : imageUrl ? (
-                <div className="image-preview">
-                  <img src={imageUrl} alt="Dish Preview" />
-                </div>
-              ) : null}
-            </>
-          )}
-          <div className="modification-section">
-            <input
-              type="text"
-              placeholder="Enter modifications (e.g., remove pork belly)"
-              value={modification}
-              onChange={(e) => setModification(e.target.value)}
-            />
-            <button type="submit" onClick={handleUpdateRecipe} disabled={loading || !modification}>
-              {loading ? 'Updating...' : 'Update Recipe'}
-            </button>
+      
+      {loading && !currentRecipe ? (
+        <RecipeSkeleton />
+      ) : (
+        currentRecipe && (
+          <div className="recipe" ref={recipeRef}>
+            <ReactMarkdown rehypePlugins={[rehypeRaw]}>{diffHtml}</ReactMarkdown>
+            {enableImageGeneration && (
+              <>
+                {imageLoading ? (
+                  <p>Generating image...</p>
+                ) : imageUrl ? (
+                  <div className="image-preview">
+                    <img src={imageUrl} alt="Dish Preview" />
+                  </div>
+                ) : null}
+              </>
+            )}
+            <div className="modification-section">
+              <input
+                type="text"
+                placeholder="Enter modifications (e.g., remove pork belly)"
+                value={modification}
+                onChange={(e) => setModification(e.target.value)}
+              />
+              <button type="submit" onClick={handleUpdateRecipe} disabled={loading || !modification}>
+                {loading ? 'Updating...' : 'Update Recipe'}
+              </button>
+            </div>
           </div>
-        </div>
+        )
       )}
       {historyLoading ? (
         <p>Loading history...</p>
