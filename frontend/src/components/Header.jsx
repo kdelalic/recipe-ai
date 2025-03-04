@@ -47,6 +47,9 @@ function Header({ user }) {
           <FaUserCircle className="profile-icon" onClick={toggleDropdown} />
           {dropdownOpen && (
             <div className="dropdown">
+              <div className="dropdown-header">
+                {user.displayName || 'Guest'}
+              </div>
               {user.isAnonymous && (
                 <button onClick={handleSignUp} className="dropdown-item">
                   Sign Up
