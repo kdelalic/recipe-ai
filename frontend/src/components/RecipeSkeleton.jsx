@@ -3,7 +3,7 @@ import 'react-loading-skeleton/dist/skeleton.css';
 
 function RecipeSkeleton() {
   return (
-    <div className="recipe-skeleton" style={{ marginTop: '2rem' }}>
+    <div className="recipe recipe-skeleton" style={{ marginTop: '2rem' }}>
         {/* Title Skeleton */}
         <Skeleton height={40} width="60%" style={{ marginBottom: '1rem' }} />
         {/* Introduction Paragraph Skeleton */}
