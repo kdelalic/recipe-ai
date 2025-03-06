@@ -1,12 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import ReactMarkdown from 'react-markdown';
-import rehypeRaw from 'rehype-raw';
+import RecipeView from '../components/RecipeView';
 import RecipeSkeleton from '../components/RecipeSkeleton';
 import HistorySkeleton from '../components/HistorySkeleton';
 import api from '../utils/api';
 import '../styles/Home.css';
-import { computeInlineDiff } from '../utils/diffHelper';
+import { computeRecipeDiffAsHtml } from '../utils/diffHelper';
 import Header from '../components/Header';
 
 function extractTitle(recipeText) {
@@ -20,7 +19,7 @@ function Home({ user }) {
   const [currentId, setCurrentId] = useState('');
   const [currentRecipe, setCurrentRecipe] = useState('');
   const [prevRecipe, setPrevRecipe] = useState('');
-  const [history, setHistory] = useState([]); // Array of { id, title, recipe }
+  const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(false);
   const [historyLoading, setHistoryLoading] = useState(true);
   const [error, setError] = useState('');
@@ -60,12 +59,14 @@ function Home({ user }) {
       const response = await api.post('/api/generate-recipe', { prompt: input });
       if (response.status !== 200) throw new Error('Network response was not ok');
       const data = await response.data;
-      const recipeText = data.recipe;
-      const title = extractTitle(recipeText);
+      const recipeData = data.recipe;
       setCurrentId(data.id);
-      setCurrentRecipe(recipeText);
-      setPrevRecipe(data.recipe);
-      setHistory((prevHistory) => [{ id: data.id, title, recipe: recipeText }, ...prevHistory]);
+      setCurrentRecipe(recipeData);
+      setPrevRecipe(recipeData);
+      setHistory((prevHistory) => [
+        { id: data.id, title: recipeData.title, recipe: recipeData },
+        ...prevHistory,
+      ]);
       if (enableImageGeneration) {
         handleGenerateImage(recipeText);
       }
@@ -116,7 +117,9 @@ function Home({ user }) {
   };
 
   // Compute the diff HTML for inline highlighting.
-  const diffHtml = prevRecipe !== currentRecipe ? computeInlineDiff(prevRecipe, currentRecipe) : currentRecipe;
+  const diffRecipe = prevRecipe !== currentRecipe
+    ? computeRecipeDiffAsHtml(prevRecipe, currentRecipe)
+    : currentRecipe;
 
   return (
     <div className="App">
@@ -139,7 +142,7 @@ function Home({ user }) {
       ) : (
         currentRecipe && (
           <div className="recipe" ref={recipeRef}>
-            <ReactMarkdown rehypePlugins={[rehypeRaw]}>{diffHtml}</ReactMarkdown>
+            <RecipeView recipe={diffRecipe} />
             {enableImageGeneration && (
               <>
                 {imageLoading ? (
@@ -173,7 +176,7 @@ function Home({ user }) {
           <div className="history-buttons">
             {history.map((item, index) => (
               <Link key={index} to={`/recipe/${item.id}`} className="link-button">
-                {item.title}
+                {item.recipe.title}
               </Link>
             ))}
           </div>

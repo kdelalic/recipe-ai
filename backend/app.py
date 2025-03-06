@@ -9,6 +9,8 @@ from firebase_admin import auth as firebase_auth
 from google.cloud.firestore_v1.base_query import FieldFilter
 from dotenv import load_dotenv
 from flask_cors import CORS
+from pydantic import BaseModel
+from typing import List
 
 load_dotenv()
 
@@ -29,6 +31,14 @@ CORS(
 )
 
 
+class Recipe(BaseModel):
+    title: str
+    description: str
+    ingredients: List[str]
+    instructions: List[str]
+    notes: List[str]
+
+
 def get_uid_from_request(request):
     auth_header = request.headers.get("Authorization")
     if not auth_header:
@@ -40,15 +50,6 @@ def get_uid_from_request(request):
         return uid, None, None
     except Exception as e:
         return None, jsonify({"error": "Invalid token: " + str(e)}), 401
-
-
-format = """- A title as a level 1 header.
-- A short description immediately under the title.
-- An 'Ingredients' section as a level 2 header with a bullet list.
-- An 'Instructions' section as a level 2 header with a numbered list.
-- A 'Notes' section as a level 2 header with a bullet list.
-
-Ensure that the markdown headers are exactly as specified."""
 
 
 @app.route("/api/generate-recipe", methods=["POST"])
@@ -63,40 +64,36 @@ def generate_recipe():
     if not prompt:
         return jsonify({"error": "No prompt provided"}), 400
 
-    system_message = (
-        """You are a creative chef with the precision and depth of recipes found on Serious Eats and the expertise of Kenji J. Alt-Lopez. 
-When given a prompt, generate a recipe that is both detailed and practical, reflecting the thorough testing and clear instructions characteristic of those sources. 
-In addition to the title, include a short description immediately below the title that summarizes the dish.
-
-The output must include:"""
-        + format
-    )
+    system_message = """You are a creative chef with the precision and depth of recipes found on Serious Eats and the expertise of Kenji J. Alt-Lopez. 
+When given a prompt, generate a recipe that is both detailed and practical, reflecting the thorough testing and clear instructions characteristic of those sources."""
 
     try:
-        response = client.chat.completions.create(
+        response = client.beta.chat.completions.parse(
             model="gpt-4o-mini",
             messages=[
                 {"role": "system", "content": system_message},
                 {"role": "user", "content": prompt},
             ],
             max_tokens=1000,
+            response_format=Recipe,
         )
 
         print(f"Response: {response.to_json()}")
 
-        recipe = response.choices[0].message.content.strip()
+        recipe = response.choices[0].message.parsed
+        recipe_dict = recipe.model_dump()
 
         # Save the generated recipe into Firestore
         recipe_data = {
             "uid": uid,
             "prompt": prompt,
-            "recipe": recipe,
+            "recipe": recipe_dict,
             "timestamp": datetime.datetime.now(datetime.timezone.utc),
             "archived": False,
         }
         # 'add' returns a tuple (update_time, doc_ref)
         _, doc_ref = db.collection("recipes").add(recipe_data)
-        return jsonify({"recipe": recipe, "id": doc_ref.id})
+        return jsonify({"recipe": recipe_dict, "id": doc_ref.id})
     except Exception as e:
         print(f"Error: {e}")
         return jsonify({"error": str(e)}), 500
@@ -136,13 +133,11 @@ def update_recipe():
         "Below is a recipe:\n\n"
         f"{original_recipe}\n\n"
         "Modify this recipe based on the following instructions, changing only the specified parts:\n\n"
-        f"{modifications}\n\n"
-        "Keep the same markdown format as before:\n\n"
-        f"{format}"
+        f"{modifications}"
     )
 
     try:
-        response = client.chat.completions.create(
+        response = client.beta.chat.completions.parse(
             model="gpt-4o-mini",
             messages=[
                 {
@@ -152,24 +147,26 @@ def update_recipe():
                 {"role": "user", "content": update_prompt},
             ],
             max_tokens=1000,
+            response_format=Recipe,
         )
 
         print(f"Response: {response.to_json()}")
 
-        updated_recipe = response.choices[0].message.content.strip()
+        updated_recipe = response.choices[0].message.parsed
+        updated_recipe_dict = updated_recipe.model_dump()
 
         # Update the existing document in Firestore with the new recipe content.
         doc_ref = db.collection("recipes").document(recipe_id)
         doc_ref.update(
             {
-                "recipe": updated_recipe,
+                "recipe": updated_recipe_dict,
                 "timestamp": datetime.datetime.now(
                     datetime.timezone.utc
                 ),  # Update timestamp as well.
             }
         )
 
-        return jsonify({"recipe": updated_recipe})
+        return jsonify({"recipe": updated_recipe_dict})
     except Exception as e:
         print(f"Error updating recipe: {e}")
         return jsonify({"error": str(e)}), 500
@@ -218,12 +215,9 @@ def get_recipe_history():
         history = []
         for doc in docs:
             data = doc.to_dict()
-            match = re.search(r"^# (.*)", data.get("recipe", ""), re.MULTILINE)
-            title = match.group(1).strip() if match else "Recipe"
             history.append(
                 {
                     "id": doc.id,
-                    "title": title,
                     "recipe": data.get("recipe", ""),
                 }
             )

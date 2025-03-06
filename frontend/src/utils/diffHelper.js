@@ -1,26 +1,49 @@
+// diffHelper.js
 import { diffWords } from 'diff';
 
-export function computeInlineDiff(oldText, newText) {
-  const diff = diffWords(oldText, newText);
-  // Wrap added and removed parts in spans with CSS classes.
-  const diffHtml = diff
-    .map((part) => {
+// For a single string field, return an HTML string.
+function diffFieldAsHtml(oldStr, newStr) {
+  const oldText = oldStr || '';
+  const newText = newStr || '';
+
+  const parts = diffWords(oldText, newText);
+
+  return parts
+    .map(part => {
       if (part.added) {
-        // Split added text on newline so newlines are not inside the span.
-        return part.value
-          .split('\n')
-          .map(segment => segment ? `<span class="diff-added">${segment}</span>` : '')
-          .join('\n');
+        return `<span class="diff-added">${part.value}</span>`;
       } else if (!part.removed) {
         return part.value;
       }
     })
     .join('');
+}
 
-  // Fix list markers: unwrap numbers or numbers with a dot that are wrapped in a span.
-  const numericFixedHtml = diffHtml
-    .replace(/<span class="diff-added">(\d+)<\/span>\.\s*/g, '$1. <span class="diff-added">')
-    .replace(/<span class="diff-added">(\d+\.\s)/g, '$1<span class="diff-added">');
+/**
+ * Compare two "recipe" objects and return a new object
+ * whose fields are HTML strings with <span> tags around changes.
+ */
+export function computeRecipeDiffAsHtml(oldRecipe, newRecipe) {
+  if (!oldRecipe || !newRecipe) return newRecipe;
 
-  return numericFixedHtml;
+  // For array fields, diff each element individually and
+  // join them with line breaks or bullets, etc.
+  const diffArrayAsHtml = (oldArr = [], newArr = []) => {
+    const length = Math.max(oldArr.length, newArr.length);
+    const results = [];
+    for (let i = 0; i < length; i++) {
+      const oldItem = oldArr[i] || '';
+      const newItem = newArr[i] || '';
+      results.push(diffFieldAsHtml(oldItem, newItem));
+    }
+    return results;
+  };
+
+  return {
+    title: diffFieldAsHtml(oldRecipe.title, newRecipe.title),
+    description: diffFieldAsHtml(oldRecipe.description, newRecipe.description),
+    ingredients: diffArrayAsHtml(oldRecipe.ingredients, newRecipe.ingredients),
+    instructions: diffArrayAsHtml(oldRecipe.instructions, newRecipe.instructions),
+    notes: diffArrayAsHtml(oldRecipe.notes, newRecipe.notes),
+  };
 }

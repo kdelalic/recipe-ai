@@ -1,19 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import ReactMarkdown from 'react-markdown';
-import rehypeRaw from 'rehype-raw';
 import Header from '../components/Header';
+import RecipeView from '../components/RecipeView';
 import RecipeSkeleton from '../components/RecipeSkeleton';
 import api from '../utils/api';
-import { computeInlineDiff } from '../utils/diffHelper';
+import { computeRecipeDiffAsHtml } from '../utils/diffHelper';
 import '../styles/RecipeDetail.css';
 
 function RecipeDetail({ user }) {
   const recipeRef = useRef(null);
   const { id } = useParams();
   const navigate = useNavigate();
-  const [recipe, setRecipe] = useState('');
-  const [prevRecipe, setPrevRecipe] = useState('');
+  const [recipe, setRecipe] = useState(null);
+  const [prevRecipe, setPrevRecipe] = useState(null);
   const [recipeUID, setRecipeUID] = useState('');
   const [timestamp, setTimestamp] = useState('');
   const [displayName, setDisplayName] = useState('');
@@ -71,7 +70,7 @@ function RecipeDetail({ user }) {
       setRecipe(response.data.recipe);
       setModification('');
       
-      // Scroll the recipe element into view
+      // Scroll the recipe element into view after updating.
       if (recipeRef.current) {
         recipeRef.current.scrollIntoView({ behavior: 'smooth' });
       }
@@ -83,7 +82,9 @@ function RecipeDetail({ user }) {
   };
 
   // Compute the diff HTML for inline highlighting.
-  const diffHtml = prevRecipe !== recipe ? computeInlineDiff(prevRecipe, recipe) : recipe;
+  const diffRecipe = prevRecipe !== recipe
+    ? computeRecipeDiffAsHtml(prevRecipe, recipe)
+    : recipe;
 
   return (
     <div className="App">
@@ -105,7 +106,7 @@ function RecipeDetail({ user }) {
               })}
             </p>
           </div>
-          <ReactMarkdown rehypePlugins={[rehypeRaw]}>{diffHtml}</ReactMarkdown>
+          <RecipeView recipe={diffRecipe} />
           {user && recipeUID === user.uid && (
             <div className="update-section" style={{ marginTop: '1rem' }}>
               <input
@@ -121,7 +122,7 @@ function RecipeDetail({ user }) {
           )}
           {user && recipeUID === user.uid && (
             <div className="recipe-actions">
-              <button onClick={handleDelete} className="link-button" style={{ marginTop: '1rem' }}>
+              <button onClick={handleDelete} style={{ marginTop: '1rem' }}>
                 Delete Recipe
               </button>
             </div>
