@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import ReactMarkdown from 'react-markdown';
 import rehypeRaw from 'rehype-raw';
 import RecipeSkeleton from '../components/RecipeSkeleton';
+import HistorySkeleton from '../components/HistorySkeleton';
 import api from '../utils/api';
 import '../styles/Home.css';
 import { computeInlineDiff } from '../utils/diffHelper';
@@ -164,24 +165,22 @@ function Home({ user }) {
           </div>
         )
       )}
-      {historyLoading ? (
-        <p>Loading history...</p>
-      ) : (
-        <div className="history">
-          <h2>Recipe History</h2>
-          {history.length > 0 ? (
-            <div className="history-buttons">
-              {history.map((item, index) => (
-                <Link key={index} to={`/recipe/${item.id}`} className="link-button">
-                  {item.title}
-                </Link>
-              ))}
-            </div>
-          ) : (
-            <p>No recipes generated yet.</p>
-          )}
-        </div>
-      )}
+      <div className="history">
+        <h2>Recipe History</h2>
+        {historyLoading ? (
+          <HistorySkeleton />
+        ) : history.length > 0 ? (
+          <div className="history-buttons">
+            {history.map((item, index) => (
+              <Link key={index} to={`/recipe/${item.id}`} className="link-button">
+                {item.title}
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <p>No recipes generated yet.</p>
+        )}
+      </div>
     </div>
   );
 }

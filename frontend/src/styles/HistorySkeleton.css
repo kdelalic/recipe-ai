@@ -1,0 +1,25 @@
+.history-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* Desktop skeleton button */
+.skeleton-button {
+  width: 180px; /* match your real button width on desktop */
+  height: 40px; /* match your real button height */
+  border-radius: 4px; /* same radius as your real buttons */
+  margin: 0.3rem;
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  .skeleton-button-wrapper {
+    width: 100%;
+  }
+
+  .skeleton-button {
+    width: 100%;
+    margin: 0.25rem 0;
+  }
+}
