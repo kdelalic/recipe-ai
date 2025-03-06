@@ -1,6 +1,6 @@
-// AuthProvider.jsx
 import { useEffect, useState } from 'react';
 import { auth, onAuthStateChanged } from '../utils/firebase';
+import Spinner from './Spinner';
 
 function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -14,7 +14,7 @@ function AuthProvider({ children }) {
     return () => unsubscribe();
   }, []);
 
-  if (loadingAuth) return <div>Loading authentication...</div>;
+  if (loadingAuth) return <Spinner />;
 
   return children(user);
 }
