@@ -1,7 +1,9 @@
 // diffHelper.js
 import { diffWords } from 'diff';
 
-// For a single string field, return an HTML string.
+// For a single string field, return an HTML string
+// that highlights added text with <span class="diff-added">
+// and omits removed text (or you could include <span class="diff-removed"> for removal).
 function diffFieldAsHtml(oldStr, newStr) {
   const oldText = oldStr || '';
   const newText = newStr || '';
@@ -12,36 +14,92 @@ function diffFieldAsHtml(oldStr, newStr) {
     .map(part => {
       if (part.added) {
         return `<span class="diff-added">${part.value}</span>`;
-      } else if (!part.removed) {
-        return part.value;
+      } else if (part.removed) {
+        // If you want to visibly show removed parts, you could do:
+        // return `<span class="diff-removed">${part.value}</span>`;
+        // But if you only highlight additions, just omit removed parts:
+        return ''; 
+      } else {
+        return part.value; // unchanged text
       }
     })
     .join('');
 }
 
 /**
+ * Compare two arrays of strings (e.g., ingredients or steps) with a simple
+ * alignment approach. If a line is inserted or deleted, only that line is marked
+ * as added/removed. Otherwise, we do a word-level diff for changed lines.
+ *
+ * Returns an array of HTML strings, each of which may contain <span class="diff-added">
+ * or <span class="diff-removed"> parts.
+ */
+function diffArrayAsHtml(oldArr = [], newArr = []) {
+  const result = [];
+  let i = 0;
+  let j = 0;
+
+  while (i < oldArr.length && j < newArr.length) {
+    if (oldArr[i] === newArr[j]) {
+      // Lines match => unchanged
+      result.push(oldArr[i]);
+      i++;
+      j++;
+    } else if (j + 1 < newArr.length && oldArr[i] === newArr[j + 1]) {
+      // newArr[j] was inserted
+      result.push(`<span class="diff-added">${newArr[j]}</span>`);
+      j++;
+    } else if (i + 1 < oldArr.length && oldArr[i + 1] === newArr[j]) {
+      // oldArr[i] was removed
+      // If you want to visually show removed lines, do something like:
+      // result.push(`<span class="diff-removed">${oldArr[i]}</span>`);
+      // Otherwise, skip it. We'll assume we want to highlight removed text:
+      i++;
+    } else {
+      // Lines differ => do a word-level diff of these two lines
+      result.push(diffFieldAsHtml(oldArr[i], newArr[j]));
+      i++;
+      j++;
+    }
+  }
+
+  // If oldArr has leftover lines => they were removed
+  while (i < oldArr.length) {
+    i++;
+  }
+
+  // If newArr has leftover lines => they were added
+  while (j < newArr.length) {
+    result.push(`<span class="diff-added">${newArr[j]}</span>`);
+    j++;
+  }
+
+  return result;
+}
+
+/**
  * Compare two "recipe" objects and return a new object
- * whose fields are HTML strings with <span> tags around changes.
+ * whose fields are HTML strings (for single-valued fields)
+ * or arrays of HTML strings (for list fields).
+ *
+ * Example output:
+ * {
+ *   title: "<span class='diff-added'>...</span>",
+ *   description: "...",
+ *   ingredients: ["unchanged", "<span class='diff-added'>...</span>", ...],
+ *   instructions: [...],
+ *   notes: [...]
+ * }
  */
 export function computeRecipeDiffAsHtml(oldRecipe, newRecipe) {
   if (!oldRecipe || !newRecipe) return newRecipe;
 
-  // For array fields, diff each element individually and
-  // join them with line breaks or bullets, etc.
-  const diffArrayAsHtml = (oldArr = [], newArr = []) => {
-    const length = Math.max(oldArr.length, newArr.length);
-    const results = [];
-    for (let i = 0; i < length; i++) {
-      const oldItem = oldArr[i] || '';
-      const newItem = newArr[i] || '';
-      results.push(diffFieldAsHtml(oldItem, newItem));
-    }
-    return results;
-  };
-
   return {
+    // Single string fields => highlight word-level changes.
     title: diffFieldAsHtml(oldRecipe.title, newRecipe.title),
     description: diffFieldAsHtml(oldRecipe.description, newRecipe.description),
+
+    // Array fields => align them, highlight insertions, deletions, or partial changes
     ingredients: diffArrayAsHtml(oldRecipe.ingredients, newRecipe.ingredients),
     instructions: diffArrayAsHtml(oldRecipe.instructions, newRecipe.instructions),
     notes: diffArrayAsHtml(oldRecipe.notes, newRecipe.notes),
