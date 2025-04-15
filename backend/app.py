@@ -1,68 +1,161 @@
 import os
 import datetime
 import re
+from functools import wraps
+import logging
+from cachetools import TTLCache, cached
+import hashlib
 from openai import OpenAI
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, g
 import firebase_admin
 from firebase_admin import credentials, firestore
 from firebase_admin import auth as firebase_auth
 from google.cloud.firestore_v1.base_query import FieldFilter
 from dotenv import load_dotenv
 from flask_cors import CORS
-from pydantic import BaseModel
-from typing import List
+from pydantic import BaseModel, Field, field_validator
+from typing import List, Optional
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+import secrets
 
+# Load environment variables
 load_dotenv()
 
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+logger = logging.getLogger(__name__)
+
 # Initialize Firebase Admin with your service account key
-cred = credentials.Certificate("serviceAccountKey.json")
-firebase_admin.initialize_app(cred)
-db = firestore.client()
+try:
+    cred = credentials.Certificate("serviceAccountKey.json")
+    firebase_admin.initialize_app(cred)
+    db = firestore.client()
+except Exception as e:
+    logger.error(f"Firebase initialization error: {e}")
+    raise
 
 # Initialize OpenAI client
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 app = Flask(__name__)
 
+# Cache for tokens and recipe data
+token_cache = TTLCache(maxsize=1000, ttl=3600)  # Cache tokens for 1 hour
+recipe_cache = TTLCache(maxsize=100, ttl=300)  # Cache recipes for 5 minutes
+
+# Setup rate limiting
+limiter = Limiter(
+    get_remote_address,
+    app=app,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://",
+)
+
+# Configure CORS with secure options
 frontend_urls = os.getenv("FRONTEND_URLS", "http://localhost:5173").split(",")
 CORS(
     app,
-    resources={r"/api/*": {"origins": frontend_urls + ["http://localhost:5173"]}},
+    resources={r"/api/*": {"origins": frontend_urls, "supports_credentials": True}},
+    methods=["GET", "POST", "PATCH", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 
 class Recipe(BaseModel):
-    title: str
-    description: str
-    ingredients: List[str]
-    instructions: List[str]
-    notes: List[str]
+    title: str = Field(..., min_length=1, max_length=200)
+    description: str = Field(..., min_length=1, max_length=2000)
+    ingredients: List[str] = Field(..., min_items=1, max_items=100)
+    instructions: List[str] = Field(..., min_items=1, max_items=100)
+    notes: List[str] = Field([], max_items=20)
+
+    @field_validator("ingredients", "instructions", "notes", mode="before")
+    def validate_length(cls, v):
+        if isinstance(v, list):
+            for item in v:
+                if len(item) > 2000:
+                    raise ValueError("Item too long (max 2000 chars)")
+        return v
 
 
-def get_uid_from_request(request):
-    auth_header = request.headers.get("Authorization")
-    if not auth_header:
-        return None, jsonify({"error": "Authorization header missing"}), 401
-    token = auth_header.split("Bearer ")[-1]
+class RecipeRequest(BaseModel):
+    prompt: str = Field(..., min_length=5, max_length=1000)
+
+
+class UpdateRecipeRequest(BaseModel):
+    id: str = Field(..., min_length=10, max_length=100)
+    original_recipe: str = Field(..., min_length=10)
+    modifications: str = Field(..., min_length=5, max_length=1000)
+
+
+# Function to validate token and get UID
+def get_uid_from_token(token):
+    # Check cache first
+    if token in token_cache:
+        return token_cache[token]
+
     try:
         decoded_token = firebase_auth.verify_id_token(token)
         uid = decoded_token["uid"]
-        return uid, None, None
+        # Store in cache
+        token_cache[token] = uid
+        return uid
     except Exception as e:
-        return None, jsonify({"error": "Invalid token: " + str(e)}), 401
+        logger.warning(f"Invalid token: {str(e)}")
+        return None
+
+
+# Authentication decorator
+def auth_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        auth_header = request.headers.get("Authorization")
+        if not auth_header:
+            return jsonify({"error": "Authorization header missing"}), 401
+
+        token = auth_header.split("Bearer ")[-1]
+        uid = get_uid_from_token(token)
+
+        if not uid:
+            return jsonify({"error": "Invalid or expired token"}), 401
+
+        g.uid = uid
+        return f(*args, **kwargs)
+
+    return decorated_function
+
+
+# Validate input data with Pydantic
+def validate_request(model_class):
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            try:
+                data = request.get_json()
+                model_class(**data)
+                return f(*args, **kwargs)
+            except Exception as e:
+                return jsonify({"error": f"Invalid request data: {str(e)}"}), 400
+
+        return decorated_function
+
+    return decorator
 
 
 @app.route("/api/generate-recipe", methods=["POST"])
+@auth_required
+@validate_request(RecipeRequest)
+@limiter.limit("10 per minute")
 def generate_recipe():
-    uid, error_response, status_code = get_uid_from_request(request)
-    if error_response:
-        return error_response, status_code
-
     data = request.get_json()
-    print(f"Request body: {data}")
     prompt = data.get("prompt", "")
-    if not prompt:
-        return jsonify({"error": "No prompt provided"}), 400
+    uid = g.uid
+
+    logger.info(f"Generate recipe request from user {uid}")
 
     system_message = """You are a creative chef with the precision and depth of recipes found on Serious Eats and the expertise of Kenji J. Alt-Lopez. 
 When given a prompt, generate a recipe that is both detailed and practical, reflecting the thorough testing and clear instructions characteristic of those sources."""
@@ -78,8 +171,6 @@ When given a prompt, generate a recipe that is both detailed and practical, refl
             response_format=Recipe,
         )
 
-        print(f"Response: {response.to_json()}")
-
         recipe = response.choices[0].message.parsed
         recipe_dict = recipe.model_dump()
 
@@ -91,44 +182,52 @@ When given a prompt, generate a recipe that is both detailed and practical, refl
             "timestamp": datetime.datetime.now(datetime.timezone.utc),
             "archived": False,
         }
-        # 'add' returns a tuple (update_time, doc_ref)
+
         _, doc_ref = db.collection("recipes").add(recipe_data)
-        return jsonify({"recipe": recipe_dict, "id": doc_ref.id})
+        recipe_id = doc_ref.id
+
+        # Update cache
+        cache_key = f"recipe_{recipe_id}"
+        recipe_cache[cache_key] = recipe_dict
+
+        return jsonify({"recipe": recipe_dict, "id": recipe_id})
     except Exception as e:
-        print(f"Error: {e}")
-        return jsonify({"error": str(e)}), 500
+        logger.error(f"Error generating recipe: {str(e)}")
+        return jsonify({"error": "Error generating recipe"}), 500
 
 
 @app.route("/api/update-recipe", methods=["POST"])
+@auth_required
+@validate_request(UpdateRecipeRequest)
+@limiter.limit("10 per minute")
 def update_recipe():
     data = request.get_json()
     recipe_id = data.get("id")
     original_recipe = data.get("original_recipe", "")
     modifications = data.get("modifications", "")
+    uid = g.uid
 
-    if not recipe_id or not original_recipe or not modifications:
-        return (
-            jsonify(
-                {"error": "Recipe ID, original recipe, and modifications are required"}
-            ),
-            400,
-        )
+    # Sanitize inputs
+    recipe_id = recipe_id.strip()
+    modifications = modifications.strip()
 
-    uid, error_response, status_code = get_uid_from_request(request)
-    if error_response:
-        return error_response, status_code
+    logger.info(f"Update recipe request for recipe {recipe_id} from user {uid}")
 
     doc_ref = db.collection("recipes").document(recipe_id)
     doc = doc_ref.get()
     if not doc.exists:
         return jsonify({"error": "Recipe not found"}), 404
+
     data_doc = doc.to_dict()
 
     # Check if the recipe belongs to the current user
     if data_doc.get("uid") != uid:
+        logger.warning(
+            f"Unauthorized access attempt to recipe {recipe_id} by user {uid}"
+        )
         return jsonify({"error": "Unauthorized access"}), 403
 
-    # Build a prompt that instructs the model to update the recipe while preserving its original structure.
+    # Build a prompt that instructs the model to update the recipe
     update_prompt = (
         "Below is a recipe:\n\n"
         f"{original_recipe}\n\n"
@@ -150,96 +249,130 @@ def update_recipe():
             response_format=Recipe,
         )
 
-        print(f"Response: {response.to_json()}")
-
         updated_recipe = response.choices[0].message.parsed
         updated_recipe_dict = updated_recipe.model_dump()
 
-        # Update the existing document in Firestore with the new recipe content.
-        doc_ref = db.collection("recipes").document(recipe_id)
+        # Update the existing document in Firestore
         doc_ref.update(
             {
                 "recipe": updated_recipe_dict,
-                "timestamp": datetime.datetime.now(
-                    datetime.timezone.utc
-                ),  # Update timestamp as well.
+                "timestamp": datetime.datetime.now(datetime.timezone.utc),
             }
         )
 
+        # Update cache
+        cache_key = f"recipe_{recipe_id}"
+        recipe_cache[cache_key] = updated_recipe_dict
+
         return jsonify({"recipe": updated_recipe_dict})
     except Exception as e:
-        print(f"Error updating recipe: {e}")
-        return jsonify({"error": str(e)}), 500
+        logger.error(f"Error updating recipe {recipe_id}: {str(e)}")
+        return jsonify({"error": "Error updating recipe"}), 500
 
 
 @app.route("/api/recipe/<recipe_id>", methods=["GET"])
+@cached(cache=recipe_cache, key=lambda recipe_id: f"recipe_{recipe_id}")
 def get_recipe(recipe_id):
     try:
+        # Validate recipe_id format
+        if not re.match(r"^[a-zA-Z0-9]+$", recipe_id):
+            return jsonify({"error": "Invalid recipe ID format"}), 400
+
         doc_ref = db.collection("recipes").document(recipe_id)
         doc = doc_ref.get()
         if not doc.exists:
             return jsonify({"error": "Recipe not found"}), 404
+
         data = doc.to_dict()
         recipe = data.get("recipe", "")
         uid = data.get("uid", "")
         timestamp = data.get("timestamp", "")
-        user = firebase_auth.get_user(uid)
-        displayName = user.display_name if user.display_name else ""
+
+        # Get user info once and cache it
+        user_info = {"displayName": ""}
+        try:
+            user = firebase_auth.get_user(uid)
+            user_info["displayName"] = user.display_name if user.display_name else ""
+        except Exception as e:
+            logger.warning(f"Could not get user info for {uid}: {str(e)}")
+
         return jsonify(
             {
                 "recipe": recipe,
                 "timestamp": timestamp,
                 "uid": uid,
-                "displayName": displayName,
+                "displayName": user_info["displayName"],
             }
         )
     except Exception as e:
-        print(f"Error: {e}")
-        return jsonify({"error": str(e)}), 500
+        logger.error(f"Error retrieving recipe {recipe_id}: {str(e)}")
+        return jsonify({"error": "Error retrieving recipe"}), 500
 
 
 @app.route("/api/recipe-history", methods=["GET"])
+@auth_required
+@limiter.limit("30 per minute")
 def get_recipe_history():
-    uid, error_response, status_code = get_uid_from_request(request)
-    if error_response:
-        return error_response, status_code
+    uid = g.uid
+
+    # Optional pagination parameters
+    limit = min(int(request.args.get("limit", 20)), 50)  # Max 50 items per page
+    offset = int(request.args.get("offset", 0))
+
+    logger.info(f"Recipe history request from user {uid}")
 
     try:
+        # Create an efficient query with pagination
         recipes_ref = (
             db.collection("recipes")
             .where(filter=FieldFilter("uid", "==", uid))
             .where(filter=FieldFilter("archived", "==", False))
             .order_by("timestamp", direction=firestore.Query.DESCENDING)
+            .limit(limit)
+            .offset(offset)
         )
+
         docs = recipes_ref.stream()
         history = []
+
         for doc in docs:
             data = doc.to_dict()
             history.append(
                 {
                     "id": doc.id,
                     "recipe": data.get("recipe", ""),
+                    "timestamp": data.get("timestamp", ""),
                 }
             )
-        return jsonify({"history": history})
+
+        return jsonify({"history": history, "offset": offset, "limit": limit})
     except Exception as e:
-        print(f"Error: {e}")
-        return jsonify({"error": str(e)}), 500
+        logger.error(f"Error retrieving recipe history for user {uid}: {str(e)}")
+        return jsonify({"error": "Error retrieving recipe history"}), 500
 
 
 @app.route("/api/recipe/<recipe_id>/archive", methods=["PATCH"])
+@auth_required
 def archive_recipe(recipe_id):
-    uid, error_response, status_code = get_uid_from_request(request)
-    if error_response:
-        return error_response, status_code
+    uid = g.uid
+
+    # Validate recipe_id format
+    if not re.match(r"^[a-zA-Z0-9]+$", recipe_id):
+        return jsonify({"error": "Invalid recipe ID format"}), 400
+
+    logger.info(f"Archive recipe request for recipe {recipe_id} from user {uid}")
 
     try:
         doc_ref = db.collection("recipes").document(recipe_id)
         doc = doc_ref.get()
         if not doc.exists:
             return jsonify({"error": "Recipe not found"}), 404
+
         data = doc.to_dict()
         if data.get("uid") != uid:
+            logger.warning(
+                f"Unauthorized archive attempt for recipe {recipe_id} by user {uid}"
+            )
             return jsonify({"error": "Unauthorized access"}), 403
 
         doc_ref.update(
@@ -248,25 +381,39 @@ def archive_recipe(recipe_id):
                 "archivedAt": datetime.datetime.now(datetime.timezone.utc),
             }
         )
+
+        # Remove from cache if present
+        cache_key = f"recipe_{recipe_id}"
+        if cache_key in recipe_cache:
+            del recipe_cache[cache_key]
+
         return jsonify({"message": "Recipe archived successfully"}), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        logger.error(f"Error archiving recipe {recipe_id}: {str(e)}")
+        return jsonify({"error": "Error archiving recipe"}), 500
 
 
 @app.route("/api/generate-image", methods=["POST"])
+@auth_required
+@limiter.limit("5 per minute")
 def generate_image():
     enable_flag = os.getenv("ENABLE_IMAGE_GENERATION", "false").lower() == "true"
     if not enable_flag:
         return jsonify({"error": "Image generation feature is disabled."}), 403
 
+    uid = g.uid
     data = request.get_json()
-    # Log the body
-    print(data)
     recipe_text = data.get("recipe", "")
-    if not recipe_text:
-        return jsonify({"error": "No recipe provided"}), 400
 
-    # Build an image prompt using the entire recipe text
+    if not recipe_text or len(recipe_text) < 10:
+        return jsonify({"error": "Valid recipe text is required"}), 400
+
+    # Limit recipe text length
+    recipe_text = recipe_text[:4000]  # Truncate to avoid excessive tokens
+
+    logger.info(f"Generate image request from user {uid}")
+
+    # Build an image prompt
     image_prompt = (
         f"Generate a realistic, high-quality photo of the dish described in the following recipe:\n\n"
         f"{recipe_text}\n\n"
@@ -282,17 +429,50 @@ def generate_image():
             n=1,
         )
         image_url = response.data[0].url
-        print(f"Generated image: {image_url}")
+        logger.info(f"Generated image for user {uid}")
         return jsonify({"image_url": image_url})
     except Exception as e:
-        print(f"Error generating image: {e}")
-        return jsonify({"error": str(e)}), 500
+        logger.error(f"Error generating image: {str(e)}")
+        return jsonify({"error": "Error generating image"}), 500
 
 
 @app.route("/api/health", methods=["GET"])
 def health():
-    return jsonify({"status": "ok"}), 200
+    # Simple health check to verify services are up
+    services_status = {"app": "ok", "firebase": "ok", "openai": "ok"}
+
+    # Check Firebase connection
+    try:
+        db.collection("recipes").limit(1).get()
+    except Exception as e:
+        services_status["firebase"] = "error"
+        logger.error(f"Firebase health check failed: {str(e)}")
+
+    # Overall status
+    overall_status = (
+        "ok" if all(v == "ok" for v in services_status.values()) else "degraded"
+    )
+
+    return jsonify({"status": overall_status, "services": services_status}), 200
+
+
+@app.errorhandler(429)
+def ratelimit_handler(e):
+    return jsonify({"error": "Rate limit exceeded", "message": str(e.description)}), 429
+
+
+@app.errorhandler(404)
+def not_found(e):
+    return jsonify({"error": "Resource not found"}), 404
+
+
+@app.errorhandler(500)
+def server_error(e):
+    logger.error(f"Server error: {str(e)}")
+    return jsonify({"error": "Internal server error"}), 500
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5001)
+    # Use a production WSGI server in production!
+    # For development only:
+    app.run(host="0.0.0.0", port=int(os.getenv("PORT", 5001)), debug=False)
