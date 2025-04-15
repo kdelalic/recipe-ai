@@ -69,7 +69,7 @@ When given a prompt, generate a recipe that is both detailed and practical, refl
 
     try:
         response = client.beta.chat.completions.parse(
-            model="gpt-4.1",
+            model="gpt-4.1-mini",
             messages=[
                 {"role": "system", "content": system_message},
                 {"role": "user", "content": prompt},
@@ -138,7 +138,7 @@ def update_recipe():
 
     try:
         response = client.beta.chat.completions.parse(
-            model="gpt-4.1",
+            model="gpt-4.1-mini",
             messages=[
                 {
                     "role": "system",
