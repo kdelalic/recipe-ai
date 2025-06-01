@@ -60,9 +60,7 @@ limiter = Limiter(
 frontend_urls = os.getenv("FRONTEND_URLS", "http://localhost:5173").split(",")
 CORS(
     app,
-    resources={r"/api/*": {"origins": frontend_urls, "supports_credentials": True}},
-    methods=["GET", "POST", "PATCH", "OPTIONS"],
-    allow_headers=["Content-Type", "Authorization"],
+    resources={r"/api/*": {"origins": frontend_urls + ["http://localhost:5173"]}},
 )
 
 
