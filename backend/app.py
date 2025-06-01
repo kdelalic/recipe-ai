@@ -81,13 +81,13 @@ class Recipe(BaseModel):
 
 
 class RecipeRequest(BaseModel):
-    prompt: str = Field(..., min_length=5, max_length=1000)
+    prompt: str = Field(..., min_length=1, max_length=1000)
 
 
 class UpdateRecipeRequest(BaseModel):
     id: str = Field(..., min_length=10, max_length=100)
     original_recipe: str = Field(..., min_length=10)
-    modifications: str = Field(..., min_length=5, max_length=1000)
+    modifications: str = Field(..., min_length=1, max_length=1000)
 
 
 # Function to validate token and get UID
@@ -134,9 +134,11 @@ def validate_request(model_class):
         def decorated_function(*args, **kwargs):
             try:
                 data = request.get_json()
+                logger.info(f"Received request data: {data}")
                 model_class(**data)
                 return f(*args, **kwargs)
             except Exception as e:
+                logger.error(f"Validation error: {str(e)}")
                 return jsonify({"error": f"Invalid request data: {str(e)}"}), 400
 
         return decorated_function
@@ -269,7 +271,6 @@ def update_recipe():
 
 
 @app.route("/api/recipe/<recipe_id>", methods=["GET"])
-@cached(cache=recipe_cache, key=lambda recipe_id: f"recipe_{recipe_id}")
 def get_recipe(recipe_id):
     try:
         # Validate recipe_id format
@@ -282,7 +283,13 @@ def get_recipe(recipe_id):
             return jsonify({"error": "Recipe not found"}), 404
 
         data = doc.to_dict()
-        recipe = data.get("recipe", "")
+
+        # Get recipe data from cache or Firestore
+        cache_key = f"recipe_{recipe_id}"
+        recipe = recipe_cache.get(cache_key, data.get("recipe", ""))
+        if recipe != data.get("recipe", ""):
+            recipe_cache[cache_key] = data.get("recipe", "")
+
         uid = data.get("uid", "")
         timestamp = data.get("timestamp", "")
 
