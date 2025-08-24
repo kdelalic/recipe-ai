@@ -162,7 +162,7 @@ When given a prompt, generate a recipe that is both detailed and practical, refl
 
     try:
         response = client.beta.chat.completions.parse(
-            model="gpt-4.1",
+            model="gpt-5",
             messages=[
                 {"role": "system", "content": system_message},
                 {"role": "user", "content": prompt},
