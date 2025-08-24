@@ -3,8 +3,7 @@ import datetime
 import re
 from functools import wraps
 import logging
-from cachetools import TTLCache, cached
-import hashlib
+from cachetools import TTLCache
 from openai import OpenAI
 from flask import Flask, request, jsonify, g
 import firebase_admin
@@ -14,10 +13,9 @@ from google.cloud.firestore_v1.base_query import FieldFilter
 from dotenv import load_dotenv
 from flask_cors import CORS
 from pydantic import BaseModel, Field, field_validator
-from typing import List, Optional
+from typing import List
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-import secrets
 
 # Load environment variables
 load_dotenv()
@@ -162,13 +160,18 @@ When given a prompt, generate a recipe that is both detailed and practical, refl
 
     try:
         response = client.beta.chat.completions.parse(
-            model="gpt-5",
+            model="gpt-4.1",
             messages=[
                 {"role": "system", "content": system_message},
                 {"role": "user", "content": prompt},
             ],
-            max_tokens=1000,
+            max_completion_tokens=2000,
             response_format=Recipe,
+        )
+
+        usage = response.usage
+        logger.info(
+            f"Token usage - Prompt: {usage.prompt_tokens}, Completion: {usage.completion_tokens}, Total: {usage.total_tokens}"
         )
 
         recipe = response.choices[0].message.parsed
@@ -245,8 +248,13 @@ def update_recipe():
                 },
                 {"role": "user", "content": update_prompt},
             ],
-            max_tokens=1000,
+            max_completion_tokens=2000,
             response_format=Recipe,
+        )
+
+        usage = response.usage
+        logger.info(
+            f"Update token usage - Prompt: {usage.prompt_tokens}, Completion: {usage.completion_tokens}, Total: {usage.total_tokens}"
         )
 
         updated_recipe = response.choices[0].message.parsed
