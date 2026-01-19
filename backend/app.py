@@ -4,6 +4,7 @@ import re
 from functools import wraps
 import logging
 from cachetools import TTLCache
+import litellm
 from openai import OpenAI
 from flask import Flask, request, jsonify, g
 import firebase_admin
@@ -12,7 +13,7 @@ from firebase_admin import auth as firebase_auth
 from google.cloud.firestore_v1.base_query import FieldFilter
 from dotenv import load_dotenv
 from flask_cors import CORS
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field
 from typing import List
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
@@ -37,8 +38,11 @@ except Exception as e:
     logger.error(f"Firebase initialization error: {e}")
     raise
 
-# Initialize OpenAI client
+# Initialize OpenAI client (for image generation)
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+# LiteLLM model configuration
+LLM_MODEL = os.getenv("LLM_MODEL", "claude-sonnet-4-5")
 
 app = Flask(__name__)
 
@@ -63,19 +67,11 @@ CORS(
 
 
 class Recipe(BaseModel):
-    title: str = Field(..., min_length=1, max_length=200)
-    description: str = Field(..., min_length=1, max_length=2000)
-    ingredients: List[str] = Field(..., min_items=1, max_items=100)
-    instructions: List[str] = Field(..., min_items=1, max_items=100)
-    notes: List[str] = Field([], max_items=20)
-
-    @field_validator("ingredients", "instructions", "notes", mode="before")
-    def validate_length(cls, v):
-        if isinstance(v, list):
-            for item in v:
-                if len(item) > 2000:
-                    raise ValueError("Item too long (max 2000 chars)")
-        return v
+    title: str
+    description: str
+    ingredients: List[str]
+    instructions: List[str]
+    notes: List[str] = []
 
 
 class RecipeRequest(BaseModel):
@@ -84,7 +80,7 @@ class RecipeRequest(BaseModel):
 
 class UpdateRecipeRequest(BaseModel):
     id: str = Field(..., min_length=10, max_length=100)
-    original_recipe: str = Field(..., min_length=10)
+    original_recipe: Recipe
     modifications: str = Field(..., min_length=1, max_length=1000)
 
 
@@ -155,17 +151,17 @@ def generate_recipe():
 
     logger.info(f"Generate recipe request from user {uid}")
 
-    system_message = """You are a creative chef with the precision and depth of recipes found on Serious Eats and the expertise of Kenji J. Alt-Lopez. 
-When given a prompt, generate a recipe that is both detailed and practical, reflecting the thorough testing and clear instructions characteristic of those sources."""
+    system_message = """You are a creative chef with the precision and depth of recipes found on Serious Eats and the expertise of Chef J. Kenji López-Alt and Chef Chris Young. 
+When given a prompt, generate a recipe that is both detailed and practical, reflecting the thorough testing and clear instructions characteristic of those sources. Write with warmth and personality while maintaining technical accuracy."""
 
     try:
-        response = client.beta.chat.completions.parse(
-            model="gpt-4.1",
+        response = litellm.completion(
+            model=LLM_MODEL,
             messages=[
                 {"role": "system", "content": system_message},
                 {"role": "user", "content": prompt},
             ],
-            max_completion_tokens=2000,
+            max_tokens=2000,
             response_format=Recipe,
         )
 
@@ -174,7 +170,7 @@ When given a prompt, generate a recipe that is both detailed and practical, refl
             f"Token usage - Prompt: {usage.prompt_tokens}, Completion: {usage.completion_tokens}, Total: {usage.total_tokens}"
         )
 
-        recipe = response.choices[0].message.parsed
+        recipe = Recipe.model_validate_json(response.choices[0].message.content)
         recipe_dict = recipe.model_dump()
 
         # Save the generated recipe into Firestore
@@ -206,13 +202,28 @@ When given a prompt, generate a recipe that is both detailed and practical, refl
 def update_recipe():
     data = request.get_json()
     recipe_id = data.get("id")
-    original_recipe = data.get("original_recipe", "")
+    original_recipe = data.get("original_recipe", {})
     modifications = data.get("modifications", "")
     uid = g.uid
 
     # Sanitize inputs
     recipe_id = recipe_id.strip()
     modifications = modifications.strip()
+
+    # Convert recipe dict to formatted string for the prompt
+    original_recipe_str = (
+        f"Title: {original_recipe.get('title', '')}\n\n"
+        f"Description: {original_recipe.get('description', '')}\n\n"
+        f"Ingredients:\n"
+        + "\n".join(f"- {i}" for i in original_recipe.get("ingredients", []))
+        + "\n\n"
+        f"Instructions:\n"
+        + "\n".join(
+            f"{n+1}. {s}" for n, s in enumerate(original_recipe.get("instructions", []))
+        )
+        + "\n\n"
+        f"Notes:\n" + "\n".join(f"- {n}" for n in original_recipe.get("notes", []))
+    )
 
     logger.info(f"Update recipe request for recipe {recipe_id} from user {uid}")
 
@@ -233,14 +244,14 @@ def update_recipe():
     # Build a prompt that instructs the model to update the recipe
     update_prompt = (
         "Below is a recipe:\n\n"
-        f"{original_recipe}\n\n"
+        f"{original_recipe_str}\n\n"
         "Modify this recipe based on the following instructions, changing only the specified parts:\n\n"
         f"{modifications}"
     )
 
     try:
-        response = client.beta.chat.completions.parse(
-            model="gpt-4.1",
+        response = litellm.completion(
+            model=LLM_MODEL,
             messages=[
                 {
                     "role": "system",
@@ -248,7 +259,7 @@ def update_recipe():
                 },
                 {"role": "user", "content": update_prompt},
             ],
-            max_completion_tokens=2000,
+            max_tokens=2000,
             response_format=Recipe,
         )
 
@@ -257,7 +268,7 @@ def update_recipe():
             f"Update token usage - Prompt: {usage.prompt_tokens}, Completion: {usage.completion_tokens}, Total: {usage.total_tokens}"
         )
 
-        updated_recipe = response.choices[0].message.parsed
+        updated_recipe = Recipe.model_validate_json(response.choices[0].message.content)
         updated_recipe_dict = updated_recipe.model_dump()
 
         # Update the existing document in Firestore
