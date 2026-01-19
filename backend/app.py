@@ -66,10 +66,18 @@ CORS(
 )
 
 
+class IngredientGroup(BaseModel):
+    group_name: str = Field(description="Name of the ingredient group, e.g., 'For the filling', 'For the sauce'")
+    items: List[str] = Field(description="List of ingredients in this group")
+
+
 class Recipe(BaseModel):
     title: str
     description: str
-    ingredients: List[str]
+    prep_time: str = Field(default="", description="Preparation time, e.g., '30 minutes'")
+    cook_time: str = Field(default="", description="Cooking time, e.g., '1 hour'")
+    servings: str = Field(default="", description="Number of servings, e.g., '4-6 servings'")
+    ingredients: List[IngredientGroup] = Field(description="Ingredients organized by group")
     instructions: List[str]
     notes: List[str] = []
 
@@ -151,8 +159,15 @@ def generate_recipe():
 
     logger.info(f"Generate recipe request from user {uid}")
 
-    system_message = """You are a creative chef with the precision and depth of recipes found on Serious Eats and the expertise of Chef J. Kenji López-Alt and Chef Chris Young. 
-When given a prompt, generate a recipe that is both detailed and practical, reflecting the thorough testing and clear instructions characteristic of those sources. Write with warmth and personality while maintaining technical accuracy."""
+    system_message = """You are a creative chef with the precision and depth of recipes found on Serious Eats and the expertise of Chef J. Kenji López-Alt and Chef Chris Young.
+When given a prompt, generate a recipe that is both detailed and practical, reflecting the thorough testing and clear instructions characteristic of those sources. Write with warmth and personality while maintaining technical accuracy.
+
+FORMATTING GUIDELINES:
+- Always include prep_time, cook_time, and servings
+- Group ingredients logically (e.g., "For the filling", "For the sauce", "For serving") - use clear, descriptive group names
+- Keep individual ingredients concise but include quantities and any prep notes in parentheses
+- Write instructions as clear, actionable steps - start each with a verb
+- Bold key techniques or temperatures within instructions using <strong> tags when helpful"""
 
     try:
         response = litellm.completion(

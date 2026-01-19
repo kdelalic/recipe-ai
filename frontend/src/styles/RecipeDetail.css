@@ -18,3 +18,93 @@
   background-color: #fbb6c2;
   text-decoration: line-through;
 }
+
+/* Recipe View Styling */
+.recipe-view {
+  line-height: 1.6;
+}
+
+.recipe-view h1 {
+  margin-bottom: 0.75rem;
+}
+
+.recipe-view h2 {
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.recipe-description {
+  font-size: 1.05rem;
+  color: #555;
+  margin-bottom: 1.5rem;
+}
+
+/* Recipe metadata (prep time, cook time, servings) */
+.recipe-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.recipe-meta .meta-item {
+  font-size: 0.95rem;
+  color: #333;
+  font-weight: 500;
+}
+
+/* Ingredient groups */
+.ingredient-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.ingredient-group {
+  margin-bottom: 0.5rem;
+}
+
+.ingredient-group-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #444;
+  margin-bottom: 0.5rem;
+  margin-top: 0;
+}
+
+.ingredient-group ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.ingredient-group li {
+  margin-bottom: 0.4rem;
+  line-height: 1.5;
+}
+
+/* Instructions */
+.instructions-list {
+  padding-left: 1.5rem;
+}
+
+.instructions-list li {
+  margin-bottom: 1rem;
+  padding-left: 0.5rem;
+  line-height: 1.7;
+}
+
+/* Notes */
+.notes-list {
+  padding-left: 1.25rem;
+}
+
+.notes-list li {
+  margin-bottom: 0.5rem;
+  line-height: 1.5;
+  color: #555;
+}
