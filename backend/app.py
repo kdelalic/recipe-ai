@@ -441,6 +441,122 @@ def archive_recipe(recipe_id):
         return jsonify({"error": "Error archiving recipe"}), 500
 
 
+@app.route("/api/favorites", methods=["GET"])
+@auth_required
+def get_favorites():
+    """Get the list of favorited recipe IDs for the current user."""
+    uid = g.uid
+
+    try:
+        user_ref = db.collection("users").document(uid)
+        user_doc = user_ref.get()
+
+        if user_doc.exists:
+            data = user_doc.to_dict()
+            favorites = data.get("favorites", [])
+        else:
+            favorites = []
+
+        return jsonify({"favorites": favorites})
+    except Exception as e:
+        logger.error(f"Error getting favorites for user {uid}: {str(e)}")
+        return jsonify({"error": "Error retrieving favorites"}), 500
+
+
+@app.route("/api/favorites", methods=["PUT"])
+@auth_required
+def update_favorites():
+    """Update the list of favorited recipe IDs for the current user."""
+    uid = g.uid
+    data = request.get_json()
+
+    if not data or "favorites" not in data:
+        return jsonify({"error": "favorites field is required"}), 400
+
+    favorites = data.get("favorites", [])
+
+    # Validate that favorites is a list of strings
+    if not isinstance(favorites, list) or not all(isinstance(f, str) for f in favorites):
+        return jsonify({"error": "favorites must be a list of recipe IDs"}), 400
+
+    # Limit the number of favorites
+    if len(favorites) > 500:
+        return jsonify({"error": "Maximum 500 favorites allowed"}), 400
+
+    try:
+        user_ref = db.collection("users").document(uid)
+        user_ref.set({"favorites": favorites}, merge=True)
+
+        logger.info(f"Updated favorites for user {uid}: {len(favorites)} items")
+        return jsonify({"favorites": favorites})
+    except Exception as e:
+        logger.error(f"Error updating favorites for user {uid}: {str(e)}")
+        return jsonify({"error": "Error updating favorites"}), 500
+
+
+@app.route("/api/favorites/<recipe_id>", methods=["POST"])
+@auth_required
+def add_favorite(recipe_id):
+    """Add a recipe to favorites."""
+    uid = g.uid
+
+    # Validate recipe_id format
+    if not re.match(r"^[a-zA-Z0-9]+$", recipe_id):
+        return jsonify({"error": "Invalid recipe ID format"}), 400
+
+    try:
+        user_ref = db.collection("users").document(uid)
+        user_doc = user_ref.get()
+
+        if user_doc.exists:
+            data = user_doc.to_dict()
+            favorites = data.get("favorites", [])
+        else:
+            favorites = []
+
+        if recipe_id not in favorites:
+            if len(favorites) >= 500:
+                return jsonify({"error": "Maximum 500 favorites allowed"}), 400
+            favorites.append(recipe_id)
+            user_ref.set({"favorites": favorites}, merge=True)
+
+        logger.info(f"Added favorite {recipe_id} for user {uid}")
+        return jsonify({"favorites": favorites})
+    except Exception as e:
+        logger.error(f"Error adding favorite for user {uid}: {str(e)}")
+        return jsonify({"error": "Error adding favorite"}), 500
+
+
+@app.route("/api/favorites/<recipe_id>", methods=["DELETE"])
+@auth_required
+def remove_favorite(recipe_id):
+    """Remove a recipe from favorites."""
+    uid = g.uid
+
+    # Validate recipe_id format
+    if not re.match(r"^[a-zA-Z0-9]+$", recipe_id):
+        return jsonify({"error": "Invalid recipe ID format"}), 400
+
+    try:
+        user_ref = db.collection("users").document(uid)
+        user_doc = user_ref.get()
+
+        if user_doc.exists:
+            data = user_doc.to_dict()
+            favorites = data.get("favorites", [])
+            if recipe_id in favorites:
+                favorites.remove(recipe_id)
+                user_ref.set({"favorites": favorites}, merge=True)
+        else:
+            favorites = []
+
+        logger.info(f"Removed favorite {recipe_id} for user {uid}")
+        return jsonify({"favorites": favorites})
+    except Exception as e:
+        logger.error(f"Error removing favorite for user {uid}: {str(e)}")
+        return jsonify({"error": "Error removing favorite"}), 500
+
+
 @app.route("/api/generate-image", methods=["POST"])
 @auth_required
 @limiter.limit("5 per minute")

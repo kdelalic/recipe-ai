@@ -1,4 +1,8 @@
+import { useState } from 'react';
+
 function RecipeView({ recipe }) {
+  const [checkedIngredients, setCheckedIngredients] = useState(new Set());
+
   if (!recipe) return null;
 
   // Check if ingredients are in the new grouped format
@@ -7,6 +11,39 @@ function RecipeView({ recipe }) {
     recipe.ingredients.length > 0 &&
     typeof recipe.ingredients[0] === 'object' &&
     recipe.ingredients[0].group_name;
+
+  const toggleIngredient = (id) => {
+    setCheckedIngredients(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const renderIngredient = (ingredientHtml, idx, groupIdx = null) => {
+    const id = groupIdx !== null ? `${groupIdx}-${idx}` : `${idx}`;
+    const isChecked = checkedIngredients.has(id);
+
+    return (
+      <li key={idx} className="ingredient-item">
+        <input
+          type="checkbox"
+          className="ingredient-checkbox"
+          checked={isChecked}
+          onChange={() => toggleIngredient(id)}
+          aria-label="Mark ingredient as used"
+        />
+        <span
+          className={`ingredient-text ${isChecked ? 'checked' : ''}`}
+          dangerouslySetInnerHTML={{ __html: ingredientHtml }}
+        />
+      </li>
+    );
+  };
 
   return (
     <div className="recipe-view">
@@ -68,18 +105,14 @@ function RecipeView({ recipe }) {
             <div key={groupIdx} className="ingredient-group">
               <h3 className="ingredient-group-title">{group.group_name}</h3>
               <ul>
-                {group.items.map((item, idx) => (
-                  <li key={idx} dangerouslySetInnerHTML={{ __html: item }} />
-                ))}
+                {group.items.map((item, idx) => renderIngredient(item, idx, groupIdx))}
               </ul>
             </div>
           ))}
         </div>
       ) : (
         <ul>
-          {recipe.ingredients.map((ingredientHtml, idx) => (
-            <li key={idx} dangerouslySetInnerHTML={{ __html: ingredientHtml }} />
-          ))}
+          {recipe.ingredients.map((ingredientHtml, idx) => renderIngredient(ingredientHtml, idx))}
         </ul>
       )}
 

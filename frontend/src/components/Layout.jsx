@@ -1,15 +1,18 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { HiOutlineMenuAlt2 } from 'react-icons/hi';
-import { FaUserCircle } from 'react-icons/fa';
+import { FaUserCircle, FaStar, FaRegStar } from 'react-icons/fa';
+import { HiOutlineMoon, HiOutlineSun } from 'react-icons/hi';
 import { auth } from '../utils/firebase';
 import api from '../utils/api';
 import HistorySkeleton from './HistorySkeleton';
+import { useTheme } from './ThemeProvider';
 import '../styles/Layout.css';
 
 function Layout({ children, user }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { darkMode, toggleDarkMode } = useTheme();
   const [history, setHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -17,10 +20,75 @@ function Layout({ children, user }) {
   const [offset, setOffset] = useState(0);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(window.innerWidth <= 768);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [favorites, setFavorites] = useState(() => {
+    const saved = localStorage.getItem('favorites');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const dropdownRef = useRef(null);
   const historyListRef = useRef(null);
 
   const LIMIT = 25;
+
+  // Check if user is logged in (not anonymous)
+  const isLoggedIn = user && !user.isAnonymous;
+
+  // Fetch favorites from database for logged-in users
+  const fetchFavorites = useCallback(async () => {
+    if (!isLoggedIn) return;
+
+    try {
+      const response = await api.get('/api/favorites');
+      if (response.status === 200) {
+        const dbFavorites = response.data.favorites || [];
+        setFavorites(dbFavorites);
+        localStorage.setItem('favorites', JSON.stringify(dbFavorites));
+      }
+    } catch (err) {
+      console.error('Error fetching favorites:', err);
+      // Fall back to localStorage
+    }
+  }, [isLoggedIn]);
+
+  // Load favorites when user changes
+  useEffect(() => {
+    if (user && isLoggedIn) {
+      fetchFavorites();
+    }
+  }, [user, isLoggedIn, fetchFavorites]);
+
+  // Save favorites to localStorage (always) and database (for logged-in users)
+  const saveFavorites = useCallback(async (newFavorites) => {
+    localStorage.setItem('favorites', JSON.stringify(newFavorites));
+
+    if (isLoggedIn) {
+      try {
+        await api.put('/api/favorites', { favorites: newFavorites });
+      } catch (err) {
+        console.error('Error saving favorites to database:', err);
+      }
+    }
+  }, [isLoggedIn]);
+
+  const toggleFavorite = async (recipeId, e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const newFavorites = favorites.includes(recipeId)
+      ? favorites.filter(id => id !== recipeId)
+      : [...favorites, recipeId];
+
+    setFavorites(newFavorites);
+    await saveFavorites(newFavorites);
+  };
+
+  // Filter history based on search and favorites
+  const filteredHistory = history.filter(item => {
+    const matchesSearch = item.recipe.title.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesFavorites = showFavoritesOnly ? favorites.includes(item.id) : true;
+    return matchesSearch && matchesFavorites;
+  });
 
   const fetchHistory = async (currentOffset = 0, append = false) => {
     if (append) {
@@ -140,18 +208,44 @@ function Layout({ children, user }) {
       <aside className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
         <div className="sidebar-header">
           <h1 className="sidebar-logo">Recipe AI</h1>
-          <button
-            className="sidebar-toggle"
-            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-            aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          >
-            <HiOutlineMenuAlt2 size={20} />
-          </button>
+          <div className="sidebar-header-actions">
+            <button
+              className="theme-toggle"
+              onClick={toggleDarkMode}
+              aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {darkMode ? <HiOutlineSun size={18} /> : <HiOutlineMoon size={18} />}
+            </button>
+            <button
+              className="sidebar-toggle"
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            >
+              <HiOutlineMenuAlt2 size={20} />
+            </button>
+          </div>
         </div>
         <Link to="/" className={`new-recipe-btn ${sidebarCollapsed ? 'collapsed' : ''}`}>
           <span className="new-recipe-icon">+</span>
           New Recipe
         </Link>
+        <div className={`sidebar-filters ${sidebarCollapsed ? 'collapsed' : ''}`}>
+          <input
+            type="text"
+            className="search-input"
+            placeholder="Search recipes..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <button
+            className={`favorites-filter ${showFavoritesOnly ? 'active' : ''}`}
+            onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+            aria-label={showFavoritesOnly ? 'Show all recipes' : 'Show favorites only'}
+          >
+            {showFavoritesOnly ? <FaStar size={14} /> : <FaRegStar size={14} />}
+            Favorites
+          </button>
+        </div>
         <div
           className={`sidebar-content ${sidebarCollapsed ? 'collapsed' : ''}`}
           ref={historyListRef}
@@ -159,19 +253,28 @@ function Layout({ children, user }) {
         >
           {historyLoading ? (
             <HistorySkeleton />
-          ) : history.length > 0 ? (
+          ) : filteredHistory.length > 0 ? (
             <div className="history-list">
-              {history.map((item, index) => (
+              {filteredHistory.map((item, index) => (
                 <Link
                   key={index}
                   to={`/recipe/${item.id}`}
                   className={`history-item ${currentRecipeId === item.id ? 'active' : ''}`}
                 >
-                  {item.recipe.title}
+                  <span className="history-item-title">{item.recipe.title}</span>
+                  <button
+                    className={`favorite-btn ${favorites.includes(item.id) ? 'is-favorite' : ''}`}
+                    onClick={(e) => toggleFavorite(item.id, e)}
+                    aria-label={favorites.includes(item.id) ? 'Remove from favorites' : 'Add to favorites'}
+                  >
+                    {favorites.includes(item.id) ? <FaStar size={12} /> : <FaRegStar size={12} />}
+                  </button>
                 </Link>
               ))}
               {loadingMore && <div className="history-loading">Loading...</div>}
             </div>
+          ) : searchQuery || showFavoritesOnly ? (
+            <p className="no-history">No matching recipes found.</p>
           ) : (
             <p className="no-history">No recipes generated yet.</p>
           )}

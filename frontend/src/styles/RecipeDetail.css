@@ -37,7 +37,7 @@
 
 .recipe-description {
   font-size: 1.05rem;
-  color: #555;
+  color: var(--text-secondary);
   margin-bottom: 1.5rem;
 }
 
@@ -49,7 +49,7 @@
   gap: 0.5rem 1.5rem;
   margin-bottom: 2rem;
   font-size: 0.9rem;
-  color: #666;
+  color: var(--text-muted);
 }
 
 .recipe-stats .stat-item {
@@ -59,11 +59,11 @@
 }
 
 .recipe-stats .stat-label {
-  color: #999;
+  color: var(--text-muted);
 }
 
 .recipe-stats .stat-value {
-  color: #333;
+  color: var(--text-primary);
   font-weight: 500;
 }
 
@@ -92,7 +92,7 @@
 .ingredient-group-title {
   font-size: 0.85rem;
   font-weight: 600;
-  color: #888;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.03em;
   margin-bottom: 0.5rem;
@@ -121,7 +121,7 @@
 }
 
 .instructions-list li::marker {
-  color: #888;
+  color: var(--text-muted);
   font-weight: 600;
 }
 
@@ -133,7 +133,44 @@
 .notes-list li {
   margin-bottom: 0.5rem;
   line-height: 1.5;
-  color: #555;
+  color: var(--text-secondary);
+}
+
+/* Ingredient Checkboxes */
+.ingredient-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+  line-height: 1.5;
+}
+
+.ingredient-checkbox {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  accent-color: var(--accent-color);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.ingredient-text {
+  flex: 1;
+  transition: opacity 0.2s, text-decoration 0.2s;
+}
+
+.ingredient-text.checked {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+/* Dark mode diff colors */
+[data-theme="dark"] .diff-added {
+  background-color: #2d4a32;
+}
+
+[data-theme="dark"] .diff-removed {
+  background-color: #4a2d35;
 }
 
 /* Mobile-specific styling */
@@ -144,5 +181,102 @@
 
   .recipe-stats .macros-row {
     flex-wrap: nowrap;
+  }
+}
+
+/* Print Styling */
+@media print {
+  /* Hide non-essential elements */
+  .sidebar,
+  .mobile-header,
+  .sidebar-overlay,
+  .modification-section,
+  .update-section,
+  .recipe-actions,
+  .new-recipe-btn,
+  button {
+    display: none !important;
+  }
+
+  /* Reset layout for print */
+  .layout {
+    display: block;
+  }
+
+  .main-content {
+    margin-left: 0 !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+
+  .recipe {
+    box-shadow: none !important;
+    background-color: white !important;
+    padding: 0 !important;
+  }
+
+  /* Improve typography for print */
+  body {
+    font-size: 12pt;
+    line-height: 1.5;
+    color: black !important;
+    background: white !important;
+  }
+
+  .recipe-view h1 {
+    font-size: 18pt;
+    margin-bottom: 0.5rem;
+  }
+
+  .recipe-view h2 {
+    font-size: 14pt;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    page-break-after: avoid;
+  }
+
+  .recipe-description {
+    color: #333 !important;
+  }
+
+  /* Ensure ingredients don't break across pages */
+  .ingredient-item,
+  .ingredient-group li,
+  .instructions-list li {
+    page-break-inside: avoid;
+  }
+
+  /* Show checkboxes as empty squares for print */
+  .ingredient-checkbox {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 14px;
+    height: 14px;
+    border: 1px solid #333;
+    border-radius: 2px;
+    background: white;
+  }
+
+  .ingredient-text.checked {
+    opacity: 1;
+    text-decoration: none;
+  }
+
+  /* Recipe stats */
+  .recipe-stats {
+    margin-bottom: 1rem;
+    color: #333 !important;
+  }
+
+  .recipe-stats .stat-value,
+  .recipe-stats .stat-label {
+    color: #333 !important;
+  }
+
+  /* Hide diff highlighting in print */
+  .diff-added,
+  .diff-removed {
+    background-color: transparent !important;
+    text-decoration: none !important;
   }
 }
