@@ -38,21 +38,23 @@ function RecipeView({ recipe }) {
           {recipe.macros && (
             <>
               <span className="stat-divider">|</span>
-              <span className="stat-item">
-                <span className="stat-value">{recipe.macros.calories}</span>
-                <span className="stat-label">cal</span>
-              </span>
-              <span className="stat-item">
-                <span className="stat-value">{recipe.macros.protein}g</span>
-                <span className="stat-label">protein</span>
-              </span>
-              <span className="stat-item">
-                <span className="stat-value">{recipe.macros.carbs}g</span>
-                <span className="stat-label">carbs</span>
-              </span>
-              <span className="stat-item">
-                <span className="stat-value">{recipe.macros.fat}g</span>
-                <span className="stat-label">fat</span>
+              <span className="macros-row">
+                <span className="stat-item">
+                  <span className="stat-value">{recipe.macros.calories}</span>
+                  <span className="stat-label">cal</span>
+                </span>
+                <span className="stat-item">
+                  <span className="stat-value">{recipe.macros.protein}g</span>
+                  <span className="stat-label">protein</span>
+                </span>
+                <span className="stat-item">
+                  <span className="stat-value">{recipe.macros.carbs}g</span>
+                  <span className="stat-label">carbs</span>
+                </span>
+                <span className="stat-item">
+                  <span className="stat-value">{recipe.macros.fat}g</span>
+                  <span className="stat-label">fat</span>
+                </span>
               </span>
             </>
           )}
