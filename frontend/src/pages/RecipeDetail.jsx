@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import Header from '../components/Header';
+import { useParams, useNavigate } from 'react-router-dom';
 import RecipeView from '../components/RecipeView';
 import RecipeSkeleton from '../components/RecipeSkeleton';
 import api from '../utils/api';
@@ -87,9 +86,7 @@ function RecipeDetail({ user }) {
     : recipe;
 
   return (
-    <div className="App">
-      <Header user={user} />
-      <Link to="/" className="link-button">Back to Home</Link>
+    <div className="recipe-detail-page">
       {loading ? (
         <RecipeSkeleton />
       ) : error ? (

@@ -1,50 +1,43 @@
-import { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useRef, useMemo } from 'react';
 import RecipeView from '../components/RecipeView';
 import RecipeSkeleton from '../components/RecipeSkeleton';
-import HistorySkeleton from '../components/HistorySkeleton';
 import api from '../utils/api';
 import '../styles/Home.css';
 import { computeRecipeDiffAsHtml } from '../utils/diffHelper';
-import Header from '../components/Header';
 
-function extractTitle(recipeText) {
-  const match = recipeText.match(/^# (.*)/m);
-  return match ? match[1].trim() : 'Recipe';
-}
+const GREETINGS = [
+  "What are we cooking today?",
+  "Hungry for something new?",
+  "Let's whip up something delicious",
+  "What's on the menu tonight?",
+  "Ready to get cooking?",
+  "Craving something special?",
+  "Time to create some magic",
+  "What flavors are you in the mood for?",
+  "Let's turn ingredients into art",
+  "What culinary adventure awaits?",
+  "Feeling adventurous in the kitchen?",
+  "What's your appetite telling you?",
+  "Let's cook up something amazing",
+  "What dish is calling your name?",
+  "Ready to explore new flavors?",
+];
 
-function Home({ user }) {
+function Home() {
   const recipeRef = useRef(null);
   const [input, setInput] = useState('');
   const [currentId, setCurrentId] = useState('');
   const [currentRecipe, setCurrentRecipe] = useState('');
   const [prevRecipe, setPrevRecipe] = useState('');
-  const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [historyLoading, setHistoryLoading] = useState(true);
   const [error, setError] = useState('');
   const enableImageGeneration = import.meta.env.VITE_ENABLE_IMAGE_GENERATION === 'true';
   const [imageUrl, setImageUrl] = useState('');
   const [imageLoading, setImageLoading] = useState(false);
   const [modification, setModification] = useState('');
 
-  const fetchHistory = async () => {
-    try {
-      const response = await api.get('/api/recipe-history');
-      if (response.status !== 200) {
-        throw new Error('Network response was not ok');
-      }
-      const data = await response.data;
-      setHistory(data.history || []);
-    } catch (err) {
-      console.error('Error fetching history:', err);
-      setError('There was an error fetching the recipe history.');
-    }
-    setHistoryLoading(false);
-  };
-
-  useEffect(() => {
-    fetchHistory();
+  const greeting = useMemo(() => {
+    return GREETINGS[Math.floor(Math.random() * GREETINGS.length)];
   }, []);
 
   const handleSubmit = async (e) => {
@@ -63,12 +56,8 @@ function Home({ user }) {
       setCurrentId(data.id);
       setCurrentRecipe(recipeData);
       setPrevRecipe(recipeData);
-      setHistory((prevHistory) => [
-        { id: data.id, title: recipeData.title, recipe: recipeData },
-        ...prevHistory,
-      ]);
       if (enableImageGeneration) {
-        handleGenerateImage(recipeText);
+        handleGenerateImage(recipeData);
       }
     } catch (err) {
       console.error('Error generating recipe:', err);
@@ -121,10 +110,12 @@ function Home({ user }) {
     ? computeRecipeDiffAsHtml(prevRecipe, currentRecipe)
     : currentRecipe;
 
+  const hasRecipe = currentRecipe || loading;
+
   return (
-    <div className="App">
-      <Header user={user} />
-      <form onSubmit={handleSubmit}>
+    <div className={`home-page ${!hasRecipe ? 'centered' : ''}`}>
+      {!hasRecipe && <h1 className="greeting">{greeting}</h1>}
+      <form onSubmit={handleSubmit} className="recipe-form">
         <input
           type="text"
           placeholder="Enter ingredients, cuisine type, etc."
@@ -136,7 +127,7 @@ function Home({ user }) {
         </button>
       </form>
       {error && <p className="error">{error}</p>}
-      
+
       {loading && !currentRecipe ? (
         <RecipeSkeleton />
       ) : (
@@ -168,22 +159,6 @@ function Home({ user }) {
           </div>
         )
       )}
-      <div className="history">
-        <h2>Recipe History</h2>
-        {historyLoading ? (
-          <HistorySkeleton />
-        ) : history.length > 0 ? (
-          <div className="history-buttons">
-            {history.map((item, index) => (
-              <Link key={index} to={`/recipe/${item.id}`} className="link-button">
-                {item.recipe.title}
-              </Link>
-            ))}
-          </div>
-        ) : (
-          <p>No recipes generated yet.</p>
-        )}
-      </div>
     </div>
   );
 }

@@ -14,12 +14,48 @@ function RecipeView({ recipe }) {
 
       <p className="recipe-description" dangerouslySetInnerHTML={{ __html: recipe.description }} />
 
-      {/* Recipe metadata */}
-      {(recipe.prep_time || recipe.cook_time || recipe.servings) && (
-        <div className="recipe-meta">
-          {recipe.prep_time && <span className="meta-item">Prep: {recipe.prep_time}</span>}
-          {recipe.cook_time && <span className="meta-item">Cook: {recipe.cook_time}</span>}
-          {recipe.servings && <span className="meta-item">Serves: {recipe.servings}</span>}
+      {/* Recipe stats: time, servings, and macros */}
+      {(recipe.prep_time || recipe.cook_time || recipe.servings || recipe.macros) && (
+        <div className="recipe-stats">
+          {recipe.prep_time && (
+            <span className="stat-item">
+              <span className="stat-label">Prep</span>
+              <span className="stat-value">{recipe.prep_time}</span>
+            </span>
+          )}
+          {recipe.cook_time && (
+            <span className="stat-item">
+              <span className="stat-label">Cook</span>
+              <span className="stat-value">{recipe.cook_time}</span>
+            </span>
+          )}
+          {recipe.servings && (
+            <span className="stat-item">
+              <span className="stat-label">Servings</span>
+              <span className="stat-value">{recipe.servings}</span>
+            </span>
+          )}
+          {recipe.macros && (
+            <>
+              <span className="stat-divider">|</span>
+              <span className="stat-item">
+                <span className="stat-value">{recipe.macros.calories}</span>
+                <span className="stat-label">cal</span>
+              </span>
+              <span className="stat-item">
+                <span className="stat-value">{recipe.macros.protein}g</span>
+                <span className="stat-label">protein</span>
+              </span>
+              <span className="stat-item">
+                <span className="stat-value">{recipe.macros.carbs}g</span>
+                <span className="stat-label">carbs</span>
+              </span>
+              <span className="stat-item">
+                <span className="stat-value">{recipe.macros.fat}g</span>
+                <span className="stat-label">fat</span>
+              </span>
+            </>
+          )}
         </div>
       )}
 

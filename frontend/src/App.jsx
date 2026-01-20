@@ -5,6 +5,7 @@ import RecipeDetail from './pages/RecipeDetail';
 import Login from './pages/Login';
 import SignUp from './pages/SignUp';
 import ProtectedRoute from './components/ProtectedRoute';
+import Layout from './components/Layout';
 
 function App({ user }) {
   return (
@@ -15,13 +16,19 @@ function App({ user }) {
         path="/"
         element={
           <ProtectedRoute user={user}>
-            <Home user={user} />
+            <Layout user={user}>
+              <Home />
+            </Layout>
           </ProtectedRoute>
         }
       />
       <Route
         path="/recipe/:id"
-        element={<RecipeDetail user={user} />}
+        element={
+          <Layout user={user}>
+            <RecipeDetail user={user} />
+          </Layout>
+        }
       />
     </Routes>
   );

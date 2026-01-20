@@ -14,7 +14,7 @@ from google.cloud.firestore_v1.base_query import FieldFilter
 from dotenv import load_dotenv
 from flask_cors import CORS
 from pydantic import BaseModel, Field
-from typing import List
+from typing import List, Optional
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
@@ -71,12 +71,20 @@ class IngredientGroup(BaseModel):
     items: List[str] = Field(description="List of ingredients in this group")
 
 
+class Macros(BaseModel):
+    calories: int = Field(description="Estimated calories per serving")
+    protein: int = Field(description="Estimated protein in grams per serving")
+    carbs: int = Field(description="Estimated carbohydrates in grams per serving")
+    fat: int = Field(description="Estimated fat in grams per serving")
+
+
 class Recipe(BaseModel):
     title: str
     description: str
     prep_time: str = Field(default="", description="Preparation time, e.g., '30 minutes'")
     cook_time: str = Field(default="", description="Cooking time, e.g., '1 hour'")
     servings: str = Field(default="", description="Number of servings, e.g., '4-6 servings'")
+    macros: Optional[Macros] = Field(default=None, description="Estimated macronutrients per serving")
     ingredients: List[IngredientGroup] = Field(description="Ingredients organized by group")
     instructions: List[str]
     notes: List[str] = []
@@ -164,6 +172,7 @@ When given a prompt, generate a recipe that is both detailed and practical, refl
 
 FORMATTING GUIDELINES:
 - Always include prep_time, cook_time, and servings
+- Always include macros with estimated calories, protein, carbs, and fat per serving (as integers)
 - Group ingredients logically (e.g., "For the filling", "For the sauce", "For serving") - use clear, descriptive group names
 - Keep individual ingredients concise but include quantities and any prep notes in parentheses
 - Write instructions as clear, actionable steps - start each with a verb
