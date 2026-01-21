@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, cloneElement, isValidElement } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { HiOutlineMenuAlt2 } from 'react-icons/hi';
 import { FaUserCircle, FaStar, FaRegStar } from 'react-icons/fa';
@@ -301,7 +301,15 @@ function Layout({ children, user }) {
         )}
       </aside>
       <main className="main-content">
-        {children}
+        {isValidElement(children)
+          ? cloneElement(children, {
+              favorites,
+              toggleFavorite,
+              isMobile,
+              sidebarCollapsed,
+              onToggleSidebar: () => setSidebarCollapsed(false),
+            })
+          : children}
       </main>
     </div>
   );

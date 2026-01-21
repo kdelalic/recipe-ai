@@ -6,7 +6,7 @@ import api from '../utils/api';
 import { computeRecipeDiffAsHtml } from '../utils/diffHelper';
 import '../styles/RecipeDetail.css';
 
-function RecipeDetail({ user }) {
+function RecipeDetail({ user, favorites = [], toggleFavorite, isMobile, sidebarCollapsed, onToggleSidebar }) {
   const recipeRef = useRef(null);
   const { id } = useParams();
   const navigate = useNavigate();
@@ -88,22 +88,26 @@ function RecipeDetail({ user }) {
   return (
     <div className="recipe-detail-page">
       {loading ? (
-        <RecipeSkeleton />
+        <RecipeSkeleton
+          isMobile={isMobile}
+          sidebarCollapsed={sidebarCollapsed}
+          onToggleSidebar={onToggleSidebar}
+        />
       ) : error ? (
         <p className="error">{error}</p>
       ) : (
         <div className="recipe" ref={recipeRef}>
-          <div className="recipe-info">
-            <p>{displayName}</p>
-            <p>
-              {new Date(timestamp).toLocaleDateString(undefined, {
-                day: 'numeric',
-                month: 'short',
-                year: 'numeric',
-              })}
-            </p>
-          </div>
-          <RecipeView recipe={diffRecipe} />
+          <RecipeView
+            recipe={diffRecipe}
+            author={displayName}
+            timestamp={timestamp}
+            isFavorite={favorites.includes(id)}
+            onToggleFavorite={toggleFavorite}
+            recipeId={id}
+            isMobile={isMobile}
+            sidebarCollapsed={sidebarCollapsed}
+            onToggleSidebar={onToggleSidebar}
+          />
           {user && recipeUID === user.uid && (
             <div className="update-section" style={{ marginTop: '1rem' }}>
               <input

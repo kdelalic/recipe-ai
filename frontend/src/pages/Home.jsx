@@ -1,4 +1,5 @@
 import { useState, useRef, useMemo } from 'react';
+import { HiOutlineMenuAlt2 } from 'react-icons/hi';
 import RecipeView from '../components/RecipeView';
 import RecipeSkeleton from '../components/RecipeSkeleton';
 import api from '../utils/api';
@@ -23,7 +24,7 @@ const GREETINGS = [
   "Ready to explore new flavors?",
 ];
 
-function Home() {
+function Home({ isMobile, sidebarCollapsed, onToggleSidebar }) {
   const recipeRef = useRef(null);
   const [input, setInput] = useState('');
   const [currentId, setCurrentId] = useState('');
@@ -114,7 +115,20 @@ function Home() {
 
   return (
     <div className={`home-page ${!hasRecipe ? 'centered' : ''}`}>
-      {!hasRecipe && <h1 className="greeting">{greeting}</h1>}
+      {!hasRecipe && (
+        <div className="greeting-row">
+          {isMobile && sidebarCollapsed && onToggleSidebar && (
+            <button
+              className="mobile-menu-btn"
+              onClick={onToggleSidebar}
+              aria-label="Open menu"
+            >
+              <HiOutlineMenuAlt2 size={20} />
+            </button>
+          )}
+          <h1 className="greeting">{greeting}</h1>
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="recipe-form">
         <input
           type="text"
@@ -129,11 +143,20 @@ function Home() {
       {error && <p className="error">{error}</p>}
 
       {loading && !currentRecipe ? (
-        <RecipeSkeleton />
+        <RecipeSkeleton
+          isMobile={isMobile}
+          sidebarCollapsed={sidebarCollapsed}
+          onToggleSidebar={onToggleSidebar}
+        />
       ) : (
         currentRecipe && (
           <div className="recipe" ref={recipeRef}>
-            <RecipeView recipe={diffRecipe} />
+            <RecipeView
+              recipe={diffRecipe}
+              isMobile={isMobile}
+              sidebarCollapsed={sidebarCollapsed}
+              onToggleSidebar={onToggleSidebar}
+            />
             {enableImageGeneration && (
               <>
                 {imageLoading ? (

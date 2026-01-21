@@ -1,7 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { FaStar, FaRegStar, FaPrint, FaShareAlt } from 'react-icons/fa';
+import { HiOutlineMenuAlt2 } from 'react-icons/hi';
 
-function RecipeView({ recipe }) {
+function RecipeView({ recipe, author, timestamp, isFavorite, onToggleFavorite, recipeId, isMobile, sidebarCollapsed, onToggleSidebar }) {
   const [checkedIngredients, setCheckedIngredients] = useState(new Set());
+
+  useEffect(() => {
+    if (recipe?.title) {
+      const plainTitle = recipe.title.replace(/<[^>]*>/g, '');
+      document.title = plainTitle;
+    }
+  }, [recipe?.title]);
 
   if (!recipe) return null;
 
@@ -47,7 +56,106 @@ function RecipeView({ recipe }) {
 
   return (
     <div className="recipe-view">
+      {isMobile && (
+        <div className="recipe-mobile-header">
+          {sidebarCollapsed && onToggleSidebar && (
+            <button
+              className="mobile-menu-btn"
+              onClick={onToggleSidebar}
+              aria-label="Open menu"
+            >
+              <HiOutlineMenuAlt2 size={18} />
+            </button>
+          )}
+          <div className="recipe-action-buttons">
+            {onToggleFavorite && (
+              <button
+                className={`recipe-action-btn ${isFavorite ? 'is-favorite' : ''}`}
+                onClick={(e) => onToggleFavorite(recipeId, e)}
+                aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+              >
+                {isFavorite ? <FaStar size={14} /> : <FaRegStar size={14} />}
+              </button>
+            )}
+            <button
+              className="recipe-action-btn"
+              onClick={() => window.print()}
+              aria-label="Print recipe"
+            >
+              <FaPrint size={14} />
+            </button>
+            <button
+              className="recipe-action-btn"
+              onClick={() => {
+                if (navigator.share) {
+                  navigator.share({
+                    title: recipe.title?.replace(/<[^>]*>/g, '') || 'Recipe',
+                    url: window.location.href,
+                  });
+                } else {
+                  navigator.clipboard.writeText(window.location.href);
+                }
+              }}
+              aria-label="Share recipe"
+            >
+              <FaShareAlt size={14} />
+            </button>
+          </div>
+        </div>
+      )}
+
       <h1 dangerouslySetInnerHTML={{ __html: recipe.title }} />
+      {author && (
+        <p className="recipe-byline">
+          {author}
+          {timestamp && (
+            <span className="recipe-date">
+              {' '}· {new Date(timestamp).toLocaleDateString(undefined, {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+              })}
+            </span>
+          )}
+        </p>
+      )}
+
+      {!isMobile && (
+        <div className="recipe-action-buttons">
+          {onToggleFavorite && (
+            <button
+              className={`recipe-action-btn ${isFavorite ? 'is-favorite' : ''}`}
+              onClick={(e) => onToggleFavorite(recipeId, e)}
+              aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+            >
+              {isFavorite ? <FaStar size={14} /> : <FaRegStar size={14} />}
+            </button>
+          )}
+          <button
+            className="recipe-action-btn"
+            onClick={() => window.print()}
+            aria-label="Print recipe"
+          >
+            <FaPrint size={14} />
+          </button>
+          <button
+            className="recipe-action-btn"
+            onClick={() => {
+              if (navigator.share) {
+                navigator.share({
+                  title: recipe.title?.replace(/<[^>]*>/g, '') || 'Recipe',
+                  url: window.location.href,
+                });
+              } else {
+                navigator.clipboard.writeText(window.location.href);
+              }
+            }}
+            aria-label="Share recipe"
+          >
+            <FaShareAlt size={14} />
+          </button>
+        </div>
+      )}
 
       <p className="recipe-description" dangerouslySetInnerHTML={{ __html: recipe.description }} />
 
