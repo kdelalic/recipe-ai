@@ -115,19 +115,17 @@ function Home({ isMobile, sidebarCollapsed, onToggleSidebar }) {
 
   return (
     <div className={`home-page ${!hasRecipe ? 'centered' : ''}`}>
+      {!hasRecipe && isMobile && sidebarCollapsed && onToggleSidebar && (
+        <button
+          className="mobile-menu-btn top-left"
+          onClick={onToggleSidebar}
+          aria-label="Open menu"
+        >
+          <HiOutlineMenuAlt2 size={20} />
+        </button>
+      )}
       {!hasRecipe && (
-        <div className="greeting-row">
-          {isMobile && sidebarCollapsed && onToggleSidebar && (
-            <button
-              className="mobile-menu-btn"
-              onClick={onToggleSidebar}
-              aria-label="Open menu"
-            >
-              <HiOutlineMenuAlt2 size={20} />
-            </button>
-          )}
-          <h1 className="greeting">{greeting}</h1>
-        </div>
+        <h1 className="greeting">{greeting}</h1>
       )}
       <form onSubmit={handleSubmit} className="recipe-form">
         <input
