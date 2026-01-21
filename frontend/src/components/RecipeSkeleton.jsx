@@ -11,39 +11,80 @@ function RecipeSkeleton({ isMobile, sidebarCollapsed, onToggleSidebar }) {
 
   return (
     <SkeletonTheme baseColor={baseColor} highlightColor={highlightColor}>
-      <div className="recipe recipe-skeleton" style={{ marginTop: '2rem' }}>
-        {/* Title Skeleton */}
-        <div className="recipe-title-row">
-          {isMobile && sidebarCollapsed && onToggleSidebar && (
-            <button
-              className="mobile-menu-btn"
-              onClick={onToggleSidebar}
-              aria-label="Open menu"
-            >
-              <HiOutlineMenuAlt2 size={20} />
-            </button>
-          )}
-          <Skeleton height={40} width="60%" style={{ flex: 1 }} />
+      <div className="recipe recipe-skeleton recipe-view">
+        {/* Mobile header - matches RecipeView structure */}
+        {isMobile && (
+          <div className="recipe-mobile-header">
+            {sidebarCollapsed && onToggleSidebar && (
+              <button
+                className="mobile-menu-btn"
+                onClick={onToggleSidebar}
+                aria-label="Open menu"
+              >
+                <HiOutlineMenuAlt2 size={18} />
+              </button>
+            )}
+            <div className="recipe-action-buttons">
+              <Skeleton width={32} height={32} borderRadius={4} />
+              <Skeleton width={32} height={32} borderRadius={4} />
+              <Skeleton width={32} height={32} borderRadius={4} />
+            </div>
+          </div>
+        )}
+
+        {/* Title */}
+        <Skeleton height={36} width="70%" style={{ marginBottom: '0.5rem' }} />
+
+        {/* Byline */}
+        <Skeleton height={16} width="40%" style={{ marginBottom: '0.75rem' }} />
+
+        {/* Action buttons (desktop) */}
+        {!isMobile && (
+          <div className="recipe-action-buttons">
+            <Skeleton width={32} height={32} borderRadius={4} />
+            <Skeleton width={32} height={32} borderRadius={4} />
+            <Skeleton width={32} height={32} borderRadius={4} />
+          </div>
+        )}
+
+        {/* Description */}
+        <Skeleton height={20} width="100%" style={{ marginBottom: '0.25rem' }} />
+        <Skeleton height={20} width="85%" style={{ marginBottom: '1.5rem' }} />
+
+        {/* Stats row */}
+        <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
+          <Skeleton width={60} height={16} />
+          <Skeleton width={60} height={16} />
+          <Skeleton width={70} height={16} />
+          <Skeleton width={80} height={16} />
+          <Skeleton width={80} height={16} />
+          <Skeleton width={70} height={16} />
         </div>
-        {/* Introduction Paragraph Skeleton */}
-        <Skeleton height={20} width="90%" style={{ marginTop: '1rem', marginBottom: '1rem' }} />
 
         {/* Ingredients Section */}
-        <Skeleton height={30} width="30%" style={{ marginBottom: '0.5rem' }} />
-        {Array.from({ length: 6 }).map((_, index) => (
-          <Skeleton key={index} height={20} width="80%" style={{ marginBottom: '0.3rem' }} />
+        <Skeleton height={28} width="35%" style={{ marginTop: '2.5rem', marginBottom: '1.25rem' }} />
+        {Array.from({ length: 8 }).map((_, index) => (
+          <div key={`ing-${index}`} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+            <Skeleton width={18} height={18} borderRadius={3} />
+            <Skeleton height={18} width={`${60 + Math.random() * 30}%`} />
+          </div>
         ))}
 
         {/* Instructions Section */}
-        <Skeleton height={30} width="30%" style={{ margin: '1rem 0 0.5rem 0' }} />
-        {Array.from({ length: 4 }).map((_, index) => (
-          <Skeleton key={index} height={20} width="90%" style={{ marginBottom: '0.3rem' }} />
+        <Skeleton height={28} width="35%" style={{ marginTop: '2.5rem', marginBottom: '1.25rem' }} />
+        {Array.from({ length: 6 }).map((_, index) => (
+          <div key={`inst-${index}`} style={{ marginBottom: '1.25rem', paddingLeft: '1.25rem' }}>
+            <Skeleton height={18} width="100%" style={{ marginBottom: '0.25rem' }} />
+            <Skeleton height={18} width={`${70 + Math.random() * 25}%`} />
+          </div>
         ))}
 
         {/* Notes Section */}
-        <Skeleton height={30} width="30%" style={{ margin: '1rem 0 0.5rem 0' }} />
-        {Array.from({ length: 2 }).map((_, index) => (
-          <Skeleton key={index} height={20} width="70%" style={{ marginBottom: '0.3rem' }} />
+        <Skeleton height={28} width="20%" style={{ marginTop: '2.5rem', marginBottom: '1.25rem' }} />
+        {Array.from({ length: 3 }).map((_, index) => (
+          <div key={`note-${index}`} style={{ marginBottom: '0.5rem', paddingLeft: '1.25rem' }}>
+            <Skeleton height={18} width={`${50 + Math.random() * 40}%`} />
+          </div>
         ))}
       </div>
     </SkeletonTheme>

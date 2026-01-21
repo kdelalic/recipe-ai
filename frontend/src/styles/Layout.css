@@ -30,13 +30,17 @@
 }
 
 * {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+    Cantarell, sans-serif;
 }
 
 body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  transition: background-color 0.2s, color 0.2s;
+  transition:
+    background-color 0.2s,
+    color 0.2s;
 }
 
 .layout {
@@ -58,7 +62,9 @@ body {
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  transition: width 0.2s ease, padding 0.2s ease;
+  transition:
+    width 0.2s ease,
+    padding 0.2s ease;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
 }
@@ -92,7 +98,9 @@ body {
   align-items: center;
   justify-content: center;
   color: #b0b0b0;
-  transition: background-color 0.2s, border-color 0.2s;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s;
 }
 
 .theme-toggle:hover {
@@ -128,7 +136,9 @@ body {
   align-items: center;
   justify-content: center;
   color: #b0b0b0;
-  transition: background-color 0.2s, border-color 0.2s;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s;
 }
 
 .sidebar-toggle:hover {
@@ -167,7 +177,9 @@ body {
   border: none;
   border-radius: 6px;
   font-size: 0.9rem;
-  transition: background-color 0.2s, opacity 0.2s ease;
+  transition:
+    background-color 0.2s,
+    opacity 0.2s ease;
   box-sizing: border-box;
   flex-shrink: 0;
   white-space: nowrap;
@@ -235,7 +247,10 @@ body {
   color: #b0b0b0;
   font-size: 0.8rem;
   cursor: pointer;
-  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
+  transition:
+    background-color 0.2s,
+    border-color 0.2s,
+    color 0.2s;
 }
 
 .favorites-filter:hover {
@@ -301,7 +316,9 @@ body {
   color: #666;
   cursor: pointer;
   opacity: 0;
-  transition: opacity 0.15s, color 0.15s;
+  transition:
+    opacity 0.15s,
+    color 0.15s;
   flex-shrink: 0;
 }
 
@@ -450,11 +467,7 @@ body {
 /* Prevent body scroll when sidebar is open on mobile */
 body.sidebar-open {
   overflow: hidden;
-  position: fixed;
-  width: 100%;
-  height: 100%;
 }
-
 
 /* Mobile-specific styling */
 @media (max-width: 768px) {
