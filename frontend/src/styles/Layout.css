@@ -49,6 +49,7 @@ body {
   flex-shrink: 0;
   background-color: #212121;
   padding: 0.75rem;
+  padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
   height: 100vh;
   position: fixed;
   top: 0;
@@ -144,10 +145,13 @@ body {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  opacity: 1;
+  transition: opacity 0.2s ease;
 }
 
 .sidebar-content.collapsed {
-  display: none;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .new-recipe-btn {
@@ -163,7 +167,7 @@ body {
   border: none;
   border-radius: 6px;
   font-size: 0.9rem;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, opacity 0.2s ease;
   box-sizing: border-box;
   flex-shrink: 0;
   white-space: nowrap;
@@ -175,7 +179,8 @@ body {
 }
 
 .new-recipe-btn.collapsed {
-  display: none;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .new-recipe-icon {
@@ -190,10 +195,12 @@ body {
   gap: 0.5rem;
   margin-bottom: 1rem;
   padding: 0 0.25rem;
+  transition: opacity 0.2s ease;
 }
 
 .sidebar-filters.collapsed {
-  display: none;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .search-input {
@@ -332,10 +339,12 @@ body {
   padding-top: 0.75rem;
   border-top: 1px solid #333;
   position: relative;
+  transition: opacity 0.2s ease;
 }
 
 .sidebar-footer.collapsed {
-  display: none;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .profile-btn {
@@ -466,6 +475,8 @@ body.sidebar-open {
 
   .sidebar.collapsed {
     transform: translateX(-100%);
+    width: 260px;
+    padding: 0.75rem 0.5rem;
   }
 
   .sidebar .sidebar-header {
@@ -479,10 +490,32 @@ body.sidebar-open {
 
   .sidebar .sidebar-content {
     display: block;
+    opacity: 1;
+  }
+
+  .sidebar .sidebar-content.collapsed {
+    opacity: 1;
+    pointer-events: auto;
   }
 
   .sidebar .sidebar-footer {
     display: block;
+    opacity: 1;
+  }
+
+  .sidebar .sidebar-footer.collapsed {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .sidebar .new-recipe-btn.collapsed {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .sidebar .sidebar-filters.collapsed {
+    opacity: 1;
+    pointer-events: auto;
   }
 
   .sidebar .sidebar-toggle {
