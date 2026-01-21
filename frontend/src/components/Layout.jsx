@@ -165,6 +165,18 @@ function Layout({ children, user }) {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  // Prevent body scroll when sidebar is open on mobile
+  useEffect(() => {
+    if (isMobile && !sidebarCollapsed) {
+      document.body.classList.add('sidebar-open');
+    } else {
+      document.body.classList.remove('sidebar-open');
+    }
+    return () => {
+      document.body.classList.remove('sidebar-open');
+    };
+  }, [isMobile, sidebarCollapsed]);
+
   // Infinite scroll handler
   const handleScroll = () => {
     const el = historyListRef.current;
