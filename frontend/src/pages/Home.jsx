@@ -24,7 +24,7 @@ const GREETINGS = [
   "Ready to explore new flavors?",
 ];
 
-function Home({ isMobile, sidebarCollapsed, onToggleSidebar }) {
+function Home({ isMobile, sidebarCollapsed, onToggleSidebar, favorites, toggleFavorite, wakeLockEnabled, onToggleWakeLock }) {
   const recipeRef = useRef(null);
   const [input, setInput] = useState('');
   const [currentId, setCurrentId] = useState('');
@@ -151,9 +151,15 @@ function Home({ isMobile, sidebarCollapsed, onToggleSidebar }) {
           <div className="recipe" ref={recipeRef}>
             <RecipeView
               recipe={diffRecipe}
+              recipeId={currentId}
               isMobile={isMobile}
               sidebarCollapsed={sidebarCollapsed}
               onToggleSidebar={onToggleSidebar}
+              isFavorite={favorites?.includes(currentId)}
+              onToggleFavorite={toggleFavorite}
+              wakeLockEnabled={wakeLockEnabled}
+              onToggleWakeLock={onToggleWakeLock}
+              shareUrl={currentId ? `${window.location.origin}/recipe/${currentId}` : undefined}
             />
             {enableImageGeneration && (
               <>

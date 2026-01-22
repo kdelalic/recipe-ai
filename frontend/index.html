@@ -8,8 +8,20 @@
     <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Recipe AI</title>
+    <style>
+      :root { --bg-primary: #ffffff; --bg-secondary: #f9f9f9; }
+      [data-theme="dark"] { --bg-primary: #1a1a1a; --bg-secondary: #242424; }
+      html, body, #root { background-color: var(--bg-primary); }
+    </style>
   </head>
   <body>
+    <script>
+      (function() {
+        var saved = localStorage.getItem('darkMode');
+        var isDark = saved !== null ? JSON.parse(saved) : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+      })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/index.jsx"></script>
   </body>

@@ -26,6 +26,11 @@ function Layout({ children, user }) {
     return saved ? JSON.parse(saved) : [];
   });
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+  const [wakeLock, setWakeLock] = useState(null);
+  const [wakeLockEnabled, setWakeLockEnabled] = useState(() => {
+    const saved = localStorage.getItem('keepScreenAwake');
+    return saved === 'true';
+  });
   const dropdownRef = useRef(null);
   const historyListRef = useRef(null);
 
@@ -33,6 +38,52 @@ function Layout({ children, user }) {
 
   // Check if user is logged in (not anonymous)
   const isLoggedIn = user && !user.isAnonymous;
+
+  // Wake lock management
+  const requestWakeLock = useCallback(async () => {
+    if ('wakeLock' in navigator) {
+      try {
+        const lock = await navigator.wakeLock.request('screen');
+        setWakeLock(lock);
+        lock.addEventListener('release', () => setWakeLock(null));
+      } catch (err) {
+        console.error('Wake lock request failed:', err);
+      }
+    }
+  }, []);
+
+  const releaseWakeLock = useCallback(() => {
+    if (wakeLock) {
+      wakeLock.release();
+      setWakeLock(null);
+    }
+  }, [wakeLock]);
+
+  const toggleWakeLock = () => {
+    const newValue = !wakeLockEnabled;
+    setWakeLockEnabled(newValue);
+    localStorage.setItem('keepScreenAwake', String(newValue));
+  };
+
+  // Request/release wake lock based on enabled state
+  useEffect(() => {
+    if (wakeLockEnabled) {
+      requestWakeLock();
+    } else {
+      releaseWakeLock();
+    }
+  }, [wakeLockEnabled, requestWakeLock, releaseWakeLock]);
+
+  // Re-acquire wake lock when page becomes visible again
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && wakeLockEnabled) {
+        requestWakeLock();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [wakeLockEnabled, requestWakeLock]);
 
   // Fetch favorites from database for logged-in users
   const fetchFavorites = useCallback(async () => {
@@ -225,6 +276,8 @@ function Layout({ children, user }) {
               className="theme-toggle"
               onClick={toggleDarkMode}
               aria-label={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+              data-tooltip-id="tooltip"
+              data-tooltip-content={darkMode ? 'Switch to light mode' : 'Switch to dark mode'}
             >
               {darkMode ? <HiOutlineSun size={18} /> : <HiOutlineMoon size={18} />}
             </button>
@@ -232,6 +285,8 @@ function Layout({ children, user }) {
               className="sidebar-toggle"
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
               aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+              data-tooltip-id="tooltip"
+              data-tooltip-content={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             >
               <HiOutlineMenuAlt2 size={20} />
             </button>
@@ -253,6 +308,8 @@ function Layout({ children, user }) {
             className={`favorites-filter ${showFavoritesOnly ? 'active' : ''}`}
             onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
             aria-label={showFavoritesOnly ? 'Show all recipes' : 'Show favorites only'}
+            data-tooltip-id="tooltip"
+            data-tooltip-content={showFavoritesOnly ? 'Show all recipes' : 'Show favorites only'}
           >
             {showFavoritesOnly ? <FaStar size={14} /> : <FaRegStar size={14} />}
             Favorites
@@ -278,6 +335,8 @@ function Layout({ children, user }) {
                     className={`favorite-btn ${favorites.includes(item.id) ? 'is-favorite' : ''}`}
                     onClick={(e) => toggleFavorite(item.id, e)}
                     aria-label={favorites.includes(item.id) ? 'Remove from favorites' : 'Add to favorites'}
+                    data-tooltip-id="tooltip"
+                    data-tooltip-content={favorites.includes(item.id) ? 'Remove from favorites' : 'Add to favorites'}
                   >
                     {favorites.includes(item.id) ? <FaStar size={12} /> : <FaRegStar size={12} />}
                   </button>
@@ -320,6 +379,8 @@ function Layout({ children, user }) {
               isMobile,
               sidebarCollapsed,
               onToggleSidebar: () => setSidebarCollapsed(false),
+              wakeLockEnabled,
+              onToggleWakeLock: toggleWakeLock,
             })
           : children}
       </main>

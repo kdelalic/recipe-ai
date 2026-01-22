@@ -58,7 +58,13 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  margin-bottom: 0.75rem;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 0.75rem 0.75rem;
+  background-color: var(--bg-primary);
+  z-index: 100;
 }
 
 .recipe-mobile-header .mobile-menu-btn {
@@ -132,6 +138,15 @@
 }
 
 .recipe-action-btn.is-favorite:hover {
+  background-color: var(--bg-tertiary);
+}
+
+.recipe-action-btn.is-active {
+  color: #4a7c59;
+  border-color: #4a7c59;
+}
+
+.recipe-action-btn.is-active:hover {
   background-color: var(--bg-tertiary);
 }
 
@@ -287,6 +302,10 @@
 
 /* Mobile-specific styling */
 @media (max-width: 768px) {
+  .recipe-view {
+    padding-top: 32px;
+  }
+
   .recipe-stats .stat-divider {
     display: none;
   }

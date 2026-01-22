@@ -6,7 +6,7 @@ import api from '../utils/api';
 import { computeRecipeDiffAsHtml } from '../utils/diffHelper';
 import '../styles/RecipeDetail.css';
 
-function RecipeDetail({ user, favorites = [], toggleFavorite, isMobile, sidebarCollapsed, onToggleSidebar }) {
+function RecipeDetail({ user, favorites = [], toggleFavorite, isMobile, sidebarCollapsed, onToggleSidebar, wakeLockEnabled, onToggleWakeLock }) {
   const recipeRef = useRef(null);
   const { id } = useParams();
   const navigate = useNavigate();
@@ -107,6 +107,8 @@ function RecipeDetail({ user, favorites = [], toggleFavorite, isMobile, sidebarC
             isMobile={isMobile}
             sidebarCollapsed={sidebarCollapsed}
             onToggleSidebar={onToggleSidebar}
+            wakeLockEnabled={wakeLockEnabled}
+            onToggleWakeLock={onToggleWakeLock}
           />
           {user && recipeUID === user.uid && (
             <div className="update-section" style={{ marginTop: '1rem' }}>

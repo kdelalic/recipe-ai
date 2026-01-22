@@ -1,5 +1,6 @@
 // App.jsx
 import { Routes, Route } from 'react-router-dom';
+import { Tooltip } from 'react-tooltip';
 import Home from './pages/Home';
 import RecipeDetail from './pages/RecipeDetail';
 import Login from './pages/Login';
@@ -9,6 +10,8 @@ import Layout from './components/Layout';
 
 function App({ user }) {
   return (
+    <>
+    <Tooltip id="tooltip" />
     <Routes>
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<SignUp />} />
@@ -31,6 +34,7 @@ function App({ user }) {
         }
       />
     </Routes>
+    </>
   );
 }
 

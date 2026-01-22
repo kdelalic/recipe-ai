@@ -50,12 +50,14 @@ app = Flask(__name__)
 token_cache = TTLCache(maxsize=1000, ttl=3600)  # Cache tokens for 1 hour
 recipe_cache = TTLCache(maxsize=100, ttl=300)  # Cache recipes for 5 minutes
 
-# Setup rate limiting
+# Setup rate limiting (disabled in local development)
+is_local = os.getenv("FLASK_ENV") == "development" or os.getenv("LOCAL_DEV", "false").lower() == "true"
 limiter = Limiter(
     get_remote_address,
     app=app,
-    default_limits=["200 per day", "50 per hour"],
+    default_limits=[] if is_local else ["200 per day", "50 per hour"],
     storage_uri="memory://",
+    enabled=not is_local,
 )
 
 # Configure CORS with secure options

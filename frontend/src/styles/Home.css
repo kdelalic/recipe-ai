@@ -139,6 +139,10 @@ button:disabled {
 
 /* Mobile-specific styling */
 @media (max-width: 768px) {
+  .home-page:not(.centered) {
+    padding-top: 3rem;
+  }
+
   .home-page.centered {
     min-height: calc(100vh - 2rem);
   }
