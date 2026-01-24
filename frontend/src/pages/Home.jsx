@@ -24,7 +24,7 @@ const GREETINGS = [
   "Ready to explore new flavors?",
 ];
 
-function Home({ isMobile, sidebarCollapsed, onToggleSidebar, favorites, toggleFavorite, wakeLockEnabled, onToggleWakeLock }) {
+function Home({ isMobile, sidebarCollapsed, onToggleSidebar, favoriteIds, toggleFavorite, wakeLockEnabled, onToggleWakeLock }) {
   const recipeRef = useRef(null);
   const [input, setInput] = useState('');
   const [currentId, setCurrentId] = useState('');
@@ -155,7 +155,7 @@ function Home({ isMobile, sidebarCollapsed, onToggleSidebar, favorites, toggleFa
               isMobile={isMobile}
               sidebarCollapsed={sidebarCollapsed}
               onToggleSidebar={onToggleSidebar}
-              isFavorite={favorites?.includes(currentId)}
+              isFavorite={favoriteIds?.includes(currentId)}
               onToggleFavorite={toggleFavorite}
               wakeLockEnabled={wakeLockEnabled}
               onToggleWakeLock={onToggleWakeLock}

@@ -25,6 +25,10 @@ function Layout({ children, user }) {
     const saved = localStorage.getItem('favorites');
     return saved ? JSON.parse(saved) : [];
   });
+  const [favoriteIds, setFavoriteIds] = useState(() => {
+    const saved = localStorage.getItem('favoriteIds');
+    return saved ? JSON.parse(saved) : [];
+  });
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [wakeLock, setWakeLock] = useState(null);
   const [wakeLockEnabled, setWakeLockEnabled] = useState(() => {
@@ -93,8 +97,11 @@ function Layout({ children, user }) {
       const response = await api.get('/api/favorites');
       if (response.status === 200) {
         const dbFavorites = response.data.favorites || [];
+        const dbFavoriteIds = response.data.favoriteIds || [];
         setFavorites(dbFavorites);
+        setFavoriteIds(dbFavoriteIds);
         localStorage.setItem('favorites', JSON.stringify(dbFavorites));
+        localStorage.setItem('favoriteIds', JSON.stringify(dbFavoriteIds));
       }
     } catch (err) {
       console.error('Error fetching favorites:', err);
@@ -109,36 +116,57 @@ function Layout({ children, user }) {
     }
   }, [user, isLoggedIn, fetchFavorites]);
 
-  // Save favorites to localStorage (always) and database (for logged-in users)
-  const saveFavorites = useCallback(async (newFavorites) => {
-    localStorage.setItem('favorites', JSON.stringify(newFavorites));
-
-    if (isLoggedIn) {
-      try {
-        await api.put('/api/favorites', { favorites: newFavorites });
-      } catch (err) {
-        console.error('Error saving favorites to database:', err);
-      }
-    }
-  }, [isLoggedIn]);
-
-  const toggleFavorite = async (recipeId, e) => {
+  // Toggle favorite - uses POST/DELETE endpoints
+  const toggleFavorite = async (recipeId, title, e) => {
     e.preventDefault();
     e.stopPropagation();
 
-    const newFavorites = favorites.includes(recipeId)
-      ? favorites.filter(id => id !== recipeId)
-      : [...favorites, recipeId];
+    const isFavorited = favoriteIds.includes(recipeId);
 
-    setFavorites(newFavorites);
-    await saveFavorites(newFavorites);
+    // Optimistically update UI
+    if (isFavorited) {
+      setFavoriteIds(prev => prev.filter(id => id !== recipeId));
+      setFavorites(prev => prev.filter(f => (f.id || f) !== recipeId));
+    } else {
+      setFavoriteIds(prev => [...prev, recipeId]);
+      setFavorites(prev => [...prev, { id: recipeId, title }]);
+    }
+
+    // Persist to server
+    if (isLoggedIn) {
+      try {
+        if (isFavorited) {
+          await api.delete(`/api/favorites/${recipeId}`);
+        } else {
+          await api.post(`/api/favorites/${recipeId}`, { title });
+        }
+      } catch (err) {
+        console.error('Error toggling favorite:', err);
+        // Revert on error
+        fetchFavorites();
+      }
+    } else {
+      // For non-logged-in users, just save to localStorage
+      const newFavorites = isFavorited
+        ? favorites.filter(f => (f.id || f) !== recipeId)
+        : [...favorites, { id: recipeId, title }];
+      const newFavoriteIds = isFavorited
+        ? favoriteIds.filter(id => id !== recipeId)
+        : [...favoriteIds, recipeId];
+      localStorage.setItem('favorites', JSON.stringify(newFavorites));
+      localStorage.setItem('favoriteIds', JSON.stringify(newFavoriteIds));
+    }
   };
 
-  // Filter history based on search and favorites
-  const filteredHistory = history.filter(item => {
-    const matchesSearch = item.recipe.title.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesFavorites = showFavoritesOnly ? favorites.includes(item.id) : true;
-    return matchesSearch && matchesFavorites;
+  // Get the appropriate list based on filter state
+  // When showing favorites, use the favorites array which already has titles
+  const displayHistory = showFavoritesOnly
+    ? favorites.map(f => ({ id: f.id || f, title: f.title || '' }))
+    : history;
+
+  // Filter history based on search
+  const filteredHistory = displayHistory.filter(item => {
+    return item.title.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
   const fetchHistory = async (currentOffset = 0, append = false) => {
@@ -249,6 +277,7 @@ function Layout({ children, user }) {
     }
   }, [history, historyLoading, loadingMore, hasMore]);
 
+
   return (
     <div className={`layout ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
       {/* Mobile header */}
@@ -330,21 +359,23 @@ function Layout({ children, user }) {
                   to={`/recipe/${item.id}`}
                   className={`history-item ${currentRecipeId === item.id ? 'active' : ''}`}
                 >
-                  <span className="history-item-title">{item.recipe.title}</span>
+                  <span className="history-item-title">{item.title}</span>
                   <button
-                    className={`favorite-btn ${favorites.includes(item.id) ? 'is-favorite' : ''}`}
-                    onClick={(e) => toggleFavorite(item.id, e)}
-                    aria-label={favorites.includes(item.id) ? 'Remove from favorites' : 'Add to favorites'}
+                    className={`favorite-btn ${favoriteIds.includes(item.id) ? 'is-favorite' : ''}`}
+                    onClick={(e) => toggleFavorite(item.id, item.title, e)}
+                    aria-label={favoriteIds.includes(item.id) ? 'Remove from favorites' : 'Add to favorites'}
                     data-tooltip-id="tooltip"
-                    data-tooltip-content={favorites.includes(item.id) ? 'Remove from favorites' : 'Add to favorites'}
+                    data-tooltip-content={favoriteIds.includes(item.id) ? 'Remove from favorites' : 'Add to favorites'}
                   >
-                    {favorites.includes(item.id) ? <FaStar size={12} /> : <FaRegStar size={12} />}
+                    {favoriteIds.includes(item.id) ? <FaStar size={12} /> : <FaRegStar size={12} />}
                   </button>
                 </Link>
               ))}
               {loadingMore && <div className="history-loading">Loading...</div>}
             </div>
-          ) : searchQuery || showFavoritesOnly ? (
+          ) : showFavoritesOnly ? (
+            <p className="no-history">{searchQuery ? 'No matching favorites found.' : 'No favorites yet.'}</p>
+          ) : searchQuery ? (
             <p className="no-history">No matching recipes found.</p>
           ) : (
             <p className="no-history">No recipes generated yet.</p>
@@ -374,7 +405,7 @@ function Layout({ children, user }) {
       <main className="main-content">
         {isValidElement(children)
           ? cloneElement(children, {
-              favorites,
+              favoriteIds,
               toggleFavorite,
               isMobile,
               sidebarCollapsed,

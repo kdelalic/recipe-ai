@@ -18,7 +18,7 @@ function diffFieldAsHtml(oldStr, newStr) {
         // If you want to visibly show removed parts, you could do:
         // return `<span class="diff-removed">${part.value}</span>`;
         // But if you only highlight additions, just omit removed parts:
-        return ''; 
+        return '';
       } else {
         return part.value; // unchanged text
       }
@@ -78,6 +78,31 @@ function diffArrayAsHtml(oldArr = [], newArr = []) {
 }
 
 /**
+ * Compare two arrays of ingredient groups and return diffed ingredient groups.
+ * Each group has { group_name, items } structure.
+ */
+function diffIngredientGroupsAsHtml(oldGroups = [], newGroups = []) {
+  const result = [];
+
+  // Create maps for easier lookup by group_name
+  const oldGroupMap = new Map(oldGroups.map(g => [g.group_name, g.items || []]));
+
+  for (const newGroup of newGroups) {
+    const oldItems = oldGroupMap.get(newGroup.group_name) || [];
+    const newItems = newGroup.items || [];
+
+    result.push({
+      group_name: oldGroupMap.has(newGroup.group_name)
+        ? diffFieldAsHtml(newGroup.group_name, newGroup.group_name)
+        : `<span class="diff-added">${newGroup.group_name}</span>`,
+      items: diffArrayAsHtml(oldItems, newItems),
+    });
+  }
+
+  return result;
+}
+
+/**
  * Compare two "recipe" objects and return a new object
  * whose fields are HTML strings (for single-valued fields)
  * or arrays of HTML strings (for list fields).
@@ -86,7 +111,7 @@ function diffArrayAsHtml(oldArr = [], newArr = []) {
  * {
  *   title: "<span class='diff-added'>...</span>",
  *   description: "...",
- *   ingredients: ["unchanged", "<span class='diff-added'>...</span>", ...],
+ *   ingredients: [{ group_name: "...", items: ["...", ...] }, ...],
  *   instructions: [...],
  *   notes: [...]
  * }
@@ -95,13 +120,16 @@ export function computeRecipeDiffAsHtml(oldRecipe, newRecipe) {
   if (!oldRecipe || !newRecipe) return newRecipe;
 
   return {
+    ...newRecipe,
     // Single string fields => highlight word-level changes.
     title: diffFieldAsHtml(oldRecipe.title, newRecipe.title),
     description: diffFieldAsHtml(oldRecipe.description, newRecipe.description),
 
+    // Ingredient groups => special handling for group structure
+    ingredients: diffIngredientGroupsAsHtml(oldRecipe.ingredients, newRecipe.ingredients),
+
     // Array fields => align them, highlight insertions, deletions, or partial changes
-    ingredients: diffArrayAsHtml(oldRecipe.ingredients, newRecipe.ingredients),
     instructions: diffArrayAsHtml(oldRecipe.instructions, newRecipe.instructions),
-    notes: diffArrayAsHtml(oldRecipe.notes, newRecipe.notes),
+    notes: diffArrayAsHtml(oldRecipe.notes || [], newRecipe.notes || []),
   };
 }

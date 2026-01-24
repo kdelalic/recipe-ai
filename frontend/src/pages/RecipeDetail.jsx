@@ -6,7 +6,7 @@ import api from '../utils/api';
 import { computeRecipeDiffAsHtml } from '../utils/diffHelper';
 import '../styles/RecipeDetail.css';
 
-function RecipeDetail({ user, favorites = [], toggleFavorite, isMobile, sidebarCollapsed, onToggleSidebar, wakeLockEnabled, onToggleWakeLock }) {
+function RecipeDetail({ user, favoriteIds = [], toggleFavorite, isMobile, sidebarCollapsed, onToggleSidebar, wakeLockEnabled, onToggleWakeLock }) {
   const recipeRef = useRef(null);
   const { id } = useParams();
   const navigate = useNavigate();
@@ -105,7 +105,7 @@ function RecipeDetail({ user, favorites = [], toggleFavorite, isMobile, sidebarC
             recipe={diffRecipe}
             author={displayName}
             timestamp={timestamp}
-            isFavorite={favorites.includes(id)}
+            isFavorite={favoriteIds.includes(id)}
             onToggleFavorite={toggleFavorite}
             recipeId={id}
             isMobile={isMobile}

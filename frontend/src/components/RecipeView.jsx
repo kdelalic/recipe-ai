@@ -71,7 +71,7 @@ function RecipeView({ recipe, author, timestamp, isFavorite, onToggleFavorite, r
             {onToggleFavorite && (
               <button
                 className={`recipe-action-btn ${isFavorite ? 'is-favorite' : ''}`}
-                onClick={(e) => onToggleFavorite(recipeId, e)}
+                onClick={(e) => onToggleFavorite(recipeId, recipe.title, e)}
                 aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
                 data-tooltip-id="tooltip"
                 data-tooltip-content={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
@@ -143,7 +143,7 @@ function RecipeView({ recipe, author, timestamp, isFavorite, onToggleFavorite, r
           {onToggleFavorite && (
             <button
               className={`recipe-action-btn ${isFavorite ? 'is-favorite' : ''}`}
-              onClick={(e) => onToggleFavorite(recipeId, e)}
+              onClick={(e) => onToggleFavorite(recipeId, recipe.title, e)}
               aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
               data-tooltip-id="tooltip"
               data-tooltip-content={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
