@@ -9,7 +9,7 @@ from firebase_admin import firestore
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
-from auth import get_current_user
+from auth import get_current_user, get_current_user_optional
 from models import RecipeRequest, UpdateRecipeRequest
 from services.firebase import db
 from services.cache import recipe_cache
@@ -108,7 +108,10 @@ async def update_recipe(
 
 
 @router.get("/recipe/{recipe_id}")
-async def get_recipe(recipe_id: str):
+async def get_recipe(
+    recipe_id: str,
+    current_uid: Annotated[str | None, Depends(get_current_user_optional)] = None,
+):
     try:
         # Validate recipe_id format
         if not re.match(r"^[a-zA-Z0-9]+$", recipe_id):
@@ -139,13 +142,19 @@ async def get_recipe(recipe_id: str):
         except Exception as e:
             logger.warning(f"Could not get user info for {uid}: {str(e)}")
 
-        return {
+        response = {
             "recipe": recipe,
             "image_url": image_url,
             "timestamp": timestamp,
             "uid": uid,
             "displayName": user_info["displayName"],
         }
+
+        # Include prompt only if the current user is the recipe owner
+        if current_uid and current_uid == uid:
+            response["prompt"] = data.get("prompt", "")
+
+        return response
     except HTTPException:
         raise
     except Exception as e:

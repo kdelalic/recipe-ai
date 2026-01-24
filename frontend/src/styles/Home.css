@@ -125,6 +125,28 @@ button:disabled {
   text-align: left;
 }
 
+/* Modification section buttons */
+.modification-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.regenerate-btn {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+
+.regenerate-btn:hover {
+  background-color: var(--border-color);
+}
+
+.regenerate-btn:disabled {
+  background-color: var(--bg-tertiary);
+  color: var(--text-muted);
+  cursor: not-allowed;
+}
+
 /* Mobile menu button (shared with RecipeDetail.css) */
 .mobile-menu-btn {
   display: flex;
@@ -185,5 +207,13 @@ button:disabled {
     padding: 0.75rem;
     background-color: transparent;
     box-shadow: none;
+  }
+
+  .modification-buttons {
+    flex-direction: column;
+  }
+
+  .modification-buttons button {
+    width: 100%;
   }
 }

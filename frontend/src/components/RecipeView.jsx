@@ -1,9 +1,16 @@
 import { useState, useEffect } from 'react';
 import { FaStar, FaRegStar, FaPrint, FaShareAlt } from 'react-icons/fa';
 import { HiOutlineMenuAlt2, HiOutlineEye, HiOutlineEyeOff } from 'react-icons/hi';
+import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
+import { useTheme } from './ThemeProvider';
 
 function RecipeView({ recipe, author, timestamp, isFavorite, onToggleFavorite, recipeId, isMobile, sidebarCollapsed, onToggleSidebar, wakeLockEnabled, onToggleWakeLock, shareUrl, imageUrl, imageLoading }) {
   const [checkedIngredients, setCheckedIngredients] = useState(new Set());
+  const { darkMode } = useTheme();
+
+  const skeletonBaseColor = darkMode ? '#2a2a2a' : '#ebebeb';
+  const skeletonHighlightColor = darkMode ? '#3a3a3a' : '#f5f5f5';
 
   useEffect(() => {
     if (recipe?.title) {
@@ -196,7 +203,9 @@ function RecipeView({ recipe, author, timestamp, isFavorite, onToggleFavorite, r
       {(imageUrl || imageLoading) && (
         <div className="recipe-image">
           {imageLoading ? (
-            <div className="recipe-image-loading">Generating image...</div>
+            <SkeletonTheme baseColor={skeletonBaseColor} highlightColor={skeletonHighlightColor}>
+              <Skeleton width="100%" style={{ aspectRatio: '16 / 9' }} borderRadius={8} />
+            </SkeletonTheme>
           ) : (
             <img src={imageUrl} alt={recipe.title?.replace(/<[^>]*>/g, '') || 'Recipe'} />
           )}

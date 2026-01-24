@@ -37,3 +37,14 @@ async def get_current_user(authorization: Annotated[str | None, Header()] = None
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
     return uid
+
+
+async def get_current_user_optional(
+    authorization: Annotated[str | None, Header()] = None,
+) -> str | None:
+    """FastAPI dependency to optionally get user UID (returns None if not authenticated)."""
+    if not authorization:
+        return None
+
+    token = authorization.split("Bearer ")[-1]
+    return get_uid_from_token(token)

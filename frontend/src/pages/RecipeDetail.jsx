@@ -13,6 +13,7 @@ function RecipeDetail({ user, favoriteIds = [], toggleFavorite, isMobile, sideba
   const [recipe, setRecipe] = useState(null);
   const [prevRecipe, setPrevRecipe] = useState(null);
   const [recipeUID, setRecipeUID] = useState('');
+  const [prompt, setPrompt] = useState('');
   const [timestamp, setTimestamp] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [imageUrl, setImageUrl] = useState('');
@@ -20,6 +21,7 @@ function RecipeDetail({ user, favoriteIds = [], toggleFavorite, isMobile, sideba
   const [loading, setLoading] = useState(true);
   const [modification, setModification] = useState('');
   const [updateLoading, setUpdateLoading] = useState(false);
+  const [regenerateLoading, setRegenerateLoading] = useState(false);
 
   const fetchRecipe = async () => {
     try {
@@ -32,6 +34,7 @@ function RecipeDetail({ user, favoriteIds = [], toggleFavorite, isMobile, sideba
       setRecipeUID(data.uid);
       setDisplayName(data.displayName);
       setImageUrl(data.image_url || '');
+      setPrompt(data.prompt || '');
     } catch (err) {
       console.error('Error fetching recipe:', err);
       setError('There was an error fetching the recipe.');
@@ -72,7 +75,7 @@ function RecipeDetail({ user, favoriteIds = [], toggleFavorite, isMobile, sideba
       if (response.status !== 200) throw new Error('Update failed');
       setRecipe(response.data.recipe);
       setModification('');
-      
+
       // Scroll the recipe element into view after updating.
       if (recipeRef.current) {
         recipeRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -82,6 +85,23 @@ function RecipeDetail({ user, favoriteIds = [], toggleFavorite, isMobile, sideba
       setError('There was an error updating the recipe.');
     }
     setUpdateLoading(false);
+  };
+
+  const handleRegenerate = async () => {
+    if (!prompt) return;
+    setRegenerateLoading(true);
+    setError('');
+    try {
+      const response = await api.post('/api/generate-recipe', { prompt });
+      if (response.status !== 200) throw new Error('Network response was not ok');
+      const data = response.data;
+      // Navigate to the new recipe
+      navigate(`/recipe/${data.id}`);
+    } catch (err) {
+      console.error('Error regenerating recipe:', err);
+      setError('There was an error regenerating the recipe.');
+    }
+    setRegenerateLoading(false);
   };
 
   // Compute the diff HTML for inline highlighting.
@@ -124,9 +144,16 @@ function RecipeDetail({ user, favoriteIds = [], toggleFavorite, isMobile, sideba
                 value={modification}
                 onChange={(e) => setModification(e.target.value)}
               />
-              <button type="submit" onClick={handleUpdateRecipe} disabled={updateLoading || !modification}>
-                {updateLoading ? 'Updating...' : 'Update Recipe'}
-              </button>
+              <div className="modification-buttons">
+                <button type="submit" onClick={handleUpdateRecipe} disabled={updateLoading || regenerateLoading || !modification}>
+                  {updateLoading ? 'Updating...' : 'Update Recipe'}
+                </button>
+                {prompt && (
+                  <button type="button" onClick={handleRegenerate} disabled={updateLoading || regenerateLoading} className="regenerate-btn">
+                    {regenerateLoading ? 'Regenerating...' : 'Regenerate'}
+                  </button>
+                )}
+              </div>
             </div>
           )}
           {user && recipeUID === user.uid && (

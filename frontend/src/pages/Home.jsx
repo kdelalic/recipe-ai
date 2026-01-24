@@ -124,6 +124,33 @@ function Home({ isMobile, sidebarCollapsed, onToggleSidebar, favoriteIds, toggle
     setLoading(false);
   };
 
+  const handleRegenerate = async () => {
+    if (!input) return;
+    setLoading(true);
+    setError('');
+    setCurrentId('');
+    setCurrentRecipe('');
+    setPrevRecipe('');
+    setImageUrl('');
+
+    try {
+      const response = await api.post('/api/generate-recipe', { prompt: input });
+      if (response.status !== 200) throw new Error('Network response was not ok');
+      const data = await response.data;
+      const recipeData = data.recipe;
+      setCurrentId(data.id);
+      setCurrentRecipe(recipeData);
+      setPrevRecipe(recipeData);
+      if (envEnableImageGeneration && imageGenerationEnabled) {
+        handleGenerateImage(recipeData, data.id);
+      }
+    } catch (err) {
+      console.error('Error regenerating recipe:', err);
+      setError('There was an error regenerating the recipe.');
+    }
+    setLoading(false);
+  };
+
   // Compute the diff HTML for inline highlighting.
   const diffRecipe = prevRecipe !== currentRecipe
     ? computeRecipeDiffAsHtml(prevRecipe, currentRecipe)
@@ -189,9 +216,14 @@ function Home({ isMobile, sidebarCollapsed, onToggleSidebar, favoriteIds, toggle
                 value={modification}
                 onChange={(e) => setModification(e.target.value)}
               />
-              <button type="submit" onClick={handleUpdateRecipe} disabled={loading || !modification}>
-                {loading ? 'Updating...' : 'Update Recipe'}
-              </button>
+              <div className="modification-buttons">
+                <button type="submit" onClick={handleUpdateRecipe} disabled={loading || !modification}>
+                  {loading ? 'Updating...' : 'Update Recipe'}
+                </button>
+                <button type="button" onClick={handleRegenerate} disabled={loading} className="regenerate-btn">
+                  {loading ? 'Regenerating...' : 'Regenerate'}
+                </button>
+              </div>
             </div>
           </div>
         )
