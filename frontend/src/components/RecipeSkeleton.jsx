@@ -54,6 +54,11 @@ function RecipeSkeleton({ isMobile, sidebarCollapsed, onToggleSidebar }) {
             </div>
           )}
 
+          {/* Image skeleton */}
+          <div className="recipe-image">
+            <Skeleton width="100%" style={{ aspectRatio: '16 / 9' }} borderRadius={8} />
+          </div>
+
           {/* Description */}
           <Skeleton height={20} width="100%" style={{ marginBottom: '0.25rem' }} />
           <Skeleton height={20} width="85%" style={{ marginBottom: '1.5rem' }} />

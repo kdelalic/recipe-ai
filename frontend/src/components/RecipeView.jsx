@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { FaStar, FaRegStar, FaPrint, FaShareAlt } from 'react-icons/fa';
 import { HiOutlineMenuAlt2, HiOutlineEye, HiOutlineEyeOff } from 'react-icons/hi';
 
-function RecipeView({ recipe, author, timestamp, isFavorite, onToggleFavorite, recipeId, isMobile, sidebarCollapsed, onToggleSidebar, wakeLockEnabled, onToggleWakeLock, shareUrl }) {
+function RecipeView({ recipe, author, timestamp, isFavorite, onToggleFavorite, recipeId, isMobile, sidebarCollapsed, onToggleSidebar, wakeLockEnabled, onToggleWakeLock, shareUrl, imageUrl, imageLoading }) {
   const [checkedIngredients, setCheckedIngredients] = useState(new Set());
 
   useEffect(() => {
@@ -190,6 +190,16 @@ function RecipeView({ recipe, author, timestamp, isFavorite, onToggleFavorite, r
           >
             <FaShareAlt size={14} />
           </button>
+        </div>
+      )}
+
+      {(imageUrl || imageLoading) && (
+        <div className="recipe-image">
+          {imageLoading ? (
+            <div className="recipe-image-loading">Generating image...</div>
+          ) : (
+            <img src={imageUrl} alt={recipe.title?.replace(/<[^>]*>/g, '') || 'Recipe'} />
+          )}
         </div>
       )}
 

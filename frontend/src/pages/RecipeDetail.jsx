@@ -15,6 +15,7 @@ function RecipeDetail({ user, favorites = [], toggleFavorite, isMobile, sidebarC
   const [recipeUID, setRecipeUID] = useState('');
   const [timestamp, setTimestamp] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const [modification, setModification] = useState('');
@@ -30,6 +31,7 @@ function RecipeDetail({ user, favorites = [], toggleFavorite, isMobile, sidebarC
       setTimestamp(data.timestamp);
       setRecipeUID(data.uid);
       setDisplayName(data.displayName);
+      setImageUrl(data.image_url || '');
     } catch (err) {
       console.error('Error fetching recipe:', err);
       setError('There was an error fetching the recipe.');
@@ -38,6 +40,8 @@ function RecipeDetail({ user, favorites = [], toggleFavorite, isMobile, sidebarC
   };
 
   useEffect(() => {
+    setLoading(true);
+    setImageUrl('');
     fetchRecipe();
   }, [id]);
 
@@ -109,6 +113,7 @@ function RecipeDetail({ user, favorites = [], toggleFavorite, isMobile, sidebarC
             onToggleSidebar={onToggleSidebar}
             wakeLockEnabled={wakeLockEnabled}
             onToggleWakeLock={onToggleWakeLock}
+            imageUrl={imageUrl}
           />
           {user && recipeUID === user.uid && (
             <div className="update-section" style={{ marginTop: '1rem' }}>

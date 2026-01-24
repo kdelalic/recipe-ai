@@ -96,16 +96,29 @@ button:disabled {
   margin-top: 1rem;
 }
 
-.image-preview {
-  margin-top: 1.5rem;
-  text-align: center;
+.recipe-image {
+  margin: 1.5rem 0;
+  width: 100%;
 }
 
-.image-preview img {
-  max-width: 100%;
-  height: auto;
-  border-radius: 4px;
-  box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+.recipe-image img {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px var(--shadow-color);
+}
+
+.recipe-image-loading {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  font-style: italic;
+  background-color: var(--bg-tertiary);
+  border-radius: 8px;
 }
 
 .recipe-skeleton {

@@ -58,7 +58,7 @@ function Home({ isMobile, sidebarCollapsed, onToggleSidebar, favorites, toggleFa
       setCurrentRecipe(recipeData);
       setPrevRecipe(recipeData);
       if (enableImageGeneration) {
-        handleGenerateImage(recipeData);
+        handleGenerateImage(recipeData, data.id);
       }
     } catch (err) {
       console.error('Error generating recipe:', err);
@@ -67,16 +67,16 @@ function Home({ isMobile, sidebarCollapsed, onToggleSidebar, favorites, toggleFa
     setLoading(false);
   };
 
-  const handleGenerateImage = async (recipeText) => {
+  const handleGenerateImage = async (recipe, recipeId) => {
     setImageLoading(true);
     try {
-      const response = await api.post('/api/generate-image', { recipe: recipeText });
+      const response = await api.post('/api/generate-image', { recipe, recipe_id: recipeId });
       if (response.status !== 200) throw new Error('Image generation failed');
       const data = await response.data;
       setImageUrl(data.image_url);
     } catch (err) {
       console.error('Error generating image:', err);
-      setError('There was an error generating the image.');
+      // Don't show error for image generation failures - it's non-critical
     }
     setImageLoading(false);
   };
@@ -160,18 +160,9 @@ function Home({ isMobile, sidebarCollapsed, onToggleSidebar, favorites, toggleFa
               wakeLockEnabled={wakeLockEnabled}
               onToggleWakeLock={onToggleWakeLock}
               shareUrl={currentId ? `${window.location.origin}/recipe/${currentId}` : undefined}
+              imageUrl={imageUrl}
+              imageLoading={enableImageGeneration && imageLoading}
             />
-            {enableImageGeneration && (
-              <>
-                {imageLoading ? (
-                  <p>Generating image...</p>
-                ) : imageUrl ? (
-                  <div className="image-preview">
-                    <img src={imageUrl} alt="Dish Preview" />
-                  </div>
-                ) : null}
-              </>
-            )}
             <div className="modification-section">
               <input
                 type="text"

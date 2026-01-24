@@ -1,11 +1,16 @@
 import os
 import datetime
 import re
+import uuid
+import io
 from functools import wraps
 import logging
 from cachetools import TTLCache
 import litellm
-from openai import OpenAI
+from PIL import Image
+from google import genai
+from google.genai import types
+from google.cloud import storage
 from flask import Flask, request, jsonify, g
 import firebase_admin
 from firebase_admin import credentials, firestore
@@ -18,8 +23,9 @@ from typing import List, Optional
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
-# Load environment variables
-load_dotenv()
+# Load environment variables (.env.local takes precedence over .env)
+load_dotenv(".env.local", override=True)
+load_dotenv(".env")
 
 # Configure logging
 logging.basicConfig(
@@ -38,8 +44,57 @@ except Exception as e:
     logger.error(f"Firebase initialization error: {e}")
     raise
 
-# Initialize OpenAI client (for image generation)
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# Initialize Gemini client (for image generation)
+gemini_client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
+GEMINI_IMAGE_MODEL = os.getenv("GEMINI_IMAGE_MODEL", "gemini-2.5-flash-image")
+
+# Initialize Cloud Storage for image uploads (using same service account as Firebase)
+GCS_BUCKET_NAME = os.getenv("GCS_BUCKET_NAME", "")
+storage_bucket = None
+if GCS_BUCKET_NAME:
+    try:
+        storage_client = storage.Client.from_service_account_json("serviceAccountKey.json")
+        storage_bucket = storage_client.bucket(GCS_BUCKET_NAME)
+        logger.info(f"Cloud Storage initialized with bucket: {GCS_BUCKET_NAME}")
+    except Exception as e:
+        logger.warning(f"Cloud Storage not configured: {e}")
+        storage_bucket = None
+
+
+def compress_image(image_data: bytes, max_size_kb: int = 500) -> tuple[bytes, str]:
+    """Compress image to reduce storage costs. Returns (compressed_data, mime_type)."""
+    img = Image.open(io.BytesIO(image_data))
+
+    # Convert to RGB if necessary (for PNG with transparency)
+    if img.mode in ("RGBA", "P"):
+        img = img.convert("RGB")
+
+    # Start with high quality and reduce until under max size
+    quality = 85
+    while quality >= 30:
+        buffer = io.BytesIO()
+        img.save(buffer, format="JPEG", quality=quality, optimize=True)
+        compressed_data = buffer.getvalue()
+
+        if len(compressed_data) / 1024 <= max_size_kb:
+            logger.info(f"Compressed image to {len(compressed_data)/1024:.1f} KB (quality={quality})")
+            return compressed_data, "image/jpeg"
+
+        quality -= 10
+
+    # If still too large, resize the image
+    width, height = img.size
+    while len(compressed_data) / 1024 > max_size_kb and width > 800:
+        width = int(width * 0.8)
+        height = int(height * 0.8)
+        resized = img.resize((width, height), Image.Resampling.LANCZOS)
+        buffer = io.BytesIO()
+        resized.save(buffer, format="JPEG", quality=70, optimize=True)
+        compressed_data = buffer.getvalue()
+
+    logger.info(f"Compressed image to {len(compressed_data)/1024:.1f} KB ({width}x{height})")
+    return compressed_data, "image/jpeg"
+
 
 # LiteLLM model configuration
 LLM_MODEL = os.getenv("LLM_MODEL", "claude-sonnet-4-5")
@@ -51,7 +106,10 @@ token_cache = TTLCache(maxsize=1000, ttl=3600)  # Cache tokens for 1 hour
 recipe_cache = TTLCache(maxsize=100, ttl=300)  # Cache recipes for 5 minutes
 
 # Setup rate limiting (disabled in local development)
-is_local = os.getenv("FLASK_ENV") == "development" or os.getenv("LOCAL_DEV", "false").lower() == "true"
+is_local = (
+    os.getenv("FLASK_ENV") == "development"
+    or os.getenv("LOCAL_DEV", "false").lower() == "true"
+)
 limiter = Limiter(
     get_remote_address,
     app=app,
@@ -69,7 +127,9 @@ CORS(
 
 
 class IngredientGroup(BaseModel):
-    group_name: str = Field(description="Name of the ingredient group, e.g., 'For the filling', 'For the sauce'")
+    group_name: str = Field(
+        description="Name of the ingredient group, e.g., 'For the filling', 'For the sauce'"
+    )
     items: List[str] = Field(description="List of ingredients in this group")
 
 
@@ -83,11 +143,19 @@ class Macros(BaseModel):
 class Recipe(BaseModel):
     title: str
     description: str
-    prep_time: str = Field(default="", description="Preparation time, e.g., '30 minutes'")
+    prep_time: str = Field(
+        default="", description="Preparation time, e.g., '30 minutes'"
+    )
     cook_time: str = Field(default="", description="Cooking time, e.g., '1 hour'")
-    servings: str = Field(default="", description="Number of servings, e.g., '4-6 servings'")
-    macros: Optional[Macros] = Field(default=None, description="Estimated macronutrients per serving")
-    ingredients: List[IngredientGroup] = Field(description="Ingredients organized by group")
+    servings: str = Field(
+        default="", description="Number of servings, e.g., '4-6 servings'"
+    )
+    macros: Optional[Macros] = Field(
+        default=None, description="Estimated macronutrients per serving"
+    )
+    ingredients: List[IngredientGroup] = Field(
+        description="Ingredients organized by group"
+    )
     instructions: List[str]
     notes: List[str] = []
 
@@ -337,6 +405,7 @@ def get_recipe(recipe_id):
 
         uid = data.get("uid", "")
         timestamp = data.get("timestamp", "")
+        image_url = data.get("image_url", "")
 
         # Get user info once and cache it
         user_info = {"displayName": ""}
@@ -349,6 +418,7 @@ def get_recipe(recipe_id):
         return jsonify(
             {
                 "recipe": recipe,
+                "image_url": image_url,
                 "timestamp": timestamp,
                 "uid": uid,
                 "displayName": user_info["displayName"],
@@ -478,7 +548,9 @@ def update_favorites():
     favorites = data.get("favorites", [])
 
     # Validate that favorites is a list of strings
-    if not isinstance(favorites, list) or not all(isinstance(f, str) for f in favorites):
+    if not isinstance(favorites, list) or not all(
+        isinstance(f, str) for f in favorites
+    ):
         return jsonify({"error": "favorites must be a list of recipe IDs"}), 400
 
     # Limit the number of favorites
@@ -567,36 +639,84 @@ def generate_image():
     if not enable_flag:
         return jsonify({"error": "Image generation feature is disabled."}), 403
 
+    if not storage_bucket:
+        return jsonify({"error": "Cloud Storage not configured."}), 503
+
     uid = g.uid
     data = request.get_json()
-    recipe_text = data.get("recipe", "")
+    recipe = data.get("recipe", {})
+    recipe_id = data.get("recipe_id", "")
+
+    if not recipe_id or not re.match(r"^[a-zA-Z0-9]+$", recipe_id):
+        return jsonify({"error": "Valid recipe_id is required"}), 400
+
+    # Build recipe text from recipe object
+    if isinstance(recipe, dict):
+        recipe_text = f"{recipe.get('title', '')}: {recipe.get('description', '')}"
+    else:
+        recipe_text = str(recipe)
 
     if not recipe_text or len(recipe_text) < 10:
-        return jsonify({"error": "Valid recipe text is required"}), 400
+        return jsonify({"error": "Valid recipe data is required"}), 400
 
     # Limit recipe text length
-    recipe_text = recipe_text[:4000]  # Truncate to avoid excessive tokens
+    recipe_text = recipe_text[:4000]
 
     logger.info(f"Generate image request from user {uid}")
 
-    # Build an image prompt
+    # Build an image prompt for Gemini
     image_prompt = (
-        f"Generate a realistic, high-quality photo of the dish described in the following recipe:\n\n"
-        f"{recipe_text}\n\n"
-        "The image should capture the dish's essence with appealing plating and a gourmet presentation."
+        f"Generate a realistic, high-quality photo of the finished dish: {recipe_text}. "
+        "The image should show appetizing food photography with professional plating, "
+        "natural lighting, and a clean background. Show only the food, no text or labels."
     )
 
     try:
-        response = client.images.generate(
-            model="dall-e-3",
-            prompt=image_prompt,
-            size="1024x1024",
-            quality="standard",
-            n=1,
+        response = gemini_client.models.generate_content(
+            model=GEMINI_IMAGE_MODEL,
+            contents=image_prompt,
+            config=types.GenerateContentConfig(
+                response_modalities=["IMAGE"],
+                image_config=types.ImageConfig(
+                    aspect_ratio="16:9",
+                ),
+            ),
         )
-        image_url = response.data[0].url
-        logger.info(f"Generated image for user {uid}")
-        return jsonify({"image_url": image_url})
+
+        # Extract image from response
+        for part in response.candidates[0].content.parts:
+            if part.inline_data is not None:
+                image_data = part.inline_data.data
+                original_size_kb = len(image_data) / 1024
+                logger.info(f"Generated image size: {original_size_kb:.1f} KB")
+
+                # Compress image to reduce storage costs
+                image_data, mime_type = compress_image(image_data, max_size_kb=500)
+
+                # Upload to Cloud Storage
+                blob_name = f"recipe-images/{recipe_id}.jpg"
+                blob = storage_bucket.blob(blob_name)
+                blob.upload_from_string(image_data, content_type=mime_type)
+                blob.make_public()
+                image_url = blob.public_url
+                logger.info(f"Uploaded image to GCS: {blob_name}")
+
+                # Store image URL in Firestore
+                try:
+                    doc_ref = db.collection("recipes").document(recipe_id)
+                    doc = doc_ref.get()
+                    if doc.exists and doc.to_dict().get("uid") == uid:
+                        doc_ref.update({"image_url": image_url})
+                        logger.info(f"Saved image URL for recipe {recipe_id}")
+                    else:
+                        logger.warning(f"Recipe {recipe_id} not found or not owned by user")
+                except Exception as e:
+                    logger.error(f"Failed to save image URL to recipe: {str(e)}")
+
+                logger.info(f"Generated image for user {uid}")
+                return jsonify({"image_url": image_url})
+
+        return jsonify({"error": "No image generated"}), 500
     except Exception as e:
         logger.error(f"Error generating image: {str(e)}")
         return jsonify({"error": "Error generating image"}), 500
@@ -605,7 +725,7 @@ def generate_image():
 @app.route("/api/health", methods=["GET"])
 def health():
     # Simple health check to verify services are up
-    services_status = {"app": "ok", "firebase": "ok", "openai": "ok"}
+    services_status = {"app": "ok", "firebase": "ok", "gemini": "ok"}
 
     # Check Firebase connection
     try:
