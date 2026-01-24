@@ -319,7 +319,6 @@
 @media print {
   /* Hide non-essential elements */
   .sidebar,
-  .mobile-header,
   .sidebar-overlay,
   .modification-section,
   .update-section,

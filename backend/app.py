@@ -17,6 +17,7 @@ from routes.recipes import router as recipes_router
 from routes.favorites import router as favorites_router
 from routes.images import router as images_router
 from routes.health import router as health_router
+from routes.preferences import router as preferences_router
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +63,7 @@ app.include_router(recipes_router)
 app.include_router(favorites_router)
 app.include_router(images_router)
 app.include_router(health_router)
+app.include_router(preferences_router)
 
 
 @app.exception_handler(404)
@@ -77,6 +79,7 @@ async def server_error_handler(request: Request, exc):
 
 if __name__ == "__main__":
     import uvicorn
+
     # Use a production ASGI server in production!
     # For development only:
     uvicorn.run(app, host="0.0.0.0", port=PORT)

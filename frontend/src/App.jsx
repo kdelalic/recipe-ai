@@ -5,6 +5,7 @@ import Home from './pages/Home';
 import RecipeDetail from './pages/RecipeDetail';
 import Login from './pages/Login';
 import SignUp from './pages/SignUp';
+import Preferences from './pages/Preferences';
 import ProtectedRoute from './components/ProtectedRoute';
 import Layout from './components/Layout';
 
@@ -31,6 +32,16 @@ function App({ user }) {
           <Layout user={user}>
             <RecipeDetail user={user} />
           </Layout>
+        }
+      />
+      <Route
+        path="/preferences"
+        element={
+          <ProtectedRoute user={user}>
+            <Layout user={user}>
+              <Preferences user={user} />
+            </Layout>
+          </ProtectedRoute>
         }
       />
     </Routes>

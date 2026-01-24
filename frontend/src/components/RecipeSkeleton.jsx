@@ -3,7 +3,7 @@ import 'react-loading-skeleton/dist/skeleton.css';
 import { HiOutlineMenuAlt2 } from 'react-icons/hi';
 import { useTheme } from './ThemeProvider';
 
-function RecipeSkeleton({ isMobile, sidebarCollapsed, onToggleSidebar }) {
+function RecipeSkeleton({ isMobile, sidebarCollapsed, onToggleSidebar, showImageSkeleton = true }) {
   const { darkMode } = useTheme();
 
   const baseColor = darkMode ? '#2a2a2a' : '#ebebeb';
@@ -55,9 +55,11 @@ function RecipeSkeleton({ isMobile, sidebarCollapsed, onToggleSidebar }) {
           )}
 
           {/* Image skeleton */}
-          <div className="recipe-image">
-            <Skeleton width="100%" style={{ aspectRatio: '16 / 9' }} borderRadius={8} />
-          </div>
+          {showImageSkeleton && (
+            <div className="recipe-image">
+              <Skeleton width="100%" style={{ aspectRatio: '16 / 9' }} borderRadius={8} />
+            </div>
+          )}
 
           {/* Description */}
           <Skeleton height={20} width="100%" style={{ marginBottom: '0.25rem' }} />

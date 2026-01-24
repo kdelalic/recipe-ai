@@ -280,18 +280,6 @@ function Layout({ children, user }) {
 
   return (
     <div className={`layout ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
-      {/* Mobile header */}
-      <div className="mobile-header">
-        <button
-          className="sidebar-toggle"
-          onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          aria-label="Open menu"
-        >
-          <HiOutlineMenuAlt2 size={20} />
-        </button>
-        <h1 className="mobile-logo">Recipe AI</h1>
-      </div>
-
       {/* Overlay for mobile */}
       {isMobile && !sidebarCollapsed && (
         <div className="sidebar-overlay" onClick={() => setSidebarCollapsed(true)} />
@@ -389,6 +377,9 @@ function Layout({ children, user }) {
             </button>
             {dropdownOpen && (
               <div className="profile-dropdown">
+                <Link to="/preferences" className="dropdown-item" onClick={() => setDropdownOpen(false)}>
+                  Preferences
+                </Link>
                 {user.isAnonymous && (
                   <button onClick={handleSignUp} className="dropdown-item">
                     Sign Up

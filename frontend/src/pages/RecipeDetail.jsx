@@ -96,6 +96,7 @@ function RecipeDetail({ user, favoriteIds = [], toggleFavorite, isMobile, sideba
           isMobile={isMobile}
           sidebarCollapsed={sidebarCollapsed}
           onToggleSidebar={onToggleSidebar}
+          showImageSkeleton={import.meta.env.VITE_ENABLE_IMAGE_GENERATION === 'true'}
         />
       ) : error ? (
         <p className="error">{error}</p>

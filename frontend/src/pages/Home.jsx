@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import { HiOutlineMenuAlt2 } from 'react-icons/hi';
 import RecipeView from '../components/RecipeView';
 import RecipeSkeleton from '../components/RecipeSkeleton';
@@ -32,10 +32,28 @@ function Home({ isMobile, sidebarCollapsed, onToggleSidebar, favoriteIds, toggle
   const [prevRecipe, setPrevRecipe] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const enableImageGeneration = import.meta.env.VITE_ENABLE_IMAGE_GENERATION === 'true';
+  const envEnableImageGeneration = import.meta.env.VITE_ENABLE_IMAGE_GENERATION === 'true';
+  const [imageGenerationEnabled, setImageGenerationEnabled] = useState(true);
   const [imageUrl, setImageUrl] = useState('');
   const [imageLoading, setImageLoading] = useState(false);
   const [modification, setModification] = useState('');
+
+  // Fetch user preferences for image generation
+  useEffect(() => {
+    const fetchPreferences = async () => {
+      try {
+        const response = await api.get('/api/preferences');
+        if (response.status === 200) {
+          const prefs = response.data.preferences || {};
+          setImageGenerationEnabled(prefs.imageGenerationEnabled !== false);
+        }
+      } catch (err) {
+        // Default to enabled if fetch fails
+        console.error('Error fetching preferences:', err);
+      }
+    };
+    fetchPreferences();
+  }, []);
 
   const greeting = useMemo(() => {
     return GREETINGS[Math.floor(Math.random() * GREETINGS.length)];
@@ -57,7 +75,7 @@ function Home({ isMobile, sidebarCollapsed, onToggleSidebar, favoriteIds, toggle
       setCurrentId(data.id);
       setCurrentRecipe(recipeData);
       setPrevRecipe(recipeData);
-      if (enableImageGeneration) {
+      if (envEnableImageGeneration && imageGenerationEnabled) {
         handleGenerateImage(recipeData, data.id);
       }
     } catch (err) {
@@ -145,6 +163,7 @@ function Home({ isMobile, sidebarCollapsed, onToggleSidebar, favoriteIds, toggle
           isMobile={isMobile}
           sidebarCollapsed={sidebarCollapsed}
           onToggleSidebar={onToggleSidebar}
+          showImageSkeleton={envEnableImageGeneration && imageGenerationEnabled}
         />
       ) : (
         currentRecipe && (
@@ -161,7 +180,7 @@ function Home({ isMobile, sidebarCollapsed, onToggleSidebar, favoriteIds, toggle
               onToggleWakeLock={onToggleWakeLock}
               shareUrl={currentId ? `${window.location.origin}/recipe/${currentId}` : undefined}
               imageUrl={imageUrl}
-              imageLoading={enableImageGeneration && imageLoading}
+              imageLoading={envEnableImageGeneration && imageGenerationEnabled && imageLoading}
             />
             <div className="modification-section">
               <input
