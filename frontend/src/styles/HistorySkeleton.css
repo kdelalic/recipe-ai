@@ -4,21 +4,14 @@
   gap: 0.125rem;
 }
 
-.skeleton-item {
+.history-skeleton .skeleton-item {
+  display: block;
   height: 38px;
-  border-radius: 6px;
-  background: linear-gradient(90deg, #2a2a2a 25%, #333 50%, #2a2a2a 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
+  line-height: 1;
 }
 
-@keyframes shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
+.history-skeleton .skeleton-item .react-loading-skeleton {
+  border-radius: 6px;
 }
 
 /* Mobile */
@@ -29,9 +22,12 @@
     gap: 0.5rem;
   }
 
-  .skeleton-item {
+  .history-skeleton .skeleton-item {
     width: 120px;
     height: 32px;
+  }
+
+  .history-skeleton .skeleton-item .react-loading-skeleton {
     border-radius: 20px;
   }
 }

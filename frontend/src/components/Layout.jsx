@@ -309,7 +309,11 @@ function Layout({ children, user }) {
             </button>
           </div>
         </div>
-        <Link to="/" className={`new-recipe-btn ${sidebarCollapsed ? 'collapsed' : ''}`}>
+        <Link
+          to="/"
+          className={`new-recipe-btn ${sidebarCollapsed ? 'collapsed' : ''}`}
+          onClick={() => isMobile && setSidebarCollapsed(true)}
+        >
           <span className="new-recipe-icon">+</span>
           New Recipe
         </Link>
@@ -346,6 +350,7 @@ function Layout({ children, user }) {
                   key={index}
                   to={`/recipe/${item.id}`}
                   className={`history-item ${currentRecipeId === item.id ? 'active' : ''}`}
+                  onClick={() => isMobile && setSidebarCollapsed(true)}
                 >
                   <span className="history-item-title">{item.title}</span>
                   <button

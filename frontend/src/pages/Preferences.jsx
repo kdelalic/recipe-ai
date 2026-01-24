@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
+import 'react-loading-skeleton/dist/skeleton.css';
 import api from '../utils/api';
+import { useTheme } from '../components/ThemeProvider';
 import '../styles/Preferences.css';
 
 function Preferences({ user }) {
@@ -58,11 +61,31 @@ function Preferences({ user }) {
     setSaving(false);
   };
 
+  const { darkMode } = useTheme();
+  const baseColor = darkMode ? '#2a2a2a' : '#ebebeb';
+  const highlightColor = darkMode ? '#3a3a3a' : '#f5f5f5';
+
   if (loading) {
     return (
-      <div className="preferences-container">
-        <p className="loading-text">Loading preferences...</p>
-      </div>
+      <SkeletonTheme baseColor={baseColor} highlightColor={highlightColor}>
+        <div className="preferences-container">
+          <h1>Preferences</h1>
+          <div className="preference-section">
+            <Skeleton height={18} width="50%" style={{ marginBottom: '1rem' }} />
+            <div className="preference-item">
+              <div className="preference-info">
+                <Skeleton height={16} width="60%" style={{ marginBottom: '0.5rem' }} />
+                <Skeleton height={14} width="90%" />
+              </div>
+              <Skeleton width={48} height={26} borderRadius={26} />
+            </div>
+          </div>
+          <div className="preferences-actions">
+            <Skeleton height={46} containerClassName="skeleton-button-container" />
+            <Skeleton height={46} containerClassName="skeleton-button-container" />
+          </div>
+        </div>
+      </SkeletonTheme>
     );
   }
 
