@@ -1,12 +1,15 @@
 import datetime
 import re
 import logging
-from flask import Blueprint, request, jsonify, g
+from typing import Annotated
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from google.cloud.firestore_v1.base_query import FieldFilter
 from firebase_admin import auth as firebase_auth
 from firebase_admin import firestore
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
-from auth import auth_required, validate_request
+from auth import get_current_user
 from models import RecipeRequest, UpdateRecipeRequest
 from services.firebase import db
 from services.cache import recipe_cache
@@ -14,27 +17,28 @@ from services.llm import generate_recipe_from_prompt, update_recipe_with_modific
 
 logger = logging.getLogger(__name__)
 
-recipes_bp = Blueprint("recipes", __name__)
+router = APIRouter(prefix="/api", tags=["recipes"])
+
+limiter = Limiter(key_func=get_remote_address)
 
 
-@recipes_bp.route("/api/generate-recipe", methods=["POST"])
-@auth_required
-@validate_request(RecipeRequest)
-def generate_recipe():
-    data = request.get_json()
-    prompt = data.get("prompt", "")
-    uid = g.uid
-
+@router.post("/generate-recipe")
+@limiter.limit("10/minute")
+async def generate_recipe(
+    request: Request,
+    data: RecipeRequest,
+    uid: Annotated[str, Depends(get_current_user)],
+):
     logger.info(f"Generate recipe request from user {uid}")
 
     try:
-        recipe, _ = generate_recipe_from_prompt(prompt)
+        recipe, _ = generate_recipe_from_prompt(data.prompt)
         recipe_dict = recipe.model_dump()
 
         # Save the generated recipe into Firestore
         recipe_data = {
             "uid": uid,
-            "prompt": prompt,
+            "prompt": data.prompt,
             "recipe": recipe_dict,
             "timestamp": datetime.datetime.now(datetime.timezone.utc),
             "archived": False,
@@ -47,32 +51,28 @@ def generate_recipe():
         cache_key = f"recipe_{recipe_id}"
         recipe_cache[cache_key] = recipe_dict
 
-        return jsonify({"recipe": recipe_dict, "id": recipe_id})
+        return {"recipe": recipe_dict, "id": recipe_id}
     except Exception as e:
         logger.error(f"Error generating recipe: {str(e)}")
-        return jsonify({"error": "Error generating recipe"}), 500
+        raise HTTPException(status_code=500, detail="Error generating recipe")
 
 
-@recipes_bp.route("/api/update-recipe", methods=["POST"])
-@auth_required
-@validate_request(UpdateRecipeRequest)
-def update_recipe():
-    data = request.get_json()
-    recipe_id = data.get("id")
-    original_recipe = data.get("original_recipe", {})
-    modifications = data.get("modifications", "")
-    uid = g.uid
-
-    # Sanitize inputs
-    recipe_id = recipe_id.strip()
-    modifications = modifications.strip()
+@router.post("/update-recipe")
+@limiter.limit("10/minute")
+async def update_recipe(
+    request: Request,
+    data: UpdateRecipeRequest,
+    uid: Annotated[str, Depends(get_current_user)],
+):
+    recipe_id = data.id.strip()
+    modifications = data.modifications.strip()
 
     logger.info(f"Update recipe request for recipe {recipe_id} from user {uid}")
 
     doc_ref = db.collection("recipes").document(recipe_id)
     doc = doc_ref.get()
     if not doc.exists:
-        return jsonify({"error": "Recipe not found"}), 404
+        raise HTTPException(status_code=404, detail="Recipe not found")
 
     data_doc = doc.to_dict()
 
@@ -81,10 +81,12 @@ def update_recipe():
         logger.warning(
             f"Unauthorized access attempt to recipe {recipe_id} by user {uid}"
         )
-        return jsonify({"error": "Unauthorized access"}), 403
+        raise HTTPException(status_code=403, detail="Unauthorized access")
 
     try:
-        updated_recipe, _ = update_recipe_with_modifications(original_recipe, modifications)
+        updated_recipe, _ = update_recipe_with_modifications(
+            data.original_recipe.model_dump(), modifications
+        )
         updated_recipe_dict = updated_recipe.model_dump()
 
         # Update the existing document in Firestore
@@ -99,23 +101,23 @@ def update_recipe():
         cache_key = f"recipe_{recipe_id}"
         recipe_cache[cache_key] = updated_recipe_dict
 
-        return jsonify({"recipe": updated_recipe_dict})
+        return {"recipe": updated_recipe_dict}
     except Exception as e:
         logger.error(f"Error updating recipe {recipe_id}: {str(e)}")
-        return jsonify({"error": "Error updating recipe"}), 500
+        raise HTTPException(status_code=500, detail="Error updating recipe")
 
 
-@recipes_bp.route("/api/recipe/<recipe_id>", methods=["GET"])
-def get_recipe(recipe_id):
+@router.get("/recipe/{recipe_id}")
+async def get_recipe(recipe_id: str):
     try:
         # Validate recipe_id format
         if not re.match(r"^[a-zA-Z0-9]+$", recipe_id):
-            return jsonify({"error": "Invalid recipe ID format"}), 400
+            raise HTTPException(status_code=400, detail="Invalid recipe ID format")
 
         doc_ref = db.collection("recipes").document(recipe_id)
         doc = doc_ref.get()
         if not doc.exists:
-            return jsonify({"error": "Recipe not found"}), 404
+            raise HTTPException(status_code=404, detail="Recipe not found")
 
         data = doc.to_dict()
 
@@ -137,29 +139,26 @@ def get_recipe(recipe_id):
         except Exception as e:
             logger.warning(f"Could not get user info for {uid}: {str(e)}")
 
-        return jsonify(
-            {
-                "recipe": recipe,
-                "image_url": image_url,
-                "timestamp": timestamp,
-                "uid": uid,
-                "displayName": user_info["displayName"],
-            }
-        )
+        return {
+            "recipe": recipe,
+            "image_url": image_url,
+            "timestamp": timestamp,
+            "uid": uid,
+            "displayName": user_info["displayName"],
+        }
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error retrieving recipe {recipe_id}: {str(e)}")
-        return jsonify({"error": "Error retrieving recipe"}), 500
+        raise HTTPException(status_code=500, detail="Error retrieving recipe")
 
 
-@recipes_bp.route("/api/recipe-history", methods=["GET"])
-@auth_required
-def get_recipe_history():
-    uid = g.uid
-
-    # Optional pagination parameters
-    limit = min(int(request.args.get("limit", 20)), 50)  # Max 50 items per page
-    offset = int(request.args.get("offset", 0))
-
+@router.get("/recipe-history")
+async def get_recipe_history(
+    uid: Annotated[str, Depends(get_current_user)],
+    limit: Annotated[int, Query(le=50)] = 20,
+    offset: int = 0,
+):
     logger.info(f"Recipe history request from user {uid}")
 
     try:
@@ -187,20 +186,20 @@ def get_recipe_history():
                 }
             )
 
-        return jsonify({"history": history, "offset": offset, "limit": limit})
+        return {"history": history, "offset": offset, "limit": limit}
     except Exception as e:
         logger.error(f"Error retrieving recipe history for user {uid}: {str(e)}")
-        return jsonify({"error": "Error retrieving recipe history"}), 500
+        raise HTTPException(status_code=500, detail="Error retrieving recipe history")
 
 
-@recipes_bp.route("/api/recipe/<recipe_id>/archive", methods=["PATCH"])
-@auth_required
-def archive_recipe(recipe_id):
-    uid = g.uid
-
+@router.patch("/recipe/{recipe_id}/archive")
+async def archive_recipe(
+    recipe_id: str,
+    uid: Annotated[str, Depends(get_current_user)],
+):
     # Validate recipe_id format
     if not re.match(r"^[a-zA-Z0-9]+$", recipe_id):
-        return jsonify({"error": "Invalid recipe ID format"}), 400
+        raise HTTPException(status_code=400, detail="Invalid recipe ID format")
 
     logger.info(f"Archive recipe request for recipe {recipe_id} from user {uid}")
 
@@ -208,14 +207,14 @@ def archive_recipe(recipe_id):
         doc_ref = db.collection("recipes").document(recipe_id)
         doc = doc_ref.get()
         if not doc.exists:
-            return jsonify({"error": "Recipe not found"}), 404
+            raise HTTPException(status_code=404, detail="Recipe not found")
 
         data = doc.to_dict()
         if data.get("uid") != uid:
             logger.warning(
                 f"Unauthorized archive attempt for recipe {recipe_id} by user {uid}"
             )
-            return jsonify({"error": "Unauthorized access"}), 403
+            raise HTTPException(status_code=403, detail="Unauthorized access")
 
         doc_ref.update(
             {
@@ -229,7 +228,9 @@ def archive_recipe(recipe_id):
         if cache_key in recipe_cache:
             del recipe_cache[cache_key]
 
-        return jsonify({"message": "Recipe archived successfully"}), 200
+        return {"message": "Recipe archived successfully"}
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error archiving recipe {recipe_id}: {str(e)}")
-        return jsonify({"error": "Error archiving recipe"}), 500
+        raise HTTPException(status_code=500, detail="Error archiving recipe")

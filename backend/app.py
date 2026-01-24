@@ -1,68 +1,82 @@
 import logging
-from flask import Flask, jsonify
-from flask_cors import CORS
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
+from contextlib import asynccontextmanager
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 from config import IS_LOCAL, FRONTEND_URLS, PORT
 
 # Import services to initialize them
 import services.firebase  # noqa: F401
 
-# Import route blueprints
-from routes.recipes import recipes_bp
-from routes.favorites import favorites_bp
-from routes.images import images_bp
-from routes.health import health_bp
+# Import route routers
+from routes.recipes import router as recipes_router
+from routes.favorites import router as favorites_router
+from routes.images import router as images_router
+from routes.health import router as health_router
 
 logger = logging.getLogger(__name__)
 
-app = Flask(__name__)
-
 # Setup rate limiting (disabled in local development)
 limiter = Limiter(
-    get_remote_address,
-    app=app,
+    key_func=get_remote_address,
     default_limits=[] if IS_LOCAL else ["200 per day", "50 per hour"],
-    storage_uri="memory://",
     enabled=not IS_LOCAL,
 )
 
-# Configure CORS with secure options
-CORS(
-    app,
-    resources={r"/api/*": {"origins": FRONTEND_URLS + ["http://localhost:5173"]}},
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    logger.info("Starting Recipe AI backend...")
+    yield
+    # Shutdown
+    logger.info("Shutting down Recipe AI backend...")
+
+
+app = FastAPI(
+    title="Recipe AI API",
+    description="AI-powered recipe generation backend",
+    version="0.1.0",
+    lifespan=lifespan,
 )
 
-# Register blueprints
-app.register_blueprint(recipes_bp)
-app.register_blueprint(favorites_bp)
-app.register_blueprint(images_bp)
-app.register_blueprint(health_bp)
+# Add rate limiter to app state
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
-# Apply rate limits to specific endpoints
-limiter.limit("10 per minute")(recipes_bp)
-limiter.limit("5 per minute")(images_bp)
-limiter.limit("30 per minute")(health_bp)
+# Configure CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=FRONTEND_URLS + ["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-
-@app.errorhandler(429)
-def ratelimit_handler(e):
-    return jsonify({"error": "Rate limit exceeded", "message": str(e.description)}), 429
-
-
-@app.errorhandler(404)
-def not_found(e):
-    return jsonify({"error": "Resource not found"}), 404
+# Include routers
+app.include_router(recipes_router)
+app.include_router(favorites_router)
+app.include_router(images_router)
+app.include_router(health_router)
 
 
-@app.errorhandler(500)
-def server_error(e):
-    logger.error(f"Server error: {str(e)}")
-    return jsonify({"error": "Internal server error"}), 500
+@app.exception_handler(404)
+async def not_found_handler(request: Request, exc):
+    return JSONResponse(status_code=404, content={"error": "Resource not found"})
+
+
+@app.exception_handler(500)
+async def server_error_handler(request: Request, exc):
+    logger.error(f"Server error: {str(exc)}")
+    return JSONResponse(status_code=500, content={"error": "Internal server error"})
 
 
 if __name__ == "__main__":
-    # Use a production WSGI server in production!
+    import uvicorn
+    # Use a production ASGI server in production!
     # For development only:
-    app.run(host="0.0.0.0", port=PORT, debug=False)
+    uvicorn.run(app, host="0.0.0.0", port=PORT)

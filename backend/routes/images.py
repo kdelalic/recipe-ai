@@ -1,39 +1,51 @@
-import os
 import re
 import logging
-from flask import Blueprint, request, jsonify, g
+from typing import Annotated, Any
+from fastapi import APIRouter, Depends, HTTPException, Request
+from pydantic import BaseModel
 from google import genai
 from google.genai import types
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from config import GOOGLE_API_KEY, GEMINI_IMAGE_MODEL, ENABLE_IMAGE_GENERATION
-from auth import auth_required
+from auth import get_current_user
 from services.firebase import db
 from services.storage import storage_bucket, compress_image
 
 logger = logging.getLogger(__name__)
 
-images_bp = Blueprint("images", __name__)
+router = APIRouter(prefix="/api", tags=["images"])
+
+limiter = Limiter(key_func=get_remote_address)
 
 # Initialize Gemini client (for image generation)
 gemini_client = genai.Client(api_key=GOOGLE_API_KEY)
 
 
-@images_bp.route("/api/generate-image", methods=["POST"])
-@auth_required
-def generate_image():
+class GenerateImageRequest(BaseModel):
+    recipe: dict[str, Any] = {}
+    recipe_id: str = ""
+
+
+@router.post("/generate-image")
+@limiter.limit("5/minute")
+async def generate_image(
+    request: Request,
+    data: GenerateImageRequest,
+    uid: Annotated[str, Depends(get_current_user)],
+):
     if not ENABLE_IMAGE_GENERATION:
-        return jsonify({"error": "Image generation feature is disabled."}), 403
+        raise HTTPException(status_code=403, detail="Image generation feature is disabled.")
 
     if not storage_bucket:
-        return jsonify({"error": "Cloud Storage not configured."}), 503
+        raise HTTPException(status_code=503, detail="Cloud Storage not configured.")
 
-    uid = g.uid
-    data = request.get_json()
-    recipe = data.get("recipe", {})
-    recipe_id = data.get("recipe_id", "")
+    recipe = data.recipe
+    recipe_id = data.recipe_id
 
     if not recipe_id or not re.match(r"^[a-zA-Z0-9]+$", recipe_id):
-        return jsonify({"error": "Valid recipe_id is required"}), 400
+        raise HTTPException(status_code=400, detail="Valid recipe_id is required")
 
     # Build recipe text from recipe object
     if isinstance(recipe, dict):
@@ -42,7 +54,7 @@ def generate_image():
         recipe_text = str(recipe)
 
     if not recipe_text or len(recipe_text) < 10:
-        return jsonify({"error": "Valid recipe data is required"}), 400
+        raise HTTPException(status_code=400, detail="Valid recipe data is required")
 
     # Limit recipe text length
     recipe_text = recipe_text[:4000]
@@ -99,9 +111,11 @@ def generate_image():
                     logger.error(f"Failed to save image URL to recipe: {str(e)}")
 
                 logger.info(f"Generated image for user {uid}")
-                return jsonify({"image_url": image_url})
+                return {"image_url": image_url}
 
-        return jsonify({"error": "No image generated"}), 500
+        raise HTTPException(status_code=500, detail="No image generated")
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Error generating image: {str(e)}")
-        return jsonify({"error": "Error generating image"}), 500
+        raise HTTPException(status_code=500, detail="Error generating image")

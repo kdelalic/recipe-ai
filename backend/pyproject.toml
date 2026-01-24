@@ -4,10 +4,9 @@ version = "0.1.0"
 description = "AI-powered recipe generation backend"
 requires-python = ">=3.12,<3.13"
 dependencies = [
-    "flask>=3.1.0",
-    "flask-cors>=6.0.0",
-    "flask-limiter>=4.1.0",
-    "gunicorn>=24.0.0",
+    "fastapi>=0.128.0",
+    "uvicorn[standard]>=0.40.0",
+    "slowapi>=0.1.9",
     "firebase-admin>=7.1.0",
     "google-cloud-storage>=3.8.0",
     "litellm>=1.81.0",

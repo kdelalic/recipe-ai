@@ -1,15 +1,20 @@
 import logging
-from flask import Blueprint, jsonify
+from fastapi import APIRouter, Request
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from services.firebase import db
 
 logger = logging.getLogger(__name__)
 
-health_bp = Blueprint("health", __name__)
+router = APIRouter(prefix="/api", tags=["health"])
+
+limiter = Limiter(key_func=get_remote_address)
 
 
-@health_bp.route("/api/health", methods=["GET"])
-def health():
+@router.get("/health")
+@limiter.limit("30/minute")
+async def health(request: Request):
     """Simple health check to verify services are up."""
     services_status = {"app": "ok", "firebase": "ok", "gemini": "ok"}
 
@@ -25,4 +30,4 @@ def health():
         "ok" if all(v == "ok" for v in services_status.values()) else "degraded"
     )
 
-    return jsonify({"status": overall_status, "services": services_status}), 200
+    return {"status": overall_status, "services": services_status}

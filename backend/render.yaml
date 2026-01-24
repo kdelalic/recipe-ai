@@ -1,6 +1,0 @@
-services:
-  - type: web
-    name: recipe-ai-backend
-    runtime: python
-    buildCommand: uv sync --frozen
-    startCommand: .venv/bin/gunicorn app:app

@@ -1,6 +1,6 @@
 import logging
-from functools import wraps
-from flask import request, jsonify, g
+from typing import Annotated
+from fastapi import Depends, HTTPException, Header
 from firebase_admin import auth as firebase_auth
 
 from services.cache import token_cache
@@ -8,7 +8,7 @@ from services.cache import token_cache
 logger = logging.getLogger(__name__)
 
 
-def get_uid_from_token(token):
+def get_uid_from_token(token: str) -> str | None:
     """Validate Firebase token and return user UID."""
     # Check cache first
     if token in token_cache:
@@ -25,40 +25,15 @@ def get_uid_from_token(token):
         return None
 
 
-def auth_required(f):
-    """Decorator to require authentication for a route."""
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        auth_header = request.headers.get("Authorization")
-        if not auth_header:
-            return jsonify({"error": "Authorization header missing"}), 401
+async def get_current_user(authorization: Annotated[str | None, Header()] = None) -> str:
+    """FastAPI dependency to require authentication and return user UID."""
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Authorization header missing")
 
-        token = auth_header.split("Bearer ")[-1]
-        uid = get_uid_from_token(token)
+    token = authorization.split("Bearer ")[-1]
+    uid = get_uid_from_token(token)
 
-        if not uid:
-            return jsonify({"error": "Invalid or expired token"}), 401
+    if not uid:
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
 
-        g.uid = uid
-        return f(*args, **kwargs)
-
-    return decorated_function
-
-
-def validate_request(model_class):
-    """Decorator to validate request data with a Pydantic model."""
-    def decorator(f):
-        @wraps(f)
-        def decorated_function(*args, **kwargs):
-            try:
-                data = request.get_json()
-                logger.info(f"Received request data: {data}")
-                model_class(**data)
-                return f(*args, **kwargs)
-            except Exception as e:
-                logger.error(f"Validation error: {str(e)}")
-                return jsonify({"error": f"Invalid request data: {str(e)}"}), 400
-
-        return decorated_function
-
-    return decorator
+    return uid
