@@ -56,8 +56,11 @@
   transform: translateX(-50%);
   background-color: var(--bg-secondary);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-radius: 12px;
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06),
+    0 10px 15px -3px rgba(0, 0, 0, 0.1);
   padding: 0.5rem;
   display: flex;
   flex-direction: column;
@@ -80,7 +83,7 @@
 .dropdown-item {
   text-align: left;
   padding: 0.5rem 0.75rem;
-  border-radius: 4px;
+  border-radius: 6px;
   background: none;
   border: none;
   color: var(--text-primary);
@@ -97,4 +100,6 @@
   color: var(--accent-color);
   font-weight: 600;
   background-color: var(--bg-primary);
+  /* Add a subtle indicator */
+  border-left: 2px solid var(--accent-color);
 }

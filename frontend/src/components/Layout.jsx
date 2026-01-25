@@ -20,6 +20,16 @@ function Layout({ children, user }) {
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(window.innerWidth <= 768);
+  // Check if mobile
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [favorites, setFavorites] = useState(() => {
@@ -216,6 +226,20 @@ function Layout({ children, user }) {
     };
   }, []);
 
+  // Global Keydown handler for Escape
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') {
+        setDropdownOpen(false);
+        if (isMobile) {
+          setSidebarCollapsed(true);
+        }
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isMobile]);
+
   const handleSignOut = async () => {
     try {
       await auth.signOut();
@@ -234,16 +258,6 @@ function Layout({ children, user }) {
     ? location.pathname.split('/recipe/')[1]
     : null;
 
-  // Check if mobile
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth <= 768);
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
 
   // Prevent body scroll when sidebar is open on mobile
   useEffect(() => {

@@ -47,6 +47,18 @@
   padding: 0.8rem 2rem;
   font-size: 1.1rem;
   font-weight: 600;
+  background: linear-gradient(135deg, var(--accent-color), var(--accent-hover));
+  box-shadow: 0 4px 6px rgba(46, 133, 85, 0.2);
+  transition: all 0.2s ease;
+}
+
+.generate-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 8px rgba(46, 133, 85, 0.3);
+}
+
+.generate-btn:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .modifiers-container {
@@ -74,6 +86,7 @@ input[type="text"] {
 input[type="text"]:focus {
   outline: none;
   border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(46, 133, 85, 0.1);
 }
 
 button {
@@ -92,13 +105,17 @@ button:hover {
 }
 
 button:disabled {
-  background-color: #a5d6a7;
+  background: linear-gradient(135deg, #a5d6a7, #81c784);  /* Desaturated/Lighter green gradient */
+  color: white; /* Force white text */
   cursor: not-allowed;
+  opacity: 0.8;
+  box-shadow: none;
 }
 
 [data-theme="dark"] button:disabled {
-  background-color: #3d5c45;
-  color: #888;
+  background: linear-gradient(135deg, #2e4a36, #2d4533); /* Darker desaturated green */
+  color: rgba(255, 255, 255, 0.7); /* Slightly transparent white for dark mode disabled */
+  border: 1px solid #3d5c45;
 }
 
 .recipe {
@@ -111,8 +128,21 @@ button:disabled {
 }
 
 .error {
-  color: red;
+  color: #d32f2f;
+  background-color: #ffebee;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  border: 1px solid #ffcdd2;
   margin-top: 1rem;
+  animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@keyframes shake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
 }
 
 .recipe-image {

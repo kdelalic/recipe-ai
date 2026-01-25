@@ -55,7 +55,7 @@ class Recipe(BaseModel):
 class RecipeRequest(BaseModel):
     prompt: str = Field(..., min_length=1, max_length=1000)
     complexity: str = Field("standard", pattern="^(simple|standard|fancy)$")
-    diet: str = Field("standard", pattern="^(standard|healthy|junk)$")
+    diet: str = Field("standard", pattern="^(standard|high protein|low calorie|low fat|low carb|junk)$")
     time: str = Field("any", pattern="^(any|quick|medium|slow)$")
     servings: str = Field("standard", pattern="^(standard|single|pair|party)$")
 

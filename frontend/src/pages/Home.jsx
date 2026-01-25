@@ -111,6 +111,12 @@ function Home({ isMobile, sidebarCollapsed, onToggleSidebar, favoriteIds, toggle
     setCurrentRecipe('');
     setImageUrl('');
 
+    if (!input.trim()) {
+      setError('Please enter some ingredients first.');
+      setLoading(false);
+      return;
+    }
+
     try {
       const response = await api.post('/api/generate-recipe', { 
         prompt: input,
@@ -234,7 +240,10 @@ function Home({ isMobile, sidebarCollapsed, onToggleSidebar, favoriteIds, toggle
           type="text"
           placeholder="Enter ingredients, cuisine type, etc."
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={(e) => {
+            setInput(e.target.value);
+            if (error) setError('');
+          }}
         />
         
         <div className="modifiers-container">
@@ -288,7 +297,7 @@ function Home({ isMobile, sidebarCollapsed, onToggleSidebar, favoriteIds, toggle
             ]}
           />
         </div>
-        <button type="submit" disabled={loading || !input} className="generate-btn">
+        <button type="submit" disabled={loading} className="generate-btn">
           {loading ? 'Generating...' : 'Generate Recipe'}
         </button>
       </form>
