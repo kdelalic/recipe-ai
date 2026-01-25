@@ -11,6 +11,8 @@ node_modules
 dist
 dist-ssr
 *.local
+.vite
+deps
 
 # Editor directories and files
 .vscode/*
@@ -24,9 +26,16 @@ dist-ssr
 *.sw?
 
 serviceAccountKey.json
-*.pyc
-
+# Python caches
 .venv
 __pycache__
+.pytest_cache
+.ruff_cache
+*.pyc
+*.pyo
+*.pyd
 
+# Environment files
 .env
+.env.local
+*.local
