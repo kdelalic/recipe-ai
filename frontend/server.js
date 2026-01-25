@@ -93,9 +93,10 @@ export async function createServer(
 }
 
 if (!isTest) {
+  const port = process.env.PORT || 5173;
   createServer().then(({ app }) =>
-    app.listen(5173, () => {
-      console.log('http://localhost:5173');
+    app.listen(port, () => {
+      console.log(`http://localhost:${port}`);
     }),
   );
 }
