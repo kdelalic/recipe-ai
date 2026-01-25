@@ -7,18 +7,22 @@ from models import Recipe
 
 logger = logging.getLogger(__name__)
 
-RECIPE_SYSTEM_MESSAGE = """You are a creative chef with the precision and depth of recipes found on Serious Eats and the expertise of Chef J. Kenji López-Alt and Chef Chris Young.
-When given a prompt, generate a recipe that is both detailed and practical, reflecting the thorough testing and clear instructions characteristic of those sources. Write with warmth and personality while maintaining technical accuracy.
+RECIPE_SYSTEM_MESSAGE = """You are a culinary expert and food scientist with the precision of a test kitchen chef.
+Your recipes should rely on technique, food science, and clear, descriptive instructions.
 
-FORMATTING GUIDELINES:
-- Always include prep_time, cook_time, and servings
-- Always include macros with estimated calories, protein, carbs, and fat per serving (as integers)
-- Group ingredients logically (e.g., "For the filling", "For the sauce", "For serving") - use clear, descriptive group names
-- Keep individual ingredients concise but include quantities and any prep notes in parentheses
-- Write instructions as clear, actionable steps - start each with a verb
-- Bold key techniques or temperatures within instructions using <strong> tags when helpful"""
+Write with the authority and explanatory style of J. Kenji López-Alt or a Serious Eats guide.
+- Explain the "WHY" behind key steps.
+- Use precise visual and sensory cues.
+- Suggest specific techniques to improve the final result.
 
-UPDATE_SYSTEM_MESSAGE = "You are a creative chef who is skilled at editing recipes while preserving their original structure and style."
+Follow the schema structure exactly for formatting."""
+
+UPDATE_SYSTEM_MESSAGE = """You are a meticulous test kitchen editor. Your goal is to modify the provided recipe according to the user's request while STRICTLY preserving the original recipe's voice, formatting, and scientific precision.
+
+- Do NOT summarize or shorten unchanged sections.
+- When changing ingredients, ensure quantities and techniques are adjusted to match.
+- If the modification affects the cooking method (e.g., frying to baking), rewrite the relevant instructions completely with proper timings and visual cues.
+"""
 
 
 def generate_recipe_from_prompt(
@@ -35,23 +39,28 @@ def generate_recipe_from_prompt(
     
     modifiers = []
     if complexity != "standard":
-        modifiers.append(f"Complexity: {complexity}")
+        modifiers.append(f"Complexity Level: {complexity}")
     if diet != "standard":
-        modifiers.append(f"Dietary preference: {diet}")
+        modifiers.append(f"Dietary Restriction: {diet}")
     if time != "any":
-        modifiers.append(f"Time constraint: {time}")
+        modifiers.append(f"Time Constraint: {time}")
     if servings != "standard":
-        modifiers.append(f"Servings: {servings}")
+        modifiers.append(f"Target Servings: {servings}")
         
     system_msg = RECIPE_SYSTEM_MESSAGE
+    
+    # Construct a rich user prompt
+    full_prompt = f"Request: {prompt}\n"
     if modifiers:
-        system_msg += "\n\nMODIFIERS:\n" + "\n".join(f"- {m}" for m in modifiers)
+        full_prompt += "\nConstraints & Preferences:\n" + "\n".join(f"- {m}" for m in modifiers)
+    
+    full_prompt += "\n\nPlease create a detailed, step-by-step recipe following the system guidelines."
 
     response = litellm.completion(
         model=LLM_MODEL,
         messages=[
             {"role": "system", "content": system_msg},
-            {"role": "user", "content": prompt},
+            {"role": "user", "content": full_prompt},
         ],
         max_tokens=2000,
         response_format=Recipe,
@@ -73,7 +82,7 @@ def update_recipe_with_modifications(original_recipe: dict, modifications: str) 
     """
     # Convert recipe dict to formatted string for the prompt
     original_recipe_str = (
-        f"Title: {original_recipe.get('title', '')}\n\n"
+        f"Title: {original_recipe.get('title', '')}\n"
         f"Description: {original_recipe.get('description', '')}\n\n"
         f"Ingredients:\n"
         + "\n".join(f"- {i}" for i in original_recipe.get("ingredients", []))
@@ -87,10 +96,13 @@ def update_recipe_with_modifications(original_recipe: dict, modifications: str) 
     )
 
     update_prompt = (
-        "Below is a recipe:\n\n"
-        f"{original_recipe_str}\n\n"
-        "Modify this recipe based on the following instructions, changing only the specified parts:\n\n"
-        f"{modifications}"
+        "ORIGINAL RECIPE:\n"
+        "================\n"
+        f"{original_recipe_str}\n"
+        "================\n\n"
+        "MODIFICATION REQUEST:\n"
+        f"{modifications}\n\n"
+        "Please rewrite the recipe to incorporate these changes. Keep the rest of the recipe consistent with the original style."
     )
 
     response = litellm.completion(

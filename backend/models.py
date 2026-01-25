@@ -5,9 +5,11 @@ from pydantic import BaseModel, Field
 
 class IngredientGroup(BaseModel):
     group_name: str = Field(
-        description="Name of the ingredient group, e.g., 'For the filling', 'For the sauce'"
+        description="Name of the ingredient group, e.g., 'For the Marinade', 'For the Salad'"
     )
-    items: List[str] = Field(description="List of ingredients in this group")
+    items: List[str] = Field(
+        description="List of ingredients in this group. Include precise metrics and prep notes (e.g., '1 cup (150g) all-purpose flour')."
+    )
 
 
 class Macros(BaseModel):
@@ -18,8 +20,11 @@ class Macros(BaseModel):
 
 
 class Recipe(BaseModel):
-    title: str
-    description: str
+    title: str = Field(description="Descriptive and appetizing title for the dish.")
+    description: str = Field(
+        description="A short, engaging headnote explaining the dish and what makes it special. "
+        "Write with the authority and explanatory style of J. Kenji López-Alt or a Serious Eats guide."
+    )
     prep_time: str = Field(
         default="", description="Preparation time, e.g., '30 minutes'"
     )
@@ -28,13 +33,23 @@ class Recipe(BaseModel):
         default="", description="Number of servings, e.g., '4-6 servings'"
     )
     macros: Optional[Macros] = Field(
-        default=None, description="Estimated macronutrients per serving"
+        default=None, description="Estimated macronutrients per serving (provide realistic estimates)"
     )
     ingredients: List[IngredientGroup] = Field(
-        description="Ingredients organized by group"
+        description="Ingredients organized by group (e.g., Main, Sauce, Garnish). "
+        "Each item must be precise."
     )
-    instructions: List[str]
-    notes: List[str] = []
+    instructions: List[str] = Field(
+        description="Step-by-step cooking instructions. "
+        "1. Numbered, clear, and actionable. "
+        "2. Start with a strong verb. "
+        "3. **Bold** key temperatures, times, and crucial visual cues using <strong> tags. "
+        "4. Include short explanatory parentheticals for complex steps to teach the user *why* they are doing it (e.g., 'Salting the water assumes...')."
+    )
+    notes: List[str] = Field(
+        default=[],
+        description="Chef's notes, specific techniques to improve the result, or serving suggestions."
+    )
 
 
 class RecipeRequest(BaseModel):
