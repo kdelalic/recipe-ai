@@ -1,7 +1,8 @@
 import io
 import logging
-from PIL import Image
+
 from google.cloud import storage
+from PIL import Image
 
 from config import GCS_BUCKET_NAME
 

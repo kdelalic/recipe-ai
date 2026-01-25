@@ -1,4 +1,5 @@
 import logging
+
 import litellm
 
 from config import LLM_MODEL
@@ -56,12 +57,12 @@ def update_recipe_with_modifications(original_recipe: dict, modifications: str) 
         f"Ingredients:\n"
         + "\n".join(f"- {i}" for i in original_recipe.get("ingredients", []))
         + "\n\n"
-        f"Instructions:\n"
+        "Instructions:\n"
         + "\n".join(
             f"{n+1}. {s}" for n, s in enumerate(original_recipe.get("instructions", []))
         )
         + "\n\n"
-        f"Notes:\n" + "\n".join(f"- {n}" for n in original_recipe.get("notes", []))
+        "Notes:\n" + "\n".join(f"- {n}" for n in original_recipe.get("notes", []))
     )
 
     update_prompt = (

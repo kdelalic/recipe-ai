@@ -24,7 +24,10 @@ const GREETINGS = [
   "Ready to explore new flavors?",
 ];
 
-function Home({ isMobile, sidebarCollapsed, onToggleSidebar, favoriteIds, toggleFavorite, wakeLockEnabled, onToggleWakeLock }) {
+import { useLocation } from 'react-router-dom';
+
+function Home({ isMobile, sidebarCollapsed, onToggleSidebar, favoriteIds, toggleFavorite, wakeLockEnabled, onToggleWakeLock, refreshHistory }) {
+  const location = useLocation();
   const recipeRef = useRef(null);
   const [input, setInput] = useState('');
   const [currentId, setCurrentId] = useState('');
@@ -53,7 +56,21 @@ function Home({ isMobile, sidebarCollapsed, onToggleSidebar, favoriteIds, toggle
       }
     };
     fetchPreferences();
+    fetchPreferences();
   }, []);
+
+  // Handle reset from navigation (New Recipe button)
+  useEffect(() => {
+    if (location.state?.reset) {
+      setInput('');
+      setCurrentId('');
+      setCurrentRecipe('');
+      setPrevRecipe('');
+      setImageUrl('');
+      setError('');
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state]);
 
   const greeting = useMemo(() => {
     return GREETINGS[Math.floor(Math.random() * GREETINGS.length)];
@@ -77,6 +94,9 @@ function Home({ isMobile, sidebarCollapsed, onToggleSidebar, favoriteIds, toggle
       setPrevRecipe(recipeData);
       if (envEnableImageGeneration && imageGenerationEnabled) {
         handleGenerateImage(recipeData, data.id);
+      }
+      if (refreshHistory) {
+        refreshHistory();
       }
     } catch (err) {
       console.error('Error generating recipe:', err);
@@ -143,6 +163,9 @@ function Home({ isMobile, sidebarCollapsed, onToggleSidebar, favoriteIds, toggle
       setPrevRecipe(recipeData);
       if (envEnableImageGeneration && imageGenerationEnabled) {
         handleGenerateImage(recipeData, data.id);
+      }
+      if (refreshHistory) {
+        refreshHistory();
       }
     } catch (err) {
       console.error('Error regenerating recipe:', err);

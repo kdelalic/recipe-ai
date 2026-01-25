@@ -43,6 +43,7 @@ function Login() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          autoComplete="email"
         />
         <input
           type="password"
@@ -50,11 +51,12 @@ function Login() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+          autoComplete="current-password"
         />
         <button type="submit" className="login-button">Login</button>
       </form>
       <p>
-        Don't have an account?{' '}
+        Don&apos;t have an account?{' '}
         <Link to="/signup" className="toggle-auth">Sign Up</Link>
       </p>
       <hr />

@@ -1,18 +1,19 @@
 import datetime
-import re
 import logging
+import re
 from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from google.cloud.firestore_v1.base_query import FieldFilter
 from firebase_admin import auth as firebase_auth
 from firebase_admin import firestore
+from google.cloud.firestore_v1.base_query import FieldFilter
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
 from auth import get_current_user, get_current_user_optional
 from models import RecipeRequest, UpdateRecipeRequest
-from services.firebase import db
 from services.cache import recipe_cache
+from services.firebase import db
 from services.llm import generate_recipe_from_prompt, update_recipe_with_modifications
 
 logger = logging.getLogger(__name__)
@@ -54,7 +55,7 @@ async def generate_recipe(
         return {"recipe": recipe_dict, "id": recipe_id}
     except Exception as e:
         logger.error(f"Error generating recipe: {str(e)}")
-        raise HTTPException(status_code=500, detail="Error generating recipe")
+        raise HTTPException(status_code=500, detail="Error generating recipe") from e
 
 
 @router.post("/update-recipe")
@@ -104,7 +105,7 @@ async def update_recipe(
         return {"recipe": updated_recipe_dict}
     except Exception as e:
         logger.error(f"Error updating recipe {recipe_id}: {str(e)}")
-        raise HTTPException(status_code=500, detail="Error updating recipe")
+        raise HTTPException(status_code=500, detail="Error updating recipe") from e
 
 
 @router.get("/recipe/{recipe_id}")
@@ -159,7 +160,7 @@ async def get_recipe(
         raise
     except Exception as e:
         logger.error(f"Error retrieving recipe {recipe_id}: {str(e)}")
-        raise HTTPException(status_code=500, detail="Error retrieving recipe")
+        raise HTTPException(status_code=500, detail="Error retrieving recipe") from e
 
 
 @router.get("/recipe-history")
@@ -198,7 +199,7 @@ async def get_recipe_history(
         return {"history": history, "offset": offset, "limit": limit}
     except Exception as e:
         logger.error(f"Error retrieving recipe history for user {uid}: {str(e)}")
-        raise HTTPException(status_code=500, detail="Error retrieving recipe history")
+        raise HTTPException(status_code=500, detail="Error retrieving recipe history") from e
 
 
 @router.patch("/recipe/{recipe_id}/archive")
@@ -242,4 +243,4 @@ async def archive_recipe(
         raise
     except Exception as e:
         logger.error(f"Error archiving recipe {recipe_id}: {str(e)}")
-        raise HTTPException(status_code=500, detail="Error archiving recipe")
+        raise HTTPException(status_code=500, detail="Error archiving recipe") from e

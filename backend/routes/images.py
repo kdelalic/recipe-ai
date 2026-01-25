@@ -1,17 +1,18 @@
-import re
 import logging
+import re
 from typing import Annotated, Any
+
 from fastapi import APIRouter, Depends, HTTPException, Request
-from pydantic import BaseModel
 from google import genai
 from google.genai import types
+from pydantic import BaseModel
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
-from config import GOOGLE_API_KEY, GEMINI_IMAGE_MODEL, ENABLE_IMAGE_GENERATION
 from auth import get_current_user
+from config import ENABLE_IMAGE_GENERATION, GEMINI_IMAGE_MODEL, GOOGLE_API_KEY
 from services.firebase import db
-from services.storage import storage_bucket, compress_image
+from services.storage import compress_image, storage_bucket
 
 logger = logging.getLogger(__name__)
 
@@ -118,4 +119,4 @@ async def generate_image(
         raise
     except Exception as e:
         logger.error(f"Error generating image: {str(e)}")
-        raise HTTPException(status_code=500, detail="Error generating image")
+        raise HTTPException(status_code=500, detail="Error generating image") from e

@@ -1,6 +1,7 @@
-import re
 import logging
+import re
 from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
@@ -39,14 +40,14 @@ async def get_favorites(uid: Annotated[str, Depends(get_current_user)]):
         return {"favorites": favorites, "favoriteIds": favorite_ids}
     except Exception as e:
         logger.error(f"Error getting favorites for user {uid}: {str(e)}")
-        raise HTTPException(status_code=500, detail="Error retrieving favorites")
+        raise HTTPException(status_code=500, detail="Error retrieving favorites") from e
 
 
 @router.post("/favorites/{recipe_id}")
 async def add_favorite(
     recipe_id: str,
     uid: Annotated[str, Depends(get_current_user)],
-    data: AddFavoriteRequest = AddFavoriteRequest(),
+    data: AddFavoriteRequest,
 ):
     """Add a recipe to favorites. Expects title in request body."""
     # Validate recipe_id format
@@ -79,7 +80,7 @@ async def add_favorite(
         raise
     except Exception as e:
         logger.error(f"Error adding favorite for user {uid}: {str(e)}")
-        raise HTTPException(status_code=500, detail="Error adding favorite")
+        raise HTTPException(status_code=500, detail="Error adding favorite") from e
 
 
 @router.delete("/favorites/{recipe_id}")
@@ -113,4 +114,4 @@ async def remove_favorite(
         return {"favorites": favorites, "favoriteIds": favorite_ids}
     except Exception as e:
         logger.error(f"Error removing favorite for user {uid}: {str(e)}")
-        raise HTTPException(status_code=500, detail="Error removing favorite")
+        raise HTTPException(status_code=500, detail="Error removing favorite") from e

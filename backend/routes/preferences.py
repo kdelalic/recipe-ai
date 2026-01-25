@@ -1,5 +1,6 @@
 import logging
 from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
@@ -31,7 +32,7 @@ async def get_preferences(uid: Annotated[str, Depends(get_current_user)]):
         return {"preferences": preferences}
     except Exception as e:
         logger.error(f"Error getting preferences for user {uid}: {str(e)}")
-        raise HTTPException(status_code=500, detail="Error retrieving preferences")
+        raise HTTPException(status_code=500, detail="Error retrieving preferences") from e
 
 
 @router.put("/preferences")
@@ -53,4 +54,4 @@ async def update_preferences(
         return {"preferences": preferences}
     except Exception as e:
         logger.error(f"Error updating preferences for user {uid}: {str(e)}")
-        raise HTTPException(status_code=500, detail="Error updating preferences")
+        raise HTTPException(status_code=500, detail="Error updating preferences") from e

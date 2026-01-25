@@ -1,6 +1,7 @@
 import logging
 from typing import Annotated
-from fastapi import Depends, HTTPException, Header
+
+from fastapi import Header, HTTPException
 from firebase_admin import auth as firebase_auth
 
 from services.cache import token_cache

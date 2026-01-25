@@ -311,6 +311,7 @@ function Layout({ children, user }) {
         </div>
         <Link
           to="/"
+          state={{ reset: true }}
           className={`new-recipe-btn ${sidebarCollapsed ? 'collapsed' : ''}`}
           onClick={() => isMobile && setSidebarCollapsed(true)}
         >
@@ -397,7 +398,7 @@ function Layout({ children, user }) {
                   </button>
                 )}
                 <button onClick={handleSignOut} className="dropdown-item">
-                  Sign Out
+                  {user.isAnonymous ? 'Exit Guest Mode' : 'Sign Out'}
                 </button>
               </div>
             )}
@@ -414,6 +415,7 @@ function Layout({ children, user }) {
               onToggleSidebar: () => setSidebarCollapsed(false),
               wakeLockEnabled,
               onToggleWakeLock: toggleWakeLock,
+              refreshHistory: () => fetchHistory(0, false),
             })
           : children}
       </main>

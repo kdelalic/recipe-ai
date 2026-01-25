@@ -16,14 +16,13 @@ function SignUp() {
     e.preventDefault();
     setError('');
     try {
-      let userCredential;
       if (auth.currentUser && auth.currentUser.isAnonymous) {
         // If the current user is anonymous, link the email/password credential to upgrade the account.
         const credential = EmailAuthProvider.credential(email, password);
-        userCredential = await linkWithCredential(auth.currentUser, credential);
+        await linkWithCredential(auth.currentUser, credential);
       } else {
         // Otherwise, create a new user account.
-        userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        await createUserWithEmailAndPassword(auth, email, password);
       }
       // Update the display name on the user profile.
       await updateProfile(auth.currentUser, { displayName });
@@ -44,6 +43,7 @@ function SignUp() {
           value={displayName}
           onChange={(e) => setDisplayName(e.target.value)}
           required
+          autoComplete="name"
         />
         <input
           type="email"
@@ -51,6 +51,7 @@ function SignUp() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          autoComplete="email"
         />
         <input
           type="password"
@@ -58,6 +59,7 @@ function SignUp() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+          autoComplete="new-password"
         />
         <button type="submit" className="signup-button">Sign Up</button>
       </form>

@@ -1,23 +1,23 @@
 import logging
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-
-from config import IS_LOCAL, FRONTEND_URLS, PORT
+from slowapi.util import get_remote_address
 
 # Import services to initialize them
 import services.firebase  # noqa: F401
+from config import FRONTEND_URLS, IS_LOCAL, PORT
+from routes.favorites import router as favorites_router
+from routes.health import router as health_router
+from routes.images import router as images_router
+from routes.preferences import router as preferences_router
 
 # Import route routers
 from routes.recipes import router as recipes_router
-from routes.favorites import router as favorites_router
-from routes.images import router as images_router
-from routes.health import router as health_router
-from routes.preferences import router as preferences_router
 
 logger = logging.getLogger(__name__)
 
