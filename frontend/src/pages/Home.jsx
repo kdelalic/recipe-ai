@@ -321,7 +321,7 @@ function Home({ isMobile, sidebarCollapsed, onToggleSidebar, favoriteIds, toggle
             <div className="modification-section">
               <input
                 type="text"
-                placeholder="Enter modifications (e.g., remove pork belly)"
+                placeholder="Enter modifications (e.g., remove onions)"
                 value={modification}
                 onChange={(e) => setModification(e.target.value)}
               />

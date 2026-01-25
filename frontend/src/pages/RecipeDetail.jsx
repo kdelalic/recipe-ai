@@ -140,7 +140,7 @@ function RecipeDetail({ user, favoriteIds = [], toggleFavorite, isMobile, sideba
             <div className="update-section" style={{ marginTop: '1rem' }}>
               <input
                 type="text"
-                placeholder="Enter modifications (e.g., remove pork belly)"
+                placeholder="Enter modifications (e.g., remove onions)"
                 value={modification}
                 onChange={(e) => setModification(e.target.value)}
               />
