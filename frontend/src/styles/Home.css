@@ -9,6 +9,7 @@
   overflow: hidden;
   overscroll-behavior: none;
   touch-action: none;
+  background: radial-gradient(circle at 50% 10%, rgba(16, 185, 129, 0.05), transparent 70%);
 }
 
 .greeting-row {
@@ -80,15 +81,14 @@ input[type="text"] {
   box-sizing: border-box;
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  transition:
-    border-color 0.2s,
-    box-shadow 0.2s;
+  transition: var(--transition-base);
+  box-shadow: var(--shadow-sm);
 }
 
 input[type="text"]:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-light);
+  box-shadow: 0 0 0 4px var(--color-primary-light);
 }
 
 button {

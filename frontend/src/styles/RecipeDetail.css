@@ -46,17 +46,19 @@
 
 /* Recipe View Styling */
 .recipe-view {
-  line-height: 1.6;
+  line-height: var(--line-height-relaxed);
   margin: 0 auto;
+  max-width: 800px;
 }
 
 .recipe-view h1 {
   margin-top: 0;
-  margin-bottom: var(--space-2);
-  font-size: var(--font-size-3xl);
-  font-weight: 700;
+  margin-bottom: var(--space-4);
+  font-size: var(--font-size-4xl);
+  font-weight: 800;
   color: var(--text-primary);
   letter-spacing: -0.02em;
+  line-height: var(--line-height-tight);
 }
 
 .recipe-mobile-header {
@@ -191,8 +193,17 @@
   background-color: var(--bg-primary);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-xl);
-  padding: var(--space-5);
+  padding: var(--space-6) var(--space-8);
   box-shadow: var(--shadow-sm);
+  transition: var(--transition-base);
+  margin-bottom: var(--space-8);
+}
+
+.ingredient-groups:hover,
+.instructions-list:hover,
+.notes-list:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
 /* Remove default list styling inside cards if needed */

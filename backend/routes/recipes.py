@@ -24,6 +24,7 @@ from models import (
 from services.cache import recipe_cache
 from services.firebase import db_async
 from services.llm import generate_recipe_from_prompt, update_recipe_with_modifications
+from services.usage import usage_tracker
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +41,16 @@ async def generate_recipe(
     uid: Annotated[str | None, Depends(get_current_user_optional)] = None,
 ):
     logger.info(f"Generate recipe request from user {uid if uid else 'guest'}")
+
+    if not uid:
+        # Check guest limit
+        client_ip = request.client.host
+        if not usage_tracker.check_limit(client_ip, limit=1):
+             logger.warning(f"Guest limit exceeded for IP {client_ip}")
+             raise HTTPException(status_code=403, detail="Guest recipe limit reached. Please sign up to continue.")
+        
+        # Increment usage
+        usage_tracker.increment_usage(client_ip)
 
     try:
         recipe, _ = await generate_recipe_from_prompt(
