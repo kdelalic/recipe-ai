@@ -35,18 +35,33 @@ exports.scheduledDeletion = onSchedule("every 24 hours", async (event) => {
   }
 });
 
-const HEALTHCHECK_URL = process.env.BACKEND_URL;
+const BACKEND_URL = process.env.BACKEND_URL;
+const FRONTEND_URL = process.env.FRONTEND_URL;
 
-exports.pingHealthCheck = onSchedule("every 5 minutes", async (event) => {
-  if (!HEALTHCHECK_URL) {
+exports.pingBackendHealthCheck = onSchedule("every 5 minutes", async (event) => {
+  if (!BACKEND_URL) {
     console.error("BACKEND_URL environment variable is not set.");
     return;
   }
 
   try {
-    const response = await axios.get(`${HEALTHCHECK_URL}/api/health`);
-    console.log("Health check ping successful:", response.data);
+    const response = await axios.get(`${BACKEND_URL}/api/health`);
+    console.log("Backend health check ping successful:", response.data);
   } catch (error) {
-    console.error("Health check ping failed:", error);
+    console.error("Backend health check ping failed:", error);
+  }
+});
+
+exports.pingFrontendHealthCheck = onSchedule("every 5 minutes", async (event) => {
+  if (!FRONTEND_URL) {
+    console.error("FRONTEND_URL environment variable is not set.");
+    return;
+  }
+
+  try {
+    const response = await axios.get(FRONTEND_URL);
+    console.log("Frontend health check ping successful:", response.status);
+  } catch (error) {
+    console.error("Frontend health check ping failed:", error);
   }
 });
