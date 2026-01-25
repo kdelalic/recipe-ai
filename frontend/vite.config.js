@@ -8,20 +8,20 @@ export default defineConfig(() => {
       react(),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['vite.svg'],
+        includeAssets: ['favicon.svg'],
         manifest: {
           name: 'Recipe AI',
           short_name: 'Recipe AI',
           description: 'AI-powered recipe generator',
-          theme_color: '#ffffff',
+          theme_color: '#FF6B6B',
           icons: [
             {
-              src: 'vite.svg',
+              src: 'favicon.svg',
               sizes: '192x192',
               type: 'image/svg+xml'
             },
             {
-              src: 'vite.svg',
+              src: 'favicon.svg',
               sizes: '512x512',
               type: 'image/svg+xml'
             }

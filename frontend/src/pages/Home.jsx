@@ -1,5 +1,6 @@
 import { useState, useRef, useMemo, useEffect } from 'react';
 import { HiOutlineMenuAlt2 } from 'react-icons/hi';
+import ChefHatIcon from '../components/ChefHatIcon';
 import RecipeView from '../components/RecipeView';
 import RecipeSkeleton from '../components/RecipeSkeleton';
 import api from '../utils/api';
@@ -223,7 +224,10 @@ function Home({ isMobile, sidebarCollapsed, onToggleSidebar, favoriteIds, toggle
         </button>
       )}
       {!hasRecipe && (
-        <h1 className="greeting">{greeting}</h1>
+        <>
+          <ChefHatIcon className="home-icon" size={64} />
+          <h1 className="greeting">{greeting}</h1>
+        </>
       )}
       <form onSubmit={handleSubmit} className="recipe-form">
         <input

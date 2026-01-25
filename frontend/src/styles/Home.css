@@ -20,6 +20,11 @@
   margin-bottom: 1.5rem;
 }
 
+.home-icon {
+  color: #FF6B6B;
+  margin-bottom: 1rem;
+}
+
 .greeting {
   font-size: 2rem;
   font-weight: 600;
