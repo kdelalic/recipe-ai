@@ -325,16 +325,18 @@ function Layout({ children, user }) {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
-          <button
-            className={`favorites-filter ${showFavoritesOnly ? 'active' : ''}`}
-            onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-            aria-label={showFavoritesOnly ? 'Show all recipes' : 'Show favorites only'}
-            data-tooltip-id="tooltip"
-            data-tooltip-content={showFavoritesOnly ? 'Show all recipes' : 'Show favorites only'}
-          >
-            {showFavoritesOnly ? <FaStar size={14} /> : <FaRegStar size={14} />}
-            Favorites
-          </button>
+          {isLoggedIn && (
+            <button
+              className={`favorites-filter ${showFavoritesOnly ? 'active' : ''}`}
+              onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+              aria-label={showFavoritesOnly ? 'Show all recipes' : 'Show favorites only'}
+              data-tooltip-id="tooltip"
+              data-tooltip-content={showFavoritesOnly ? 'Show all recipes' : 'Show favorites only'}
+            >
+              {showFavoritesOnly ? <FaStar size={14} /> : <FaRegStar size={14} />}
+              Favorites
+            </button>
+          )}
         </div>
         <div
           className={`sidebar-content ${sidebarCollapsed ? 'collapsed' : ''}`}
@@ -353,15 +355,17 @@ function Layout({ children, user }) {
                   onClick={() => isMobile && setSidebarCollapsed(true)}
                 >
                   <span className="history-item-title">{item.title}</span>
-                  <button
-                    className={`favorite-btn ${favoriteIds.includes(item.id) ? 'is-favorite' : ''}`}
-                    onClick={(e) => toggleFavorite(item.id, item.title, e)}
-                    aria-label={favoriteIds.includes(item.id) ? 'Remove from favorites' : 'Add to favorites'}
-                    data-tooltip-id="tooltip"
-                    data-tooltip-content={favoriteIds.includes(item.id) ? 'Remove from favorites' : 'Add to favorites'}
-                  >
-                    {favoriteIds.includes(item.id) ? <FaStar size={12} /> : <FaRegStar size={12} />}
-                  </button>
+                  {isLoggedIn && (
+                    <button
+                      className={`favorite-btn ${favoriteIds.includes(item.id) ? 'is-favorite' : ''}`}
+                      onClick={(e) => toggleFavorite(item.id, item.title, e)}
+                      aria-label={favoriteIds.includes(item.id) ? 'Remove from favorites' : 'Add to favorites'}
+                      data-tooltip-id="tooltip"
+                      data-tooltip-content={favoriteIds.includes(item.id) ? 'Remove from favorites' : 'Add to favorites'}
+                    >
+                      {favoriteIds.includes(item.id) ? <FaStar size={12} /> : <FaRegStar size={12} />}
+                    </button>
+                  )}
                 </Link>
               ))}
               {loadingMore && <div className="history-loading">Loading...</div>}
@@ -382,9 +386,11 @@ function Layout({ children, user }) {
             </button>
             {dropdownOpen && (
               <div className="profile-dropdown">
-                <Link to="/preferences" className="dropdown-item" onClick={() => setDropdownOpen(false)}>
-                  Preferences
-                </Link>
+                {isLoggedIn && (
+                  <Link to="/preferences" className="dropdown-item" onClick={() => setDropdownOpen(false)}>
+                    Preferences
+                  </Link>
+                )}
                 {user.isAnonymous && (
                   <button onClick={handleSignUp} className="dropdown-item">
                     Sign Up
@@ -402,7 +408,7 @@ function Layout({ children, user }) {
         {isValidElement(children)
           ? cloneElement(children, {
               favoriteIds,
-              toggleFavorite,
+              toggleFavorite: isLoggedIn ? toggleFavorite : null,
               isMobile,
               sidebarCollapsed,
               onToggleSidebar: () => setSidebarCollapsed(false),

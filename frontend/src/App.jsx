@@ -37,7 +37,7 @@ function App({ user }) {
       <Route
         path="/preferences"
         element={
-          <ProtectedRoute user={user}>
+          <ProtectedRoute user={user} allowGuest={false}>
             <Layout user={user}>
               <Preferences user={user} />
             </Layout>
