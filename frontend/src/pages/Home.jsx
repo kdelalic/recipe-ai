@@ -256,7 +256,10 @@ function Home({ isMobile, sidebarCollapsed, onToggleSidebar, favoriteIds, toggle
             defaultValue="standard"
             options={[
               { value: 'standard', label: 'No Diet' },
-              { value: 'healthy', label: 'Healthy (High Protein)' },
+              { value: 'high protein', label: 'High Protein' },
+              { value: 'low calorie', label: 'Low Calorie' },
+              { value: 'low fat', label: 'Low Fat' },
+              { value: 'low carb', label: 'Low Carb' },
               { value: 'junk', label: 'Junk Food' },
             ]}
           />

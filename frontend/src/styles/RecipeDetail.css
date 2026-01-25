@@ -411,3 +411,11 @@
     text-decoration: none !important;
   }
 }
+
+.delete-btn {
+  background-color: #ff4d4d;
+}
+
+.delete-btn:hover {
+  background-color: #ff3333;
+}

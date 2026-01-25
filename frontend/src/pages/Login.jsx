@@ -6,6 +6,8 @@ import { signInWithEmailAndPassword, signInAnonymously } from 'firebase/auth';
 import '../styles/Login.css';
 import ChefHatIcon from '../components/ChefHatIcon';
 
+import { getAuthErrorMessage } from '../utils/authErrors';
+
 function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -19,7 +21,7 @@ function Login() {
       await signInWithEmailAndPassword(auth, email, password);
       navigate('/');
     } catch (err) {
-      setError(err.message);
+      setError(getAuthErrorMessage(err));
     }
   };
 
@@ -29,7 +31,7 @@ function Login() {
       await signInAnonymously(auth);
       navigate('/');
     } catch (err) {
-      setError(err.message);
+      setError(getAuthErrorMessage(err));
     }
   };
 

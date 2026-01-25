@@ -158,7 +158,7 @@ function RecipeDetail({ user, favoriteIds = [], toggleFavorite, isMobile, sideba
           )}
           {user && recipeUID === user.uid && (
             <div className="recipe-actions">
-              <button onClick={handleDelete} style={{ marginTop: '1rem' }}>
+              <button onClick={handleDelete} className="delete-btn" style={{ marginTop: '1rem' }}>
                 Delete Recipe
               </button>
             </div>
