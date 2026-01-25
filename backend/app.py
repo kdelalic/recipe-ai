@@ -15,6 +15,7 @@ from routes.favorites import router as favorites_router
 from routes.health import router as health_router
 from routes.images import router as images_router
 from routes.preferences import router as preferences_router
+from routes.share import router as share_router
 
 # Import route routers
 from routes.recipes import router as recipes_router
@@ -64,6 +65,7 @@ app.include_router(favorites_router)
 app.include_router(images_router)
 app.include_router(health_router)
 app.include_router(preferences_router)
+app.include_router(share_router)
 
 
 @app.exception_handler(404)

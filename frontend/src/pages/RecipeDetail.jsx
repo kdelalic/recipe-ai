@@ -138,6 +138,7 @@ function RecipeDetail({ user, favoriteIds = [], toggleFavorite, isMobile, sideba
             wakeLockEnabled={wakeLockEnabled}
             onToggleWakeLock={onToggleWakeLock}
             imageUrl={imageUrl}
+            shareUrl={`${import.meta.env.VITE_API_URL}/api/share/recipe/${id}?origin=${window.location.origin}`}
           />
           {user && recipeUID === user.uid && (
             <div className="recipe-management-section">
