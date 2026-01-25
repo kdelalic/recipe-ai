@@ -245,7 +245,7 @@ function Home({ isMobile, sidebarCollapsed, onToggleSidebar, favoriteIds, toggle
             defaultValue="standard"
             options={[
               { value: 'simple', label: 'Simple' },
-              { value: 'standard', label: 'Standard Complexity' },
+              { value: 'standard', label: 'Standard' },
               { value: 'fancy', label: 'Fancy' },
             ]}
           />
@@ -288,7 +288,7 @@ function Home({ isMobile, sidebarCollapsed, onToggleSidebar, favoriteIds, toggle
             ]}
           />
         </div>
-        <button type="submit" disabled={loading || !input}>
+        <button type="submit" disabled={loading || !input} className="generate-btn">
           {loading ? 'Generating...' : 'Generate Recipe'}
         </button>
       </form>

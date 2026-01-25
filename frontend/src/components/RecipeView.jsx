@@ -204,7 +204,7 @@ function RecipeView({ recipe, author, timestamp, isFavorite, onToggleFavorite, r
         <div className="recipe-image">
           {imageLoading ? (
             <SkeletonTheme baseColor={skeletonBaseColor} highlightColor={skeletonHighlightColor}>
-              <Skeleton width="100%" style={{ aspectRatio: '16 / 9' }} borderRadius={8} />
+              <Skeleton width="100%" className="recipe-image-skeleton" borderRadius={8} />
             </SkeletonTheme>
           ) : (
             <img src={imageUrl} alt={recipe.title?.replace(/<[^>]*>/g, '') || 'Recipe'} />

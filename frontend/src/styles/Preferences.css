@@ -34,6 +34,14 @@
   flex: 1;
 }
 
+.preference-skeleton-title {
+  margin-bottom: var(--space-4);
+}
+
+.preference-skeleton-text {
+  margin-bottom: var(--space-2);
+}
+
 .error {
   color: #e74c3c;
   margin-bottom: 1rem;

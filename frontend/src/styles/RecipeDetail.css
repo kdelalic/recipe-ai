@@ -321,7 +321,7 @@
   .sidebar,
   .sidebar-overlay,
   .modification-section,
-  .update-section,
+  .recipe-management-section,
   .recipe-actions,
   .recipe-action-buttons,
   .new-recipe-btn,
@@ -412,10 +412,95 @@
   }
 }
 
+.recipe-management-section {
+  margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.update-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.modification-input {
+  width: 100%;
+  padding: 0.75rem;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.modification-input:focus {
+  outline: none;
+  border-color: var(--accent-color);
+}
+
+.modification-buttons {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.modification-buttons button {
+  padding: 0.6rem 1rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background-color 0.2s, opacity 0.2s;
+  border: none;
+}
+
+.modification-buttons button[type="submit"] {
+  background-color: var(--accent-color);
+  color: white;
+}
+
+.modification-buttons button[type="submit"]:hover:not(:disabled) {
+  background-color: var(--accent-hover);
+}
+
+.modification-buttons .regenerate-btn {
+  background-color: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+}
+
+.modification-buttons .regenerate-btn:hover:not(:disabled) {
+  background-color: var(--bg-tertiary);
+}
+
+.modification-buttons button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.recipe-actions {
+  border-top: 1px solid var(--border-color);
+  padding-top: 1.5rem;
+}
+
 .delete-btn {
   background-color: #ff4d4d;
+  color: white;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
 }
 
 .delete-btn:hover {
   background-color: #ff3333;
+}
+
+.recipe-image-skeleton {
+  width: 100%;
+  aspect-ratio: var(--recipe-image-aspect-ratio);
 }

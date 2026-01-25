@@ -7,7 +7,7 @@
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.2rem 0.4rem;
+  padding: 0.4rem 1rem;
   border-radius: 999px;
   border: 1px solid var(--border-color);
   background-color: var(--bg-secondary);

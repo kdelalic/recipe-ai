@@ -1,0 +1,53 @@
+.recipe-skeleton .sk-icon {
+  width: 32px;
+  height: 32px;
+  display: block;
+}
+
+.recipe-skeleton .mb-1 { margin-bottom: var(--space-1); }
+.recipe-skeleton .mb-2 { margin-bottom: var(--space-2); }
+.recipe-skeleton .mb-3 { margin-bottom: var(--space-3); }
+.recipe-skeleton .mb-5 { margin-bottom: var(--space-5); }
+.recipe-skeleton .mb-6 { margin-bottom: var(--space-6); }
+
+.recipe-skeleton .aspect-video {
+  width: 100%;
+  aspect-ratio: var(--recipe-image-aspect-ratio);
+}
+
+.recipe-skeleton .sk-stats {
+  display: flex;
+  gap: var(--space-6);
+  margin-bottom: var(--space-8);
+  flex-wrap: wrap;
+}
+
+.recipe-skeleton .sk-section-title {
+  margin-top: var(--space-10);
+  margin-bottom: var(--space-5);
+}
+
+.recipe-skeleton .list-reset {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.recipe-skeleton .sk-checkbox-container {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.recipe-skeleton .flex-1 {
+  flex: 1;
+}
+
+.recipe-skeleton .sk-instruction-item {
+  margin-bottom: var(--space-5);
+  padding-left: var(--space-5);
+}
+
+.recipe-skeleton .sk-note-item {
+  margin-bottom: var(--space-2);
+  padding-left: var(--space-5);
+}

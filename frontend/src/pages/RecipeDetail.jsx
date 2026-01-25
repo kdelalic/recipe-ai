@@ -137,30 +137,31 @@ function RecipeDetail({ user, favoriteIds = [], toggleFavorite, isMobile, sideba
             imageUrl={imageUrl}
           />
           {user && recipeUID === user.uid && (
-            <div className="update-section" style={{ marginTop: '1rem' }}>
-              <input
-                type="text"
-                placeholder="Enter modifications (e.g., remove onions)"
-                value={modification}
-                onChange={(e) => setModification(e.target.value)}
-              />
-              <div className="modification-buttons">
-                <button type="submit" onClick={handleUpdateRecipe} disabled={updateLoading || regenerateLoading || !modification}>
-                  {updateLoading ? 'Updating...' : 'Update Recipe'}
-                </button>
-                {prompt && (
-                  <button type="button" onClick={handleRegenerate} disabled={updateLoading || regenerateLoading} className="regenerate-btn">
-                    {regenerateLoading ? 'Regenerating...' : 'Regenerate'}
+            <div className="recipe-management-section">
+              <div className="update-section">
+                <input
+                  type="text"
+                  className="modification-input"
+                  placeholder="Enter modifications (e.g., remove onions)"
+                  value={modification}
+                  onChange={(e) => setModification(e.target.value)}
+                />
+                <div className="modification-buttons">
+                  <button type="submit" onClick={handleUpdateRecipe} disabled={updateLoading || regenerateLoading || !modification}>
+                    {updateLoading ? 'Updating...' : 'Update Recipe'}
                   </button>
-                )}
+                  {prompt && (
+                    <button type="button" onClick={handleRegenerate} disabled={updateLoading || regenerateLoading} className="regenerate-btn">
+                      {regenerateLoading ? 'Regenerating...' : 'Regenerate'}
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
-          {user && recipeUID === user.uid && (
-            <div className="recipe-actions">
-              <button onClick={handleDelete} className="delete-btn" style={{ marginTop: '1rem' }}>
-                Delete Recipe
-              </button>
+              <div className="recipe-actions">
+                <button onClick={handleDelete} className="delete-btn">
+                  Delete Recipe
+                </button>
+              </div>
             </div>
           )}
         </div>

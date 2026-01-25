@@ -42,9 +42,11 @@
   margin-bottom: 1.5rem;
 }
 
-.recipe-form button {
+.generate-btn {
   width: auto;
-  padding: 0.4rem 1rem;
+  padding: 0.8rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
 }
 
 .modifiers-container {
@@ -225,8 +227,8 @@ button:disabled {
     width: 100%;
   }
 
-  .recipe-form button {
-    width: auto;
+  .generate-btn {
+    width: 100%;
   }
 
   .recipe {

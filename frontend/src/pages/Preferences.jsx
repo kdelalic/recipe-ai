@@ -71,10 +71,10 @@ function Preferences({ user }) {
         <div className="preferences-container">
           <h1>Preferences</h1>
           <div className="preference-section">
-            <Skeleton height={18} width="50%" style={{ marginBottom: '1rem' }} />
+            <Skeleton height={18} width="50%" className="preference-skeleton-title" />
             <div className="preference-item">
               <div className="preference-info">
-                <Skeleton height={16} width="60%" style={{ marginBottom: '0.5rem' }} />
+                <Skeleton height={16} width="60%" className="preference-skeleton-text" />
                 <Skeleton height={14} width="90%" />
               </div>
               <Skeleton width={48} height={26} borderRadius={26} />

@@ -1,5 +1,6 @@
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
+import '../styles/RecipeSkeleton.css';
 import { HiOutlineMenuAlt2 } from 'react-icons/hi';
 import { useTheme } from './ThemeProvider';
 
@@ -30,43 +31,43 @@ function RecipeSkeleton({ isMobile, sidebarCollapsed, onToggleSidebar, showImage
                 </button>
               )}
               <div className="recipe-action-buttons">
-                <span style={{ width: 32, height: 32, display: 'block' }}><Skeleton width={32} height={32} borderRadius={4} /></span>
-                <span style={{ width: 32, height: 32, display: 'block' }}><Skeleton width={32} height={32} borderRadius={4} /></span>
-                <span style={{ width: 32, height: 32, display: 'block' }}><Skeleton width={32} height={32} borderRadius={4} /></span>
-                <span style={{ width: 32, height: 32, display: 'block' }}><Skeleton width={32} height={32} borderRadius={4} /></span>
+                <span className="sk-icon"><Skeleton width={32} height={32} borderRadius={4} /></span>
+                <span className="sk-icon"><Skeleton width={32} height={32} borderRadius={4} /></span>
+                <span className="sk-icon"><Skeleton width={32} height={32} borderRadius={4} /></span>
+                <span className="sk-icon"><Skeleton width={32} height={32} borderRadius={4} /></span>
               </div>
             </div>
           )}
 
           {/* Title */}
-          <Skeleton height={36} width="70%" style={{ marginBottom: '0.5rem' }} />
+          <Skeleton height={36} width="70%" className="mb-2" />
 
           {/* Byline */}
-          <Skeleton height={16} width="35%" style={{ marginBottom: '0.75rem' }} />
+          <Skeleton height={16} width="35%" className="mb-3" />
 
           {/* Action buttons (desktop) */}
           {!isMobile && (
             <div className="recipe-action-buttons">
-              <span style={{ width: 32, height: 32, display: 'block' }}><Skeleton width={32} height={32} borderRadius={4} /></span>
-              <span style={{ width: 32, height: 32, display: 'block' }}><Skeleton width={32} height={32} borderRadius={4} /></span>
-              <span style={{ width: 32, height: 32, display: 'block' }}><Skeleton width={32} height={32} borderRadius={4} /></span>
-              <span style={{ width: 32, height: 32, display: 'block' }}><Skeleton width={32} height={32} borderRadius={4} /></span>
+              <span className="sk-icon"><Skeleton width={32} height={32} borderRadius={4} /></span>
+              <span className="sk-icon"><Skeleton width={32} height={32} borderRadius={4} /></span>
+              <span className="sk-icon"><Skeleton width={32} height={32} borderRadius={4} /></span>
+              <span className="sk-icon"><Skeleton width={32} height={32} borderRadius={4} /></span>
             </div>
           )}
 
           {/* Image skeleton */}
           {showImageSkeleton && (
             <div className="recipe-image">
-              <Skeleton width="100%" style={{ aspectRatio: '16 / 9' }} borderRadius={8} />
+              <Skeleton width="100%" className="aspect-video" borderRadius={8} />
             </div>
           )}
 
           {/* Description */}
-          <Skeleton height={20} width="100%" style={{ marginBottom: '0.25rem' }} />
-          <Skeleton height={20} width="85%" style={{ marginBottom: '1.5rem' }} />
+          <Skeleton height={20} width="100%" className="mb-1" />
+          <Skeleton height={20} width="85%" className="mb-6" />
 
           {/* Stats row */}
-          <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
+          <div className="sk-stats">
             <Skeleton width={55} height={16} />
             <Skeleton width={55} height={16} />
             <Skeleton width={65} height={16} />
@@ -76,12 +77,12 @@ function RecipeSkeleton({ isMobile, sidebarCollapsed, onToggleSidebar, showImage
           </div>
 
           {/* Ingredients Section */}
-          <Skeleton height={28} width="30%" style={{ marginTop: '2.5rem', marginBottom: '1.25rem' }} />
-          <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+          <Skeleton height={28} width="30%" className="sk-section-title" />
+          <ul className="list-reset">
             {ingredientWidths.map((width, index) => (
               <li key={`ing-${index}`} className="ingredient-item">
-                <Skeleton width={18} height={18} borderRadius={3} style={{ flexShrink: 0, marginTop: '2px' }} />
-                <span style={{ flex: 1 }}>
+                <Skeleton width={18} height={18} borderRadius={3} className="sk-checkbox-container" />
+                <span className="flex-1">
                   <Skeleton height={18} width={width} />
                 </span>
               </li>
@@ -89,18 +90,18 @@ function RecipeSkeleton({ isMobile, sidebarCollapsed, onToggleSidebar, showImage
           </ul>
 
           {/* Instructions Section */}
-          <Skeleton height={28} width="30%" style={{ marginTop: '2.5rem', marginBottom: '1.25rem' }} />
+          <Skeleton height={28} width="30%" className="sk-section-title" />
           {instructionWidths.map((width, index) => (
-            <div key={`inst-${index}`} style={{ marginBottom: '1.25rem', paddingLeft: '1.25rem' }}>
-              <Skeleton height={18} width="100%" style={{ marginBottom: '0.25rem' }} />
+            <div key={`inst-${index}`} className="sk-instruction-item">
+              <Skeleton height={18} width="100%" className="mb-1" />
               <Skeleton height={18} width={width} />
             </div>
           ))}
 
           {/* Notes Section */}
-          <Skeleton height={28} width="18%" style={{ marginTop: '2.5rem', marginBottom: '1.25rem' }} />
+          <Skeleton height={28} width="18%" className="sk-section-title" />
           {noteWidths.map((width, index) => (
-            <div key={`note-${index}`} style={{ marginBottom: '0.5rem', paddingLeft: '1.25rem' }}>
+            <div key={`note-${index}`} className="sk-note-item">
               <Skeleton height={18} width={width} />
             </div>
           ))}
