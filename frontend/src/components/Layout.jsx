@@ -47,6 +47,8 @@ function Layout({ children, user }) {
     const saved = localStorage.getItem('keepScreenAwake');
     return saved === 'true';
   });
+  const [imageGenerationEnabled, setImageGenerationEnabled] = useState(true);
+  const [preferencesLoading, setPreferencesLoading] = useState(true);
   const dropdownRef = useRef(null);
   const historyMenuRef = useRef(null);
   const historyListRef = useRef(null);
@@ -102,6 +104,25 @@ function Layout({ children, user }) {
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, [wakeLockEnabled, requestWakeLock]);
 
+  // Fetch preferences from database for logged-in users
+  const fetchPreferences = useCallback(async () => {
+    if (!isLoggedIn) {
+      setPreferencesLoading(false);
+      return;
+    }
+
+    try {
+      const response = await api.get('/api/preferences');
+      if (response.status === 200) {
+        const prefs = response.data.preferences || {};
+        setImageGenerationEnabled(prefs.imageGenerationEnabled !== false);
+      }
+    } catch (err) {
+      console.error('Error fetching preferences:', err);
+    }
+    setPreferencesLoading(false);
+  }, [isLoggedIn]);
+
   // Fetch favorites from database for logged-in users
   const fetchFavorites = useCallback(async () => {
     if (!isLoggedIn) return;
@@ -122,12 +143,15 @@ function Layout({ children, user }) {
     }
   }, [isLoggedIn]);
 
-  // Load favorites when user changes
+  // Load preferences and favorites when user changes
   useEffect(() => {
     if (user && isLoggedIn) {
+      fetchPreferences();
       fetchFavorites();
+    } else {
+      setPreferencesLoading(false);
     }
-  }, [user, isLoggedIn, fetchFavorites]);
+  }, [user, isLoggedIn, fetchPreferences, fetchFavorites]);
 
   // Toggle favorite - uses POST/DELETE endpoints
   const toggleFavorite = async (recipeId, title, e) => {
@@ -500,6 +524,9 @@ function Layout({ children, user }) {
               wakeLockEnabled,
               onToggleWakeLock: toggleWakeLock,
               refreshHistory: () => fetchHistory(0, false),
+              imageGenerationEnabled,
+              setImageGenerationEnabled,
+              preferencesLoading,
             })
           : children}
       </main>

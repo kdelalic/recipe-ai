@@ -30,9 +30,7 @@ async def get_favorites(uid: Annotated[str, Depends(get_current_user)]):
             favorites = data.get("favorites", [])
             # Sort by timestamp descending (newest first)
             favorites = sorted(
-                favorites,
-                key=lambda f: f.get("timestamp", "") if isinstance(f, dict) else "",
-                reverse=True
+                favorites, key=lambda f: f.get("timestamp", "") if isinstance(f, dict) else "", reverse=True
             )
         else:
             favorites = []
@@ -41,7 +39,9 @@ async def get_favorites(uid: Annotated[str, Depends(get_current_user)]):
         favorite_ids = [f["id"] if isinstance(f, dict) else f for f in favorites]
         # Convert to FavoriteItem models
         favorite_items = [
-            FavoriteItem(id=f["id"], title=f.get("title", ""), timestamp=f.get("timestamp", "")) if isinstance(f, dict) else FavoriteItem(id=f)
+            FavoriteItem(id=f["id"], title=f.get("title", ""), timestamp=f.get("timestamp", ""))
+            if isinstance(f, dict)
+            else FavoriteItem(id=f)
             for f in favorites
         ]
 
@@ -84,7 +84,9 @@ async def add_favorite(
 
         favorite_ids = [f["id"] if isinstance(f, dict) else f for f in favorites]
         favorite_items = [
-            FavoriteItem(id=f["id"], title=f.get("title", ""), timestamp=f.get("timestamp", "")) if isinstance(f, dict) else FavoriteItem(id=f)
+            FavoriteItem(id=f["id"], title=f.get("title", ""), timestamp=f.get("timestamp", ""))
+            if isinstance(f, dict)
+            else FavoriteItem(id=f)
             for f in favorites
         ]
         logger.info(f"Added favorite {recipe_id} for user {uid}")
@@ -113,18 +115,16 @@ async def remove_favorite(
         if user_doc.exists:
             favorites = user_doc.to_dict().get("favorites", [])
             # Handle both old format (string) and new format (dict)
-            favorites = [
-                f
-                for f in favorites
-                if (f["id"] if isinstance(f, dict) else f) != recipe_id
-            ]
+            favorites = [f for f in favorites if (f["id"] if isinstance(f, dict) else f) != recipe_id]
             await user_ref.set({"favorites": favorites}, merge=True)
         else:
             favorites = []
 
         favorite_ids = [f["id"] if isinstance(f, dict) else f for f in favorites]
         favorite_items = [
-            FavoriteItem(id=f["id"], title=f.get("title", ""), timestamp=f.get("timestamp", "")) if isinstance(f, dict) else FavoriteItem(id=f)
+            FavoriteItem(id=f["id"], title=f.get("title", ""), timestamp=f.get("timestamp", ""))
+            if isinstance(f, dict)
+            else FavoriteItem(id=f)
             for f in favorites
         ]
         logger.info(f"Removed favorite {recipe_id} for user {uid}")

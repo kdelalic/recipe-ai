@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
@@ -6,38 +6,13 @@ import api from '../utils/api';
 import { useTheme } from '../components/ThemeProvider';
 import '../styles/Preferences.css';
 
-function Preferences({ user }) {
+function Preferences({ user, imageGenerationEnabled = true, setImageGenerationEnabled, preferencesLoading = false }) {
   const navigate = useNavigate();
-  const [imageGenerationEnabled, setImageGenerationEnabled] = useState(true);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
   const isLoggedIn = user && !user.isAnonymous;
-
-  useEffect(() => {
-    const fetchPreferences = async () => {
-      if (!isLoggedIn) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const response = await api.get('/api/preferences');
-        if (response.status === 200) {
-          const prefs = response.data.preferences || {};
-          setImageGenerationEnabled(prefs.imageGenerationEnabled !== false);
-        }
-      } catch (err) {
-        console.error('Error fetching preferences:', err);
-        setError('Failed to load preferences');
-      }
-      setLoading(false);
-    };
-
-    fetchPreferences();
-  }, [isLoggedIn]);
 
   const handleSave = async () => {
     if (!isLoggedIn) {
@@ -65,7 +40,7 @@ function Preferences({ user }) {
   const baseColor = getComputedStyle(document.documentElement).getPropertyValue('--skeleton-base').trim() || (darkMode ? '#1e293b' : '#e5e7eb');
   const highlightColor = getComputedStyle(document.documentElement).getPropertyValue('--skeleton-highlight').trim() || (darkMode ? '#334155' : '#f3f4f6');
 
-  if (loading) {
+  if (preferencesLoading) {
     return (
       <SkeletonTheme baseColor={baseColor} highlightColor={highlightColor}>
         <div className="preferences-container">

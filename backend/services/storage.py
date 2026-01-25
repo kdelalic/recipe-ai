@@ -36,7 +36,7 @@ def compress_image(image_data: bytes, max_size_kb: int = 500) -> tuple[bytes, st
         compressed_data = buffer.getvalue()
 
         if len(compressed_data) / 1024 <= max_size_kb:
-            logger.info(f"Compressed image to {len(compressed_data)/1024:.1f} KB (quality={quality})")
+            logger.info(f"Compressed image to {len(compressed_data) / 1024:.1f} KB (quality={quality})")
             return compressed_data, "image/jpeg"
 
         quality -= 10
@@ -51,5 +51,5 @@ def compress_image(image_data: bytes, max_size_kb: int = 500) -> tuple[bytes, st
         resized.save(buffer, format="JPEG", quality=70, optimize=True)
         compressed_data = buffer.getvalue()
 
-    logger.info(f"Compressed image to {len(compressed_data)/1024:.1f} KB ({width}x{height})")
+    logger.info(f"Compressed image to {len(compressed_data) / 1024:.1f} KB ({width}x{height})")
     return compressed_data, "image/jpeg"

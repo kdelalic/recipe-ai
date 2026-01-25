@@ -36,7 +36,7 @@ async def generate_recipe_from_prompt(
     Generate a recipe from a user prompt with modifiers.
     Returns (recipe, usage_info).
     """
-    
+
     modifiers = []
     if complexity != "standard":
         modifiers.append(f"Complexity Level: {complexity}")
@@ -46,14 +46,14 @@ async def generate_recipe_from_prompt(
         modifiers.append(f"Time Constraint: {time}")
     if servings != "standard":
         modifiers.append(f"Target Servings: {servings}")
-        
+
     system_msg = RECIPE_SYSTEM_MESSAGE
-    
+
     # Construct a rich user prompt
     full_prompt = f"Request: {prompt}\n"
     if modifiers:
         full_prompt += "\nConstraints & Preferences:\n" + "\n".join(f"- {m}" for m in modifiers)
-    
+
     full_prompt += "\n\nPlease create a detailed, step-by-step recipe following the system guidelines."
 
     response = await litellm.acompletion(
@@ -84,13 +84,9 @@ async def update_recipe_with_modifications(original_recipe: dict, modifications:
     original_recipe_str = (
         f"Title: {original_recipe.get('title', '')}\n"
         f"Description: {original_recipe.get('description', '')}\n\n"
-        f"Ingredients:\n"
-        + "\n".join(f"- {i}" for i in original_recipe.get("ingredients", []))
-        + "\n\n"
+        f"Ingredients:\n" + "\n".join(f"- {i}" for i in original_recipe.get("ingredients", [])) + "\n\n"
         "Instructions:\n"
-        + "\n".join(
-            f"{n+1}. {s}" for n, s in enumerate(original_recipe.get("instructions", []))
-        )
+        + "\n".join(f"{n + 1}. {s}" for n, s in enumerate(original_recipe.get("instructions", [])))
         + "\n\n"
         "Notes:\n" + "\n".join(f"- {n}" for n in original_recipe.get("notes", []))
     )

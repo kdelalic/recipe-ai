@@ -28,7 +28,7 @@ const GREETINGS = [
 
 import { useLocation } from 'react-router-dom';
 
-function Home({ isMobile, sidebarCollapsed, onToggleSidebar, favoriteIds, toggleFavorite, wakeLockEnabled, onToggleWakeLock, refreshHistory }) {
+function Home({ isMobile, sidebarCollapsed, onToggleSidebar, favoriteIds, toggleFavorite, wakeLockEnabled, onToggleWakeLock, refreshHistory, imageGenerationEnabled = true }) {
   const location = useLocation();
   const recipeRef = useRef(null);
   const [input, setInput] = useState('');
@@ -38,7 +38,6 @@ function Home({ isMobile, sidebarCollapsed, onToggleSidebar, favoriteIds, toggle
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const envEnableImageGeneration = import.meta.env.VITE_ENABLE_IMAGE_GENERATION === 'true';
-  const [imageGenerationEnabled, setImageGenerationEnabled] = useState(true);
   const [imageUrl, setImageUrl] = useState('');
   const [imageLoading, setImageLoading] = useState(false);
   const [modification, setModification] = useState('');
@@ -48,24 +47,6 @@ function Home({ isMobile, sidebarCollapsed, onToggleSidebar, favoriteIds, toggle
   const [diet, setDiet] = useState('standard');
   const [time, setTime] = useState('any');
   const [servings, setServings] = useState('standard');
-
-  // Fetch user preferences for image generation
-  useEffect(() => {
-    const fetchPreferences = async () => {
-      try {
-        const response = await api.get('/api/preferences');
-        if (response.status === 200) {
-          const prefs = response.data.preferences || {};
-          setImageGenerationEnabled(prefs.imageGenerationEnabled !== false);
-        }
-      } catch (err) {
-        // Default to enabled if fetch fails
-        console.error('Error fetching preferences:', err);
-      }
-    };
-    fetchPreferences();
-    fetchPreferences();
-  }, []);
 
   // Handle reset from navigation (New Recipe button)
   useEffect(() => {

@@ -15,6 +15,7 @@ from app import app
 def anyio_backend():
     return "asyncio"
 
+
 @pytest.fixture
 async def client() -> AsyncGenerator[AsyncClient, None]:
     """

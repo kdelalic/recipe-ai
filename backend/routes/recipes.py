@@ -98,15 +98,11 @@ async def update_recipe(
 
     # Check if the recipe belongs to the current user
     if data_doc.get("uid") != uid:
-        logger.warning(
-            f"Unauthorized access attempt to recipe {recipe_id} by user {uid}"
-        )
+        logger.warning(f"Unauthorized access attempt to recipe {recipe_id} by user {uid}")
         raise HTTPException(status_code=403, detail="Unauthorized access")
 
     try:
-        updated_recipe, _ = await update_recipe_with_modifications(
-            data.original_recipe.model_dump(), modifications
-        )
+        updated_recipe, _ = await update_recipe_with_modifications(data.original_recipe.model_dump(), modifications)
         updated_recipe_dict = updated_recipe.model_dump()
 
         # Update the existing document in Firestore
@@ -240,9 +236,7 @@ async def archive_recipe(
 
         data = doc.to_dict()
         if data.get("uid") != uid:
-            logger.warning(
-                f"Unauthorized archive attempt for recipe {recipe_id} by user {uid}"
-            )
+            logger.warning(f"Unauthorized archive attempt for recipe {recipe_id} by user {uid}")
             raise HTTPException(status_code=403, detail="Unauthorized access")
 
         await doc_ref.update(
