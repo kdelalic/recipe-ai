@@ -8,11 +8,14 @@ export function useTheme() {
 
 function ThemeProvider({ children }) {
   const [darkMode, setDarkMode] = useState(() => {
-    const saved = localStorage.getItem('darkMode');
-    const isDark = saved !== null ? JSON.parse(saved) : window.matchMedia('(prefers-color-scheme: dark)').matches;
-    // Set theme attribute synchronously to prevent flash
-    document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
-    return isDark;
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('darkMode');
+      const isDark = saved !== null ? JSON.parse(saved) : window.matchMedia('(prefers-color-scheme: dark)').matches;
+      // Set theme attribute synchronously to prevent flash (client-side only)
+      document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+      return isDark;
+    }
+    return false; // Default for server
   });
 
   useEffect(() => {

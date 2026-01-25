@@ -19,9 +19,20 @@ function Layout({ children, user }) {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(window.innerWidth <= 768);
-  // Check if mobile
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  // Check if mobile (safe for SSR)
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth <= 768;
+    }
+    return false;
+  });
+  
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+      if (typeof window !== 'undefined') {
+          return window.innerWidth <= 768;
+      }
+      return false;
+  });
 
   useEffect(() => {
     const handleResize = () => {
@@ -34,18 +45,27 @@ function Layout({ children, user }) {
   const [historyMenuOpen, setHistoryMenuOpen] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [favorites, setFavorites] = useState(() => {
-    const saved = localStorage.getItem('favorites');
-    return saved ? JSON.parse(saved) : [];
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('favorites');
+      return saved ? JSON.parse(saved) : [];
+    }
+    return [];
   });
   const [favoriteIds, setFavoriteIds] = useState(() => {
-    const saved = localStorage.getItem('favoriteIds');
-    return saved ? JSON.parse(saved) : [];
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('favoriteIds');
+      return saved ? JSON.parse(saved) : [];
+    }
+    return [];
   });
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [wakeLock, setWakeLock] = useState(null);
   const [wakeLockEnabled, setWakeLockEnabled] = useState(() => {
-    const saved = localStorage.getItem('keepScreenAwake');
-    return saved === 'true';
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('keepScreenAwake');
+      return saved === 'true';
+    }
+    return false;
   });
   const [imageGenerationEnabled, setImageGenerationEnabled] = useState(true);
   const [preferencesLoading, setPreferencesLoading] = useState(true);

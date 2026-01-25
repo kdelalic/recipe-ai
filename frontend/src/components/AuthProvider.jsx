@@ -2,9 +2,15 @@ import { useEffect, useState } from 'react';
 import { auth, onAuthStateChanged } from '../utils/firebase';
 import Spinner from './Spinner';
 
-function AuthProvider({ children }) {
+function AuthProvider({ children, isServer = false }) {
   const [user, setUser] = useState(null);
-  const [loadingAuth, setLoadingAuth] = useState(true);
+  const [loadingAuth, setLoadingAuth] = useState(() => {
+    // On server, don't show loading state - render immediately with null user
+    if (isServer) {
+      return false;
+    }
+    return true; // Client: start in loading state
+  });
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -14,7 +20,9 @@ function AuthProvider({ children }) {
     return () => unsubscribe();
   }, []);
 
-  if (loadingAuth) return <Spinner />;
+  if (loadingAuth) {
+    return <Spinner />;
+  }
 
   return children(user);
 }
