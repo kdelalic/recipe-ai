@@ -165,7 +165,7 @@ async def get_recipe(
         response = {
             "recipe": recipe,
             "image_url": image_url,
-            "timestamp": timestamp,
+            "timestamp": str(timestamp),
             "uid": uid,
             "displayName": user_info["displayName"],
         }
@@ -178,7 +178,7 @@ async def get_recipe(
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Error retrieving recipe {recipe_id}: {str(e)}")
+        logger.exception(f"Error retrieving recipe {recipe_id}: {str(e)}")
         raise HTTPException(status_code=500, detail="Error retrieving recipe") from e
 
 
