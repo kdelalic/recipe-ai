@@ -134,6 +134,12 @@ body.no-scroll {
   display: none;
 }
 
+.sidebar-logo-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .sidebar-logo {
   font-size: 1.25rem;
   font-weight: 600;
@@ -143,7 +149,7 @@ body.no-scroll {
   white-space: nowrap;
 }
 
-.sidebar.collapsed .sidebar-logo {
+.sidebar.collapsed .sidebar-logo-container {
   display: none;
 }
 

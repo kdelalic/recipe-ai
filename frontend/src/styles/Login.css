@@ -1,7 +1,15 @@
 /* Base styles for the login container */
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-primary);
+}
 .login-container {
   max-width: 400px;
-  margin: 2rem auto;
+  width: 100%;
+  max-width: 400px;
   padding: 2rem;
   text-align: center;
   background-color: var(--bg-secondary);
@@ -10,10 +18,26 @@
   transition: background-color 0.2s, box-shadow 0.2s;
 }
 
+.login-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.login-logo {
+  color: var(--accent-color);
+}
+
 .login-container h1 {
   margin-bottom: 1.5rem;
   font-size: 1.5rem;
   color: var(--text-primary);
+}
+
+.login-logo {
+  color: #FF6B6B;
 }
 
 .login-container p {

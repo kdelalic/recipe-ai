@@ -8,6 +8,7 @@ import api from '../utils/api';
 import HistorySkeleton from './HistorySkeleton';
 import { useTheme } from './ThemeProvider';
 import '../styles/Layout.css';
+import ChefHatIcon from './ChefHatIcon';
 
 function Layout({ children, user }) {
   const location = useLocation();
@@ -287,7 +288,10 @@ function Layout({ children, user }) {
 
       <aside className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
         <div className="sidebar-header">
-          <h1 className="sidebar-logo">Recipe AI</h1>
+          <div className="sidebar-logo-container">
+            <ChefHatIcon className="sidebar-logo-icon" size={32} />
+            <h1 className="sidebar-logo">Recipe AI</h1>
+          </div>
           <div className="sidebar-header-actions">
             <button
               className="theme-toggle"

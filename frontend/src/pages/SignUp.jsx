@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { auth } from '../utils/firebase';
 import { EmailAuthProvider, createUserWithEmailAndPassword, linkWithCredential, updateProfile } from 'firebase/auth';
 import '../styles/Login.css';
+import ChefHatIcon from '../components/ChefHatIcon';
 
 function SignUp() {
   const [displayName, setDisplayName] = useState('');
@@ -34,7 +35,10 @@ function SignUp() {
 
   return (
     <div className="login-container">
-      <h1>Sign Up</h1>
+      <div className="login-header">
+        <ChefHatIcon className="login-logo" size={48} />
+        <h1>Sign Up</h1>
+      </div>
       {error && <p className="error">{error}</p>}
       <form onSubmit={handleSignUp}>
         <input

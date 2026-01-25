@@ -4,6 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { auth } from '../utils/firebase';
 import { signInWithEmailAndPassword, signInAnonymously } from 'firebase/auth';
 import '../styles/Login.css';
+import ChefHatIcon from '../components/ChefHatIcon';
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -33,34 +34,39 @@ function Login() {
   };
 
   return (
-    <div className="login-container">
-      <h1>Login</h1>
-      {error && <p className="error">{error}</p>}
-      <form onSubmit={handleEmailAuth}>
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          autoComplete="email"
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          autoComplete="current-password"
-        />
-        <button type="submit" className="login-button">Login</button>
-      </form>
-      <p>
-        Don&apos;t have an account?{' '}
-        <Link to="/signup" className="toggle-auth">Sign Up</Link>
-      </p>
-      <hr />
-      <button onClick={handleAnonymousLogin}>Continue as Guest</button>
+    <div className="login-page">
+      <div className="login-container">
+        <div className="login-header">
+          <ChefHatIcon className="login-logo" size={48} />
+          <h1>Login</h1>
+        </div>
+        {error && <p className="error">{error}</p>}
+        <form onSubmit={handleEmailAuth}>
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            autoComplete="email"
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            autoComplete="current-password"
+          />
+          <button type="submit" className="login-button">Login</button>
+        </form>
+        <p>
+          Don&apos;t have an account?{' '}
+          <Link to="/signup" className="toggle-auth">Sign Up</Link>
+        </p>
+        <hr />
+        <button onClick={handleAnonymousLogin}>Continue as Guest</button>
+      </div>
     </div>
   );
 }
