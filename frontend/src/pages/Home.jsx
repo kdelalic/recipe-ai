@@ -4,6 +4,7 @@ import RecipeView from '../components/RecipeView';
 import RecipeSkeleton from '../components/RecipeSkeleton';
 import api from '../utils/api';
 import '../styles/Home.css';
+import ModifierChip from '../components/ModifierChip';
 import { computeRecipeDiffAsHtml } from '../utils/diffHelper';
 
 const GREETINGS = [
@@ -40,6 +41,12 @@ function Home({ isMobile, sidebarCollapsed, onToggleSidebar, favoriteIds, toggle
   const [imageUrl, setImageUrl] = useState('');
   const [imageLoading, setImageLoading] = useState(false);
   const [modification, setModification] = useState('');
+  
+  // Modifiers state
+  const [complexity, setComplexity] = useState('standard');
+  const [diet, setDiet] = useState('standard');
+  const [time, setTime] = useState('any');
+  const [servings, setServings] = useState('standard');
 
   // Fetch user preferences for image generation
   useEffect(() => {
@@ -68,6 +75,11 @@ function Home({ isMobile, sidebarCollapsed, onToggleSidebar, favoriteIds, toggle
       setPrevRecipe('');
       setImageUrl('');
       setError('');
+      // Reset modifiers
+      setComplexity('standard');
+      setDiet('standard');
+      setTime('any');
+      setServings('standard');
       window.history.replaceState({}, document.title);
     }
   }, [location.state]);
@@ -85,7 +97,13 @@ function Home({ isMobile, sidebarCollapsed, onToggleSidebar, favoriteIds, toggle
     setImageUrl('');
 
     try {
-      const response = await api.post('/api/generate-recipe', { prompt: input });
+      const response = await api.post('/api/generate-recipe', { 
+        prompt: input,
+        complexity,
+        diet,
+        time,
+        servings
+      });
       if (response.status !== 200) throw new Error('Network response was not ok');
       const data = await response.data;
       const recipeData = data.recipe;
@@ -202,6 +220,55 @@ function Home({ isMobile, sidebarCollapsed, onToggleSidebar, favoriteIds, toggle
           value={input}
           onChange={(e) => setInput(e.target.value)}
         />
+        
+        <div className="modifiers-container">
+          <ModifierChip
+            label="Complexity"
+            value={complexity}
+            onChange={setComplexity}
+            defaultValue="standard"
+            options={[
+              { value: 'simple', label: 'Simple' },
+              { value: 'standard', label: 'Standard Complexity' },
+              { value: 'fancy', label: 'Fancy' },
+            ]}
+          />
+          <ModifierChip
+            label="Diet"
+            value={diet}
+            onChange={setDiet}
+            defaultValue="standard"
+            options={[
+              { value: 'standard', label: 'No Diet' },
+              { value: 'healthy', label: 'Healthy (High Protein)' },
+              { value: 'junk', label: 'Junk Food' },
+            ]}
+          />
+          <ModifierChip
+            label="Time"
+            value={time}
+            onChange={setTime}
+            defaultValue="any"
+            options={[
+              { value: 'any', label: 'Any Time' },
+              { value: 'quick', label: 'Quick (< 30m)' },
+              { value: 'medium', label: 'Standard (< 1hr)' },
+              { value: 'slow', label: 'Slow Cook' },
+            ]}
+          />
+          <ModifierChip
+            label="Servings"
+            value={servings}
+            onChange={setServings}
+            defaultValue="standard"
+            options={[
+              { value: 'standard', label: 'Standard (4)' },
+              { value: 'single', label: 'Single (1)' },
+              { value: 'pair', label: 'Date Night (2)' },
+              { value: 'party', label: 'Party (10+)' },
+            ]}
+          />
+        </div>
         <button type="submit" disabled={loading || !input}>
           {loading ? 'Generating...' : 'Generate Recipe'}
         </button>

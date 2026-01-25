@@ -5,12 +5,12 @@ from typing import Annotated, Any
 from fastapi import APIRouter, Depends, HTTPException, Request
 from google import genai
 from google.genai import types
-from pydantic import BaseModel
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
 from auth import get_current_user
 from config import ENABLE_IMAGE_GENERATION, GEMINI_IMAGE_MODEL, GOOGLE_API_KEY
+from models import GenerateImageRequest, GenerateImageResponse
 from services.firebase import db
 from services.storage import compress_image, storage_bucket
 
@@ -24,12 +24,7 @@ limiter = Limiter(key_func=get_remote_address)
 gemini_client = genai.Client(api_key=GOOGLE_API_KEY)
 
 
-class GenerateImageRequest(BaseModel):
-    recipe: dict[str, Any] = {}
-    recipe_id: str = ""
-
-
-@router.post("/generate-image")
+@router.post("/generate-image", response_model=GenerateImageResponse)
 @limiter.limit("5/minute")
 async def generate_image(
     request: Request,

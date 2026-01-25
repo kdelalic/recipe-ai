@@ -3,9 +3,9 @@ import re
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
 
 from auth import get_current_user
+from models import AddFavoriteRequest, FavoriteItem, FavoritesResponse
 from services.firebase import db
 
 logger = logging.getLogger(__name__)
@@ -13,11 +13,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api", tags=["favorites"])
 
 
-class AddFavoriteRequest(BaseModel):
-    title: str = ""
-
-
-@router.get("/favorites")
+@router.get("/favorites", response_model=FavoritesResponse)
 async def get_favorites(uid: Annotated[str, Depends(get_current_user)]):
     """Get the list of favorited recipes for the current user.
 
@@ -36,14 +32,19 @@ async def get_favorites(uid: Annotated[str, Depends(get_current_user)]):
 
         # Extract just the IDs for backward compatibility
         favorite_ids = [f["id"] if isinstance(f, dict) else f for f in favorites]
+        # Convert to FavoriteItem models
+        favorite_items = [
+            FavoriteItem(id=f["id"], title=f.get("title", "")) if isinstance(f, dict) else FavoriteItem(id=f)
+            for f in favorites
+        ]
 
-        return {"favorites": favorites, "favoriteIds": favorite_ids}
+        return FavoritesResponse(favorites=favorite_items, favoriteIds=favorite_ids)
     except Exception as e:
         logger.error(f"Error getting favorites for user {uid}: {str(e)}")
         raise HTTPException(status_code=500, detail="Error retrieving favorites") from e
 
 
-@router.post("/favorites/{recipe_id}")
+@router.post("/favorites/{recipe_id}", response_model=FavoritesResponse)
 async def add_favorite(
     recipe_id: str,
     uid: Annotated[str, Depends(get_current_user)],
@@ -74,8 +75,12 @@ async def add_favorite(
             user_ref.set({"favorites": favorites}, merge=True)
 
         favorite_ids = [f["id"] if isinstance(f, dict) else f for f in favorites]
+        favorite_items = [
+            FavoriteItem(id=f["id"], title=f.get("title", "")) if isinstance(f, dict) else FavoriteItem(id=f)
+            for f in favorites
+        ]
         logger.info(f"Added favorite {recipe_id} for user {uid}")
-        return {"favorites": favorites, "favoriteIds": favorite_ids}
+        return FavoritesResponse(favorites=favorite_items, favoriteIds=favorite_ids)
     except HTTPException:
         raise
     except Exception as e:
@@ -83,7 +88,7 @@ async def add_favorite(
         raise HTTPException(status_code=500, detail="Error adding favorite") from e
 
 
-@router.delete("/favorites/{recipe_id}")
+@router.delete("/favorites/{recipe_id}", response_model=FavoritesResponse)
 async def remove_favorite(
     recipe_id: str,
     uid: Annotated[str, Depends(get_current_user)],
@@ -110,8 +115,12 @@ async def remove_favorite(
             favorites = []
 
         favorite_ids = [f["id"] if isinstance(f, dict) else f for f in favorites]
+        favorite_items = [
+            FavoriteItem(id=f["id"], title=f.get("title", "")) if isinstance(f, dict) else FavoriteItem(id=f)
+            for f in favorites
+        ]
         logger.info(f"Removed favorite {recipe_id} for user {uid}")
-        return {"favorites": favorites, "favoriteIds": favorite_ids}
+        return FavoritesResponse(favorites=favorite_items, favoriteIds=favorite_ids)
     except Exception as e:
         logger.error(f"Error removing favorite for user {uid}: {str(e)}")
         raise HTTPException(status_code=500, detail="Error removing favorite") from e

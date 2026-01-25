@@ -21,15 +21,36 @@ FORMATTING GUIDELINES:
 UPDATE_SYSTEM_MESSAGE = "You are a creative chef who is skilled at editing recipes while preserving their original structure and style."
 
 
-def generate_recipe_from_prompt(prompt: str) -> tuple[Recipe, dict]:
+def generate_recipe_from_prompt(
+    prompt: str,
+    complexity: str = "standard",
+    diet: str = "standard",
+    time: str = "any",
+    servings: str = "standard",
+) -> tuple[Recipe, dict]:
     """
-    Generate a recipe from a user prompt.
+    Generate a recipe from a user prompt with modifiers.
     Returns (recipe, usage_info).
     """
+    
+    modifiers = []
+    if complexity != "standard":
+        modifiers.append(f"Complexity: {complexity}")
+    if diet != "standard":
+        modifiers.append(f"Dietary preference: {diet}")
+    if time != "any":
+        modifiers.append(f"Time constraint: {time}")
+    if servings != "standard":
+        modifiers.append(f"Servings: {servings}")
+        
+    system_msg = RECIPE_SYSTEM_MESSAGE
+    if modifiers:
+        system_msg += "\n\nMODIFIERS:\n" + "\n".join(f"- {m}" for m in modifiers)
+
     response = litellm.completion(
         model=LLM_MODEL,
         messages=[
-            {"role": "system", "content": RECIPE_SYSTEM_MESSAGE},
+            {"role": "system", "content": system_msg},
             {"role": "user", "content": prompt},
         ],
         max_tokens=2000,

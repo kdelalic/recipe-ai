@@ -11,7 +11,16 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 
 from auth import get_current_user, get_current_user_optional
-from models import RecipeRequest, UpdateRecipeRequest
+from models import (
+    GenerateRecipeResponse,
+    GetRecipeResponse,
+    MessageResponse,
+    RecipeHistoryItem,
+    RecipeHistoryResponse,
+    RecipeRequest,
+    UpdateRecipeRequest,
+    UpdateRecipeResponse,
+)
 from services.cache import recipe_cache
 from services.firebase import db
 from services.llm import generate_recipe_from_prompt, update_recipe_with_modifications
@@ -23,7 +32,7 @@ router = APIRouter(prefix="/api", tags=["recipes"])
 limiter = Limiter(key_func=get_remote_address)
 
 
-@router.post("/generate-recipe")
+@router.post("/generate-recipe", response_model=GenerateRecipeResponse)
 @limiter.limit("10/minute")
 async def generate_recipe(
     request: Request,
@@ -33,13 +42,23 @@ async def generate_recipe(
     logger.info(f"Generate recipe request from user {uid}")
 
     try:
-        recipe, _ = generate_recipe_from_prompt(data.prompt)
+        recipe, _ = generate_recipe_from_prompt(
+            data.prompt,
+            complexity=data.complexity,
+            diet=data.diet,
+            time=data.time,
+            servings=data.servings,
+        )
         recipe_dict = recipe.model_dump()
 
         # Save the generated recipe into Firestore
         recipe_data = {
             "uid": uid,
             "prompt": data.prompt,
+            "complexity": data.complexity,
+            "diet": data.diet,
+            "time": data.time,
+            "servings": data.servings,
             "recipe": recipe_dict,
             "timestamp": datetime.datetime.now(datetime.timezone.utc),
             "archived": False,
@@ -58,7 +77,7 @@ async def generate_recipe(
         raise HTTPException(status_code=500, detail="Error generating recipe") from e
 
 
-@router.post("/update-recipe")
+@router.post("/update-recipe", response_model=UpdateRecipeResponse)
 @limiter.limit("10/minute")
 async def update_recipe(
     request: Request,
@@ -108,7 +127,7 @@ async def update_recipe(
         raise HTTPException(status_code=500, detail="Error updating recipe") from e
 
 
-@router.get("/recipe/{recipe_id}")
+@router.get("/recipe/{recipe_id}", response_model=GetRecipeResponse)
 async def get_recipe(
     recipe_id: str,
     current_uid: Annotated[str | None, Depends(get_current_user_optional)] = None,
@@ -163,7 +182,7 @@ async def get_recipe(
         raise HTTPException(status_code=500, detail="Error retrieving recipe") from e
 
 
-@router.get("/recipe-history")
+@router.get("/recipe-history", response_model=RecipeHistoryResponse)
 async def get_recipe_history(
     uid: Annotated[str, Depends(get_current_user)],
     limit: Annotated[int, Query(le=50)] = 20,
@@ -189,11 +208,11 @@ async def get_recipe_history(
             data = doc.to_dict()
             recipe = data.get("recipe", {})
             history.append(
-                {
-                    "id": doc.id,
-                    "title": recipe.get("title", "") if isinstance(recipe, dict) else "",
-                    "timestamp": data.get("timestamp", ""),
-                }
+                RecipeHistoryItem(
+                    id=doc.id,
+                    title=recipe.get("title", "") if isinstance(recipe, dict) else "",
+                    timestamp=str(data.get("timestamp", "")),
+                )
             )
 
         return {"history": history, "offset": offset, "limit": limit}
@@ -202,7 +221,7 @@ async def get_recipe_history(
         raise HTTPException(status_code=500, detail="Error retrieving recipe history") from e
 
 
-@router.patch("/recipe/{recipe_id}/archive")
+@router.patch("/recipe/{recipe_id}/archive", response_model=MessageResponse)
 async def archive_recipe(
     recipe_id: str,
     uid: Annotated[str, Depends(get_current_user)],

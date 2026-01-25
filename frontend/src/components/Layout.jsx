@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, cloneElement, isValidElement } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { HiOutlineMenuAlt2 } from 'react-icons/hi';
+import { HiOutlineMenuAlt2, HiOutlinePlus } from 'react-icons/hi';
 import { FaUserCircle, FaStar, FaRegStar } from 'react-icons/fa';
 import { HiOutlineMoon, HiOutlineSun } from 'react-icons/hi';
 import { auth } from '../utils/firebase';
@@ -315,7 +315,7 @@ function Layout({ children, user }) {
           className={`new-recipe-btn ${sidebarCollapsed ? 'collapsed' : ''}`}
           onClick={() => isMobile && setSidebarCollapsed(true)}
         >
-          <span className="new-recipe-icon">+</span>
+          <HiOutlinePlus className="new-recipe-icon" />
           New Recipe
         </Link>
         <div className={`sidebar-filters ${sidebarCollapsed ? 'collapsed' : ''}`}>

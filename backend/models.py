@@ -39,9 +39,108 @@ class Recipe(BaseModel):
 
 class RecipeRequest(BaseModel):
     prompt: str = Field(..., min_length=1, max_length=1000)
+    complexity: str = Field("standard", pattern="^(simple|standard|fancy)$")
+    diet: str = Field("standard", pattern="^(standard|healthy|junk)$")
+    time: str = Field("any", pattern="^(any|quick|medium|slow)$")
+    servings: str = Field("standard", pattern="^(standard|single|pair|party)$")
 
 
 class UpdateRecipeRequest(BaseModel):
     id: str = Field(..., min_length=10, max_length=100)
     original_recipe: Recipe
     modifications: str = Field(..., min_length=1, max_length=1000)
+
+
+class GenerateImageRequest(BaseModel):
+    recipe: dict = Field(default_factory=dict)
+    recipe_id: str = ""
+
+
+class AddFavoriteRequest(BaseModel):
+    title: str = ""
+
+
+class PreferencesUpdate(BaseModel):
+    imageGenerationEnabled: bool = True
+
+
+# Response Models
+
+
+class GenerateRecipeResponse(BaseModel):
+    recipe: Recipe
+    id: str
+
+
+class UpdateRecipeResponse(BaseModel):
+    recipe: Recipe
+
+
+class GetRecipeResponse(BaseModel):
+    recipe: Recipe
+    image_url: str = ""
+    timestamp: str = ""
+    uid: str
+    displayName: str = ""
+    prompt: Optional[str] = None
+
+
+class RecipeHistoryItem(BaseModel):
+    id: str
+    title: str
+    timestamp: str = ""
+
+
+class RecipeHistoryResponse(BaseModel):
+    history: List[RecipeHistoryItem]
+    offset: int
+    limit: int
+
+
+class MessageResponse(BaseModel):
+    message: str
+
+
+# Image Response Models
+
+
+class GenerateImageResponse(BaseModel):
+    image_url: str
+
+
+# Favorites Models
+
+
+class FavoriteItem(BaseModel):
+    id: str
+    title: str = ""
+
+
+class FavoritesResponse(BaseModel):
+    favorites: List[FavoriteItem]
+    favoriteIds: List[str]
+
+
+# Preferences Models
+
+
+class Preferences(BaseModel):
+    imageGenerationEnabled: bool = True
+
+
+class PreferencesResponse(BaseModel):
+    preferences: Preferences
+
+
+# Health Models
+
+
+class ServicesStatus(BaseModel):
+    app: str = "ok"
+    firebase: str = "ok"
+    gemini: str = "ok"
+
+
+class HealthResponse(BaseModel):
+    status: str
+    services: ServicesStatus
