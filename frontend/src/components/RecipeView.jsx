@@ -8,9 +8,8 @@ import { useTheme } from './ThemeProvider';
 function RecipeView({ recipe, author, timestamp, isFavorite, onToggleFavorite, recipeId, isMobile, sidebarCollapsed, onToggleSidebar, wakeLockEnabled, onToggleWakeLock, shareUrl, imageUrl, imageLoading }) {
   const [checkedIngredients, setCheckedIngredients] = useState(new Set());
   const { darkMode } = useTheme();
-
-  const skeletonBaseColor = darkMode ? '#2a2a2a' : '#ebebeb';
-  const skeletonHighlightColor = darkMode ? '#3a3a3a' : '#f5f5f5';
+  const skeletonBaseColor = getComputedStyle(document.documentElement).getPropertyValue('--skeleton-base').trim() || (darkMode ? '#1e293b' : '#e5e7eb');
+  const skeletonHighlightColor = getComputedStyle(document.documentElement).getPropertyValue('--skeleton-highlight').trim() || (darkMode ? '#334155' : '#f3f4f6');
 
   useEffect(() => {
     if (recipe?.title) {

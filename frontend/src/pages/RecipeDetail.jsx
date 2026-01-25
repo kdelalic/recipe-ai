@@ -46,6 +46,9 @@ function RecipeDetail({ user, favoriteIds = [], toggleFavorite, isMobile, sideba
     setLoading(true);
     setImageUrl('');
     fetchRecipe();
+    requestAnimationFrame(() => {
+      window.scrollTo(0, 0);
+    });
   }, [id]);
 
   const handleDelete = async () => {

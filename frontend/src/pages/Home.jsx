@@ -81,11 +81,23 @@ function Home({ isMobile, sidebarCollapsed, onToggleSidebar, favoriteIds, toggle
       setDiet('standard');
       setTime('any');
       setServings('standard');
+      requestAnimationFrame(() => {
+        window.scrollTo(0, 0);
+      });
       window.history.replaceState({}, document.title);
     }
   }, [location.state]);
 
   const hasRecipe = currentRecipe || loading;
+
+  // Scroll to top when current recipe changes or loading starts
+  useEffect(() => {
+    if (currentId || loading) {
+      requestAnimationFrame(() => {
+        window.scrollTo(0, 0);
+      });
+    }
+  }, [currentId, loading]);
 
   // Prevent body scroll when on landing screen (centered mode) on mobile
   useEffect(() => {

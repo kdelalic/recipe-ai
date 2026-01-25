@@ -62,8 +62,8 @@ function Preferences({ user }) {
   };
 
   const { darkMode } = useTheme();
-  const baseColor = darkMode ? '#2a2a2a' : '#ebebeb';
-  const highlightColor = darkMode ? '#3a3a3a' : '#f5f5f5';
+  const baseColor = getComputedStyle(document.documentElement).getPropertyValue('--skeleton-base').trim() || (darkMode ? '#1e293b' : '#e5e7eb');
+  const highlightColor = getComputedStyle(document.documentElement).getPropertyValue('--skeleton-highlight').trim() || (darkMode ? '#334155' : '#f3f4f6');
 
   if (loading) {
     return (

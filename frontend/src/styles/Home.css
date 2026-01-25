@@ -274,4 +274,7 @@ button:disabled {
   .modification-buttons button {
     width: 100%;
   }
+  .recipe-form {
+    margin-bottom: 0;
+  }
 }

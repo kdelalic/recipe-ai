@@ -1,5 +1,6 @@
 import logging
 import re
+from datetime import datetime, timezone
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -27,6 +28,12 @@ async def get_favorites(uid: Annotated[str, Depends(get_current_user)]):
         if user_doc.exists:
             data = user_doc.to_dict()
             favorites = data.get("favorites", [])
+            # Sort by timestamp descending (newest first)
+            favorites = sorted(
+                favorites,
+                key=lambda f: f.get("timestamp", "") if isinstance(f, dict) else "",
+                reverse=True
+            )
         else:
             favorites = []
 
@@ -34,7 +41,7 @@ async def get_favorites(uid: Annotated[str, Depends(get_current_user)]):
         favorite_ids = [f["id"] if isinstance(f, dict) else f for f in favorites]
         # Convert to FavoriteItem models
         favorite_items = [
-            FavoriteItem(id=f["id"], title=f.get("title", "")) if isinstance(f, dict) else FavoriteItem(id=f)
+            FavoriteItem(id=f["id"], title=f.get("title", ""), timestamp=f.get("timestamp", "")) if isinstance(f, dict) else FavoriteItem(id=f)
             for f in favorites
         ]
 
@@ -71,12 +78,13 @@ async def add_favorite(
         if recipe_id not in existing_ids:
             if len(favorites) >= 500:
                 raise HTTPException(status_code=400, detail="Maximum 500 favorites allowed")
-            favorites.append({"id": recipe_id, "title": title})
+            timestamp = datetime.now(timezone.utc).isoformat()
+            favorites.append({"id": recipe_id, "title": title, "timestamp": timestamp})
             user_ref.set({"favorites": favorites}, merge=True)
 
         favorite_ids = [f["id"] if isinstance(f, dict) else f for f in favorites]
         favorite_items = [
-            FavoriteItem(id=f["id"], title=f.get("title", "")) if isinstance(f, dict) else FavoriteItem(id=f)
+            FavoriteItem(id=f["id"], title=f.get("title", ""), timestamp=f.get("timestamp", "")) if isinstance(f, dict) else FavoriteItem(id=f)
             for f in favorites
         ]
         logger.info(f"Added favorite {recipe_id} for user {uid}")
@@ -116,7 +124,7 @@ async def remove_favorite(
 
         favorite_ids = [f["id"] if isinstance(f, dict) else f for f in favorites]
         favorite_items = [
-            FavoriteItem(id=f["id"], title=f.get("title", "")) if isinstance(f, dict) else FavoriteItem(id=f)
+            FavoriteItem(id=f["id"], title=f.get("title", ""), timestamp=f.get("timestamp", "")) if isinstance(f, dict) else FavoriteItem(id=f)
             for f in favorites
         ]
         logger.info(f"Removed favorite {recipe_id} for user {uid}")

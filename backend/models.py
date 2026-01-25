@@ -129,6 +129,7 @@ class GenerateImageResponse(BaseModel):
 class FavoriteItem(BaseModel):
     id: str
     title: str = ""
+    timestamp: str = ""
 
 
 class FavoritesResponse(BaseModel):

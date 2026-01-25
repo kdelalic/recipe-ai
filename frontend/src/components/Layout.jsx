@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback, cloneElement, isValidElement } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { HiOutlineMenuAlt2, HiOutlinePlus } from 'react-icons/hi';
+import { HiOutlineMenuAlt2, HiOutlinePlus, HiOutlineDotsVertical, HiOutlineTrash } from 'react-icons/hi';
 import { FaUserCircle, FaStar, FaRegStar } from 'react-icons/fa';
 import { HiOutlineMoon, HiOutlineSun } from 'react-icons/hi';
 import { auth } from '../utils/firebase';
@@ -31,6 +31,7 @@ function Layout({ children, user }) {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [historyMenuOpen, setHistoryMenuOpen] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [favorites, setFavorites] = useState(() => {
     const saved = localStorage.getItem('favorites');
@@ -47,6 +48,7 @@ function Layout({ children, user }) {
     return saved === 'true';
   });
   const dropdownRef = useRef(null);
+  const historyMenuRef = useRef(null);
   const historyListRef = useRef(null);
 
   const LIMIT = 25;
@@ -169,10 +171,43 @@ function Layout({ children, user }) {
     }
   };
 
+  // Delete/archive recipe from history
+  const deleteRecipe = async (recipeId, e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setHistoryMenuOpen(null);
+
+    // Optimistically remove from UI
+    setHistory(prev => prev.filter(item => item.id !== recipeId));
+    // Also remove from favorites if present
+    setFavoriteIds(prev => prev.filter(id => id !== recipeId));
+    setFavorites(prev => prev.filter(f => (f.id || f) !== recipeId));
+
+    // If we're viewing this recipe, navigate away
+    if (currentRecipeId === recipeId) {
+      navigate('/');
+    }
+
+    try {
+      await api.patch(`/api/recipe/${recipeId}/archive`);
+    } catch (err) {
+      console.error('Error deleting recipe:', err);
+      // Refresh history on error
+      fetchHistory(0, false);
+    }
+  };
+
   // Get the appropriate list based on filter state
   // When showing favorites, use the favorites array which already has titles
+  // Favorites are sorted by timestamp (newest first) from the backend
   const displayHistory = showFavoritesOnly
-    ? favorites.map(f => ({ id: f.id || f, title: f.title || '' }))
+    ? [...favorites]
+        .sort((a, b) => {
+          const timeA = a.timestamp || '';
+          const timeB = b.timestamp || '';
+          return timeB.localeCompare(timeA);
+        })
+        .map(f => ({ id: f.id || f, title: f.title || '' }))
     : history;
 
   // Filter history based on search
@@ -218,6 +253,9 @@ function Layout({ children, user }) {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setDropdownOpen(false);
+      }
+      if (historyMenuRef.current && !historyMenuRef.current.contains(event.target)) {
+        setHistoryMenuOpen(null);
       }
     }
     document.addEventListener('mousedown', handleClickOutside);
@@ -374,16 +412,44 @@ function Layout({ children, user }) {
                   onClick={() => isMobile && setSidebarCollapsed(true)}
                 >
                   <span className="history-item-title">{item.title}</span>
-                  {isLoggedIn && (
-                    <button
-                      className={`favorite-btn ${favoriteIds.includes(item.id) ? 'is-favorite' : ''}`}
-                      onClick={(e) => toggleFavorite(item.id, item.title, e)}
-                      aria-label={favoriteIds.includes(item.id) ? 'Remove from favorites' : 'Add to favorites'}
-                      data-tooltip-id="tooltip"
-                      data-tooltip-content={favoriteIds.includes(item.id) ? 'Remove from favorites' : 'Add to favorites'}
+                  {isLoggedIn && !showFavoritesOnly && (
+                    <div 
+                      className="history-item-menu-container"
+                      ref={historyMenuOpen === item.id ? historyMenuRef : null}
                     >
-                      {favoriteIds.includes(item.id) ? <FaStar size={12} /> : <FaRegStar size={12} />}
-                    </button>
+                      <button
+                        className={`history-item-menu-btn ${historyMenuOpen === item.id ? 'active' : ''}`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          setHistoryMenuOpen(historyMenuOpen === item.id ? null : item.id);
+                        }}
+                        aria-label="More options"
+                      >
+                        <HiOutlineDotsVertical size={16} />
+                      </button>
+                      {historyMenuOpen === item.id && (
+                        <div className="history-item-dropdown">
+                          <button
+                            className={`history-dropdown-item ${favoriteIds.includes(item.id) ? 'is-favorite' : ''}`}
+                            onClick={(e) => {
+                              toggleFavorite(item.id, item.title, e);
+                              setHistoryMenuOpen(null);
+                            }}
+                          >
+                            {favoriteIds.includes(item.id) ? <FaStar size={14} /> : <FaRegStar size={14} />}
+                            <span>{favoriteIds.includes(item.id) ? 'Unfavorite' : 'Favorite'}</span>
+                          </button>
+                          <button
+                            className="history-dropdown-item delete"
+                            onClick={(e) => deleteRecipe(item.id, e)}
+                          >
+                            <HiOutlineTrash size={14} />
+                            <span>Delete</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </Link>
               ))}
