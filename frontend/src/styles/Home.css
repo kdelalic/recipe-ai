@@ -9,6 +9,8 @@
   align-items: center;
   height: 100%;
   overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: none;
 }
 
 .greeting-row {
@@ -37,13 +39,13 @@
 
 .recipe-form button {
   width: auto;
-  padding: 0.6rem 2rem;
+  padding: 0.4rem 1rem;
 }
 
 .modifiers-container {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  gap: 0.3rem;
   width: 100%;
   justify-content: center;
 }
@@ -197,7 +199,8 @@ button:disabled {
   }
 
   .home-page.centered {
-    min-height: calc(100vh - 2rem);
+    height: 100dvh;
+    min-height: -webkit-fill-available;
   }
 
   .greeting-row {

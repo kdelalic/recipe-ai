@@ -84,6 +84,20 @@ function Home({ isMobile, sidebarCollapsed, onToggleSidebar, favoriteIds, toggle
     }
   }, [location.state]);
 
+  const hasRecipe = currentRecipe || loading;
+
+  // Prevent body scroll when on landing screen (centered mode) on mobile
+  useEffect(() => {
+    if (isMobile && !hasRecipe) {
+      document.body.classList.add('no-scroll');
+    } else {
+      document.body.classList.remove('no-scroll');
+    }
+    return () => {
+      document.body.classList.remove('no-scroll');
+    };
+  }, [isMobile, hasRecipe]);
+
   const greeting = useMemo(() => {
     return GREETINGS[Math.floor(Math.random() * GREETINGS.length)];
   }, []);
@@ -196,8 +210,6 @@ function Home({ isMobile, sidebarCollapsed, onToggleSidebar, favoriteIds, toggle
   const diffRecipe = prevRecipe !== currentRecipe
     ? computeRecipeDiffAsHtml(prevRecipe, currentRecipe)
     : currentRecipe;
-
-  const hasRecipe = currentRecipe || loading;
 
   return (
     <div className={`home-page ${!hasRecipe ? 'centered' : ''}`}>
