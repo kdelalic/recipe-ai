@@ -37,9 +37,9 @@ limiter = Limiter(key_func=get_remote_address)
 async def generate_recipe(
     request: Request,
     data: RecipeRequest,
-    uid: Annotated[str, Depends(get_current_user)],
+    uid: Annotated[str | None, Depends(get_current_user_optional)] = None,
 ):
-    logger.info(f"Generate recipe request from user {uid}")
+    logger.info(f"Generate recipe request from user {uid if uid else 'guest'}")
 
     try:
         recipe, _ = await generate_recipe_from_prompt(
@@ -50,26 +50,29 @@ async def generate_recipe(
             servings=data.servings,
         )
         recipe_dict = recipe.model_dump()
+        
+        recipe_id = "guest_" + str(datetime.datetime.now().timestamp())
 
-        # Save the generated recipe into Firestore
-        recipe_data = {
-            "uid": uid,
-            "prompt": data.prompt,
-            "complexity": data.complexity,
-            "diet": data.diet,
-            "time": data.time,
-            "servings": data.servings,
-            "recipe": recipe_dict,
-            "timestamp": datetime.datetime.now(datetime.timezone.utc),
-            "archived": False,
-        }
+        if uid:
+            # Save the generated recipe into Firestore only for logged-in users
+            recipe_data = {
+                "uid": uid,
+                "prompt": data.prompt,
+                "complexity": data.complexity,
+                "diet": data.diet,
+                "time": data.time,
+                "servings": data.servings,
+                "recipe": recipe_dict,
+                "timestamp": datetime.datetime.now(datetime.timezone.utc),
+                "archived": False,
+            }
 
-        _, doc_ref = await db_async.collection("recipes").add(recipe_data)
-        recipe_id = doc_ref.id
+            _, doc_ref = await db_async.collection("recipes").add(recipe_data)
+            recipe_id = doc_ref.id
 
-        # Update cache
-        cache_key = f"recipe_{recipe_id}"
-        recipe_cache[cache_key] = recipe_dict
+            # Update cache
+            cache_key = f"recipe_{recipe_id}"
+            recipe_cache[cache_key] = recipe_dict
 
         return {"recipe": recipe_dict, "id": recipe_id}
     except Exception as e:

@@ -26,9 +26,9 @@ const GREETINGS = [
   "Ready to explore new flavors?",
 ];
 
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 
-function Home({ isMobile, sidebarCollapsed, onToggleSidebar, favoriteIds, toggleFavorite, wakeLockEnabled, onToggleWakeLock, refreshHistory, imageGenerationEnabled = true }) {
+function Home({ user, isMobile, sidebarCollapsed, onToggleSidebar, favoriteIds, toggleFavorite, wakeLockEnabled, onToggleWakeLock, refreshHistory, imageGenerationEnabled = true }) {
   const location = useLocation();
   const recipeRef = useRef(null);
   const [input, setInput] = useState('');
@@ -41,6 +41,7 @@ function Home({ isMobile, sidebarCollapsed, onToggleSidebar, favoriteIds, toggle
   const [imageUrl, setImageUrl] = useState('');
   const [imageLoading, setImageLoading] = useState(false);
   const [modification, setModification] = useState('');
+  const [showSignupPrompt, setShowSignupPrompt] = useState(false);
   
   // Modifiers state
   const [complexity, setComplexity] = useState('standard');
@@ -104,6 +105,16 @@ function Home({ isMobile, sidebarCollapsed, onToggleSidebar, favoriteIds, toggle
     setCurrentRecipe('');
     setImageUrl('');
 
+    // Guest generation limit check
+    if (!user) {
+      const guestGenerations = parseInt(localStorage.getItem('guest_generations') || '0', 10);
+      if (guestGenerations >= 1) {
+        setShowSignupPrompt(true);
+        setLoading(false);
+        return;
+      }
+    }
+
     if (!input.trim()) {
       setError('Please enter some ingredients first.');
       setLoading(false);
@@ -121,6 +132,13 @@ function Home({ isMobile, sidebarCollapsed, onToggleSidebar, favoriteIds, toggle
       if (response.status !== 200) throw new Error('Network response was not ok');
       const data = await response.data;
       const recipeData = data.recipe;
+      
+      // Increment guest generation count
+      if (!user) {
+        const currentCount = parseInt(localStorage.getItem('guest_generations') || '0', 10);
+        localStorage.setItem('guest_generations', (currentCount + 1).toString());
+      }
+
       setCurrentId(data.id);
       setCurrentRecipe(recipeData);
       setPrevRecipe(recipeData);
@@ -338,6 +356,24 @@ function Home({ isMobile, sidebarCollapsed, onToggleSidebar, favoriteIds, toggle
             </div>
           </div>
         )
+      )}
+      
+      {showSignupPrompt && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h2>Ready specifically for more?</h2>
+            <p>Guest users can only generate one free recipe. Sign up to reset your limit and create unlimited recipes!</p>
+            <div className="modal-actions">
+              <Link to="/signup" className="modal-btn primary">Sign Up</Link>
+              <button 
+                className="modal-btn secondary"
+                onClick={() => setShowSignupPrompt(false)}
+              >
+                Maybe Later
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

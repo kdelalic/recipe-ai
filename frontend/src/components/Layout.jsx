@@ -487,7 +487,7 @@ function Layout({ children, user }) {
             <p className="no-history">No recipes generated yet.</p>
           )}
         </div>
-        {user && (
+        {user ? (
           <div className={`sidebar-footer ${sidebarCollapsed ? 'collapsed' : ''}`} ref={dropdownRef}>
             <button className="profile-btn" onClick={() => setDropdownOpen(!dropdownOpen)}>
               <FaUserCircle size={24} />
@@ -510,6 +510,15 @@ function Layout({ children, user }) {
                 </button>
               </div>
             )}
+          </div>
+        ) : (
+          <div className={`sidebar-footer auth-actions ${sidebarCollapsed ? 'collapsed' : ''}`}>
+             <Link to="/login" className="login-btn">
+               Sign In
+             </Link>
+             <Link to="/signup" className="signup-btn">
+               Sign Up
+             </Link>
           </div>
         )}
       </aside>

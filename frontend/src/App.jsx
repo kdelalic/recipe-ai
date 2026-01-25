@@ -19,11 +19,9 @@ function App({ user }) {
       <Route
         path="/"
         element={
-          <ProtectedRoute user={user}>
-            <Layout user={user}>
-              <Home />
-            </Layout>
-          </ProtectedRoute>
+          <Layout user={user}>
+            <Home />
+          </Layout>
         }
       />
       <Route
