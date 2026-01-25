@@ -5,9 +5,21 @@ import RecipeView from '../components/RecipeView';
 import RecipeSkeleton from '../components/RecipeSkeleton';
 import api from '../utils/api';
 import { computeRecipeDiffAsHtml } from '../utils/diffHelper';
+import { useAuth } from '../components/AuthProvider';
+import { useLayoutContext } from '../components/Layout';
 import '../styles/RecipeDetail.css';
 
-function RecipeDetail({ user, favoriteIds = [], toggleFavorite, isMobile, sidebarCollapsed, onToggleSidebar, wakeLockEnabled, onToggleWakeLock }) {
+function RecipeDetail() {
+  const user = useAuth();
+  const { 
+    favoriteIds = [], 
+    toggleFavorite, 
+    isMobile, 
+    sidebarCollapsed, 
+    onToggleSidebar, 
+    wakeLockEnabled, 
+    onToggleWakeLock 
+  } = useLayoutContext() || {};
   const recipeRef = useRef(null);
   const { id } = useParams();
   const navigate = useNavigate();

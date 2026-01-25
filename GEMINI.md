@@ -83,11 +83,14 @@ Hot reload is enabled by default.
 ### Running the Frontend
 Navigate to the `frontend` directory:
 ```bash
-npm run dev
+bun run dev
 ```
 Dev server runs at `http://localhost:5173`.
 
 ### Production Build
 The backend is configured to serve the frontend static files from `frontend/dist`.
-1. Build frontend: `cd frontend && npm run build`
+1. Build frontend: `cd frontend && bun run build`
 2. Run backend: `cd backend && uv run python app.py`
+
+### Installing Dependencies
+Make sure to install the latest compatible versions of any new packages in both the frontend and backend.

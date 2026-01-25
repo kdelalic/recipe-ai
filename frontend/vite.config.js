@@ -1,11 +1,10 @@
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
+import { reactRouter } from "@react-router/dev/vite";
+import { defineConfig } from "vite";
 import { VitePWA } from 'vite-plugin-pwa';
 
-export default defineConfig(() => {
-  return {
-    plugins: [
-      react(),
+export default defineConfig({
+  plugins: [
+    reactRouter(),
       VitePWA({
         registerType: 'autoUpdate',
         includeAssets: ['favicon.svg'],
@@ -28,9 +27,5 @@ export default defineConfig(() => {
           ]
         }
       })
-    ],
-    server: {
-      host: true,
-    },
-  };
+  ],
 });

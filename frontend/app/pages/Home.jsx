@@ -28,8 +28,23 @@ const GREETINGS = [
 ];
 
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../components/AuthProvider';
+import { useLayoutContext } from '../components/Layout';
 
-function Home({ user, isMobile, sidebarCollapsed, onToggleSidebar, favoriteIds, toggleFavorite, wakeLockEnabled, onToggleWakeLock, refreshHistory, imageGenerationEnabled = true }) {
+function Home() {
+  const user = useAuth();
+  const { 
+    isMobile, 
+    sidebarCollapsed, 
+    onToggleSidebar, 
+    favoriteIds, 
+    toggleFavorite, 
+    wakeLockEnabled, 
+    onToggleWakeLock, 
+    refreshHistory, 
+    imageGenerationEnabled = true 
+  } = useLayoutContext() || {};
+
   const location = useLocation();
   const recipeRef = useRef(null);
   const [input, setInput] = useState('');

@@ -1,15 +1,20 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, createContext, useContext } from 'react';
 import { auth, onAuthStateChanged } from '../utils/firebase';
 import Spinner from './Spinner';
+
+const AuthContext = createContext(null);
+
+export function useAuth() {
+  return useContext(AuthContext);
+}
 
 function AuthProvider({ children, isServer = false }) {
   const [user, setUser] = useState(null);
   const [loadingAuth, setLoadingAuth] = useState(() => {
-    // On server, don't show loading state - render immediately with null user
     if (isServer) {
-      return false;
+        return false;
     }
-    return true; // Client: start in loading state
+    return true;
   });
 
   useEffect(() => {
@@ -24,7 +29,7 @@ function AuthProvider({ children, isServer = false }) {
     return <Spinner />;
   }
 
-  return children(user);
+  return <AuthContext.Provider value={user}>{children}</AuthContext.Provider>;
 }
 
 export default AuthProvider;

@@ -5,9 +5,19 @@ import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import api from '../utils/api';
 import { useTheme } from '../components/ThemeProvider';
+import { useAuth } from '../components/AuthProvider';
+import { useLayoutContext } from '../components/Layout';
+import ProtectedRoute from '../components/ProtectedRoute';
 import '../styles/Preferences.css';
 
-function Preferences({ user, imageGenerationEnabled = true, setImageGenerationEnabled, preferencesLoading = false }) {
+function Preferences() {
+  const user = useAuth();
+  const { 
+    imageGenerationEnabled = true, 
+    setImageGenerationEnabled, 
+    preferencesLoading = false 
+  } = useLayoutContext() || {};
+
   const navigate = useNavigate();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -43,6 +53,7 @@ function Preferences({ user, imageGenerationEnabled = true, setImageGenerationEn
 
   if (preferencesLoading) {
     return (
+      <ProtectedRoute user={user} allowGuest={false}>
       <SkeletonTheme baseColor={baseColor} highlightColor={highlightColor}>
         <div className="preferences-container">
           <h1>Preferences</h1>
@@ -62,10 +73,12 @@ function Preferences({ user, imageGenerationEnabled = true, setImageGenerationEn
           </div>
         </div>
       </SkeletonTheme>
+      </ProtectedRoute>
     );
   }
 
   return (
+    <ProtectedRoute user={user} allowGuest={false}>
     <div className="preferences-container">
       <h1>Preferences</h1>
 
@@ -117,6 +130,7 @@ function Preferences({ user, imageGenerationEnabled = true, setImageGenerationEn
         </button>
       </div>
     </div>
+    </ProtectedRoute>
   );
 }
 

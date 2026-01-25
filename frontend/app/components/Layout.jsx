@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef, useCallback, cloneElement, isValidElement } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef, useCallback, createContext, useContext } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom'; // react-router-dom is re-installed
+// ... (keep imports)
 import { HiOutlineMenuAlt2, HiOutlinePlus, HiOutlineDotsVertical, HiOutlineTrash } from 'react-icons/hi';
 import { FaUserCircle, FaStar, FaRegStar, FaSignInAlt, FaUserPlus, FaSignOutAlt, FaCog } from 'react-icons/fa';
 import { HiOutlineMoon, HiOutlineSun } from 'react-icons/hi';
@@ -9,6 +10,12 @@ import HistorySkeleton from './HistorySkeleton';
 import { useTheme } from './ThemeProvider';
 import '../styles/Layout.css';
 import ChefHatIcon from './ChefHatIcon';
+
+const LayoutContext = createContext(null);
+
+export function useLayoutContext() {
+  return useContext(LayoutContext);
+}
 
 function Layout({ children, user }) {
   const location = useLocation();
@@ -374,8 +381,22 @@ function Layout({ children, user }) {
     }
   }, [history, historyLoading, loadingMore, hasMore]);
 
+  const contextValue = {
+      favoriteIds,
+      toggleFavorite: isLoggedIn ? toggleFavorite : null,
+      isMobile,
+      sidebarCollapsed,
+      onToggleSidebar: () => setSidebarCollapsed(false),
+      wakeLockEnabled,
+      onToggleWakeLock: toggleWakeLock,
+      refreshHistory: () => fetchHistory(0, false),
+      imageGenerationEnabled,
+      setImageGenerationEnabled,
+      preferencesLoading,
+  };
 
   return (
+    <LayoutContext.Provider value={contextValue}>
     <div className={`layout ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
       {/* Overlay for mobile */}
       {isMobile && !sidebarCollapsed && (
@@ -548,23 +569,10 @@ function Layout({ children, user }) {
         )}
       </aside>
       <main className="main-content">
-        {isValidElement(children)
-          ? cloneElement(children, {
-              favoriteIds,
-              toggleFavorite: isLoggedIn ? toggleFavorite : null,
-              isMobile,
-              sidebarCollapsed,
-              onToggleSidebar: () => setSidebarCollapsed(false),
-              wakeLockEnabled,
-              onToggleWakeLock: toggleWakeLock,
-              refreshHistory: () => fetchHistory(0, false),
-              imageGenerationEnabled,
-              setImageGenerationEnabled,
-              preferencesLoading,
-            })
-          : children}
+        {children}
       </main>
     </div>
+    </LayoutContext.Provider>
   );
 }
 
