@@ -1,5 +1,5 @@
 [project]
-name = "recipe-ai-backend"
+name = "recipelab-backend"
 version = "0.1.0"
 description = "AI-powered recipe generation backend"
 requires-python = ">=3.12,<3.13"

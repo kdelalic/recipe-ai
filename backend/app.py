@@ -33,14 +33,14 @@ limiter = Limiter(
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    logger.info("Starting Recipe AI backend...")
+    logger.info("Starting RecipeLab backend...")
     yield
     # Shutdown
-    logger.info("Shutting down Recipe AI backend...")
+    logger.info("Shutting down RecipeLab backend...")
 
 
 app = FastAPI(
-    title="Recipe AI API",
+    title="RecipeLab API",
     description="AI-powered recipe generation backend",
     version="0.1.0",
     lifespan=lifespan,

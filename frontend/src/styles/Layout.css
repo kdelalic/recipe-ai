@@ -1,60 +1,62 @@
-/* CSS Variables for theming */
+/* CSS Variables for theming using new tokens */
 :root {
   --bg-primary: #ffffff;
-  --bg-secondary: #f9f9f9;
-  --bg-tertiary: #f0f0f0;
-  --text-primary: #1f2937;
-  --text-secondary: #4b5563;
-  --text-muted: #9ca3af;
-  --border-color: #e5e7eb;
+  --bg-secondary: var(--color-gray-50);
+  --bg-tertiary: var(--color-gray-100);
+  
+  --text-primary: var(--color-gray-900);
+  --text-secondary: var(--color-gray-600);
+  --text-muted: var(--color-gray-400);
+  
+  --border-color: var(--color-gray-200);
   --shadow-color: rgba(0, 0, 0, 0.05);
   
-  --accent-color: #10b981; /* Emerald 500 */
-  --accent-hover: #059669; /* Emerald 600 */
-  --accent-light: #d1fae5; /* Emerald 100 */
+  --accent-color: var(--color-primary);
+  --accent-hover: var(--color-primary-hover);
+  --accent-light: var(--color-primary-light);
   
-  --sidebar-bg: #f8fafc; /* Slate 50 */
-  --sidebar-hover: #e2e8f0; /* Slate 200 */
-  --sidebar-active: #eef2ff; /* Indigo 50 - distinct from hover */
-  --sidebar-text: #475569; /* Slate 600 */
-  --sidebar-text-light: #1e293b; /* Slate 800 */
-  --sidebar-border: #e2e8f0; /* Slate 200 */
+  --sidebar-bg: var(--color-gray-50);
+  --sidebar-hover: var(--color-gray-200);
+  --sidebar-active: var(--color-primary-light);
+  --sidebar-text: var(--color-gray-600);
+  --sidebar-text-light: var(--color-gray-900);
+  --sidebar-border: var(--color-gray-200);
   --sidebar-input-bg: #ffffff;
   
-  --skeleton-base: #e5e7eb;
-  --skeleton-highlight: #f3f4f6;
+  --skeleton-base: var(--color-gray-200);
+  --skeleton-highlight: var(--color-gray-50);
 }
 
 [data-theme="dark"] {
-  --bg-primary: #0f172a; /* Slate 900 */
-  --bg-secondary: #1e293b; /* Slate 800 */
-  --bg-tertiary: #334155; /* Slate 700 */
-  --text-primary: #f8fafc; /* Slate 50 */
-  --text-secondary: #cbd5e1; /* Slate 300 */
-  --text-muted: #94a3b8; /* Slate 400 */
-  --border-color: #334155;
-  --shadow-color: rgba(0, 0, 0, 0.3);
+  --bg-primary: var(--color-gray-900);
+  --bg-secondary: var(--color-gray-800);
+  --bg-tertiary: var(--color-gray-700);
   
-  --accent-color: #10b981;
-  --accent-hover: #34d399;
-  --accent-light: #064e3b;
+  --text-primary: var(--color-gray-50);
+  --text-secondary: var(--color-gray-300);
+  --text-muted: var(--color-gray-400);
   
-  --sidebar-bg: #111827; /* Gray 900 */
-  --sidebar-hover: #1f293b;
-  --sidebar-active: #1e293b;
-  --sidebar-text: #9ca3af;
-  --sidebar-text-light: #f3f4f6;
-  --sidebar-border: #1f293b;
-  --sidebar-input-bg: #1f293b;
+  --border-color: var(--color-gray-700);
+  --shadow-color: rgba(0, 0, 0, 0.5);
+  
+  --accent-color: var(--color-primary);
+  --accent-hover: var(--color-primary-hover);
+  --accent-light: var(--color-primary-dark);
+  
+  --sidebar-bg: #0b1120; /* Darker than gray-900 for sidebar */
+  --sidebar-hover: var(--color-gray-800);
+  --sidebar-active: var(--color-gray-800);
+  --sidebar-text: var(--color-gray-400);
+  --sidebar-text-light: var(--color-gray-100);
+  --sidebar-border: var(--color-gray-800);
+  --sidebar-input-bg: var(--color-gray-800);
 
-  --skeleton-base: #1e293b;
-  --skeleton-highlight: #334155;
+  --skeleton-base: var(--color-gray-800);
+  --skeleton-highlight: var(--color-gray-700);
 }
 
 * {
-  font-family:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
-    Cantarell, sans-serif;
+  font-family: var(--font-family-base);
 }
 
 body {
@@ -115,7 +117,7 @@ body.no-scroll {
 
 .sidebar::-webkit-scrollbar-thumb {
   background-color: var(--border-color);
-  border-radius: 20px;
+  border-radius: var(--radius-full);
 }
 
 .sidebar::-webkit-scrollbar-thumb:hover {
@@ -240,13 +242,10 @@ body.no-scroll {
   color: #fff;
   text-decoration: none;
   border: none;
-  border-radius: 8px;
-  font-size: 0.95rem;
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
   font-weight: 600;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    opacity 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   box-sizing: border-box;
   flex-shrink: 0;
   white-space: nowrap;
@@ -288,7 +287,7 @@ body.no-scroll {
   padding: 0.6rem 0.875rem;
   background-color: var(--sidebar-input-bg);
   border: 1px solid var(--sidebar-border);
-  border-radius: 8px;
+  border-radius: var(--radius-lg);
   color: var(--sidebar-text-light);
   font-size: 0.9rem;
   box-sizing: border-box;

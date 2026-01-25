@@ -10,8 +10,8 @@ export default defineConfig(() => {
         registerType: 'autoUpdate',
         includeAssets: ['favicon.svg'],
         manifest: {
-          name: 'Recipe AI',
-          short_name: 'Recipe AI',
+          name: 'RecipeLab',
+          short_name: 'RecipeLab',
           description: 'AI-powered recipe generator',
           theme_color: '#FF6B6B',
           icons: [

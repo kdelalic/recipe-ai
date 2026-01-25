@@ -366,7 +366,7 @@ function Layout({ children, user }) {
         <div className="sidebar-header">
           <div className="sidebar-logo-container">
             <ChefHatIcon className="sidebar-logo-icon" size={32} />
-            <h1 className="sidebar-logo">Recipe AI</h1>
+            <h1 className="sidebar-logo">RecipeLab</h1>
           </div>
           <div className="sidebar-header-actions">
             <button

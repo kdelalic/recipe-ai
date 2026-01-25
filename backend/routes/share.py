@@ -61,8 +61,8 @@ async def share_recipe_preview(request: Request, recipe_id: str, origin: str | N
         recipe_data = recipe_cache.get(cache_key)
         
         image_url = ""
-        title = "Check out this recipe on Recipe AI"
-        description = "I found this amazing recipe using Recipe AI. Click to view the full recipe!"
+        title = "Check out this recipe on RecipeLab"
+        description = "I found this amazing recipe using RecipeLab. Click to view the full recipe!"
         
         if not recipe_data:
             # Fallback to Firestore if not in cache

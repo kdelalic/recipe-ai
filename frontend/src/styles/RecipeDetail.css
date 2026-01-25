@@ -47,11 +47,17 @@
 /* Recipe View Styling */
 .recipe-view {
   line-height: 1.6;
+  max-width: 900px;
+  margin: 0 auto;
 }
 
 .recipe-view h1 {
   margin-top: 0;
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--space-2);
+  font-size: var(--font-size-3xl);
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
 }
 
 .recipe-mobile-header {
@@ -62,9 +68,16 @@
   top: 0;
   left: 0;
   right: 0;
-  padding: 0.75rem 0.75rem;
+  padding: var(--space-3);
   background-color: var(--bg-primary);
   z-index: 100;
+  border-bottom: 1px solid var(--border-color);
+  backdrop-filter: blur(8px);
+  background-color: rgba(255, 255, 255, 0.85);
+}
+
+[data-theme="dark"] .recipe-mobile-header {
+  background-color: rgba(15, 23, 42, 0.85);
 }
 
 .recipe-mobile-header .mobile-menu-btn {
@@ -155,15 +168,38 @@
 }
 
 .recipe-view h2 {
-  margin-top: 2rem;
-  margin-bottom: 1.25rem;
-  font-size: 1.4rem;
+  margin-top: var(--space-8);
+  margin-bottom: var(--space-3);
+  font-size: var(--font-size-xl);
+  font-weight: 600;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 
 .recipe-description {
-  font-size: 1.05rem;
+  font-size: var(--font-size-lg);
   color: var(--text-secondary);
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--space-6);
+  line-height: 1.7;
+}
+
+/* Card styling for sections */
+.ingredient-groups,
+.instructions-list, 
+.notes-list {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5);
+  box-shadow: var(--shadow-sm);
+}
+
+/* Remove default list styling inside cards if needed */
+/* Remove default list styling inside cards if needed */
+.instructions-list {
+  padding-left: var(--space-8);
 }
 
 /* Recipe metadata and macros container */
@@ -171,36 +207,41 @@
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem 1.5rem;
-  margin-bottom: 2rem;
-  font-size: 0.9rem;
+  gap: var(--space-3) var(--space-5);
+  margin-bottom: var(--space-6);
+  font-size: var(--font-size-sm);
   color: var(--text-muted);
+  background-color: var(--bg-secondary);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
 }
 
 .recipe-stats .stat-item {
   display: flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: var(--space-2);
 }
 
 .recipe-stats .stat-label {
   color: var(--text-muted);
+  font-weight: 500;
 }
 
 .recipe-stats .stat-value {
   color: var(--text-primary);
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .recipe-stats .stat-divider {
-  color: #ddd;
-  margin: 0 0.25rem;
+  color: var(--border-color);
+  margin: 0 var(--space-1);
 }
 
 .recipe-stats .macros-row {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: var(--space-4);
 }
 
 /* Ingredient groups */
@@ -236,12 +277,11 @@
 
 /* Instructions */
 .instructions-list {
-  padding-left: 1.25rem;
+  padding-left: var(--space-8);
 }
 
 .instructions-list li {
-  margin-bottom: 1.25rem;
-  padding-left: 0.5rem;
+  margin-bottom: var(--space-5);
   line-height: 1.65;
 }
 
@@ -252,37 +292,46 @@
 
 /* Notes */
 .notes-list {
-  padding-left: 1.25rem;
+  padding-left: var(--space-8);
 }
 
 .notes-list li {
-  margin-bottom: 0.5rem;
-  line-height: 1.5;
+  margin-bottom: var(--space-4);
+  line-height: 1.6;
   color: var(--text-secondary);
+  display: list-item; /* Ensure list-item behavior for spacing */
+}
+
+.notes-list li:last-child {
+  margin-bottom: 0;
 }
 
 /* Ingredient Checkboxes */
 .ingredient-item {
   display: flex;
   align-items: flex-start;
-  gap: 0.5rem;
-  margin-bottom: 0.4rem;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
   line-height: 1.5;
+  padding: var(--space-1) 0;
 }
 
 .ingredient-checkbox {
-  width: 18px;
-  height: 18px;
-  margin-top: 2px;
-  accent-color: var(--accent-color);
+  width: 1.125rem;
+  height: 1.125rem;
+  margin-top: 0.15rem;
+  accent-color: var(--color-primary);
   cursor: pointer;
   flex-shrink: 0;
+  border-radius: var(--radius-sm);
 }
 
 .ingredient-text {
   flex: 1;
+  color: var(--text-primary);
   transition:
     opacity 0.2s,
+    color 0.2s,
     text-decoration 0.2s;
 }
 
@@ -304,6 +353,17 @@
 @media (max-width: 768px) {
   .recipe-view {
     padding-top: 32px;
+  }
+  
+  .ingredient-groups,
+  .instructions-list, 
+  .notes-list {
+    padding: var(--space-4);
+    border-radius: var(--radius-lg);
+  }
+  
+  .instructions-list {
+    padding-left: var(--space-8); /* Keep indentation for numbers */
   }
 
   .recipe-stats .stat-divider {
@@ -412,57 +472,63 @@
   }
 }
 
+/* Recipe Management Section */
 .recipe-management-section {
-  margin-top: 2rem;
+  margin-top: var(--space-10);
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: var(--space-6);
+  padding-top: var(--space-8);
+  border-top: 1px solid var(--border-color);
 }
 
 .update-section {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--space-3);
 }
 
 .modification-input {
   width: 100%;
-  padding: 0.75rem;
-  background-color: var(--bg-secondary);
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--bg-primary);
   border: 1px solid var(--border-color);
-  border-radius: 6px;
+  border-radius: var(--radius-lg);
   color: var(--text-primary);
-  font-size: 0.95rem;
+  font-size: var(--font-size-base);
   box-sizing: border-box;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .modification-input:focus {
   outline: none;
-  border-color: var(--accent-color);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
 }
 
 .modification-buttons {
   display: flex;
-  gap: 0.75rem;
+  gap: var(--space-3);
 }
 
 .modification-buttons button {
-  padding: 0.6rem 1rem;
-  font-size: 0.9rem;
+  padding: var(--space-2) var(--space-4);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
   cursor: pointer;
-  border-radius: 6px;
-  transition: background-color 0.2s, opacity 0.2s;
+  border-radius: var(--radius-lg);
+  transition: all 0.2s;
   border: none;
 }
 
 .modification-buttons button[type="submit"] {
-  background-color: var(--accent-color);
+  background-color: var(--color-primary);
   color: white;
 }
 
 .modification-buttons button[type="submit"]:hover:not(:disabled) {
-  background-color: var(--accent-hover);
+  background-color: var(--color-primary-hover);
+  box-shadow: var(--shadow-md);
 }
 
 .modification-buttons .regenerate-btn {
@@ -473,31 +539,34 @@
 
 .modification-buttons .regenerate-btn:hover:not(:disabled) {
   background-color: var(--bg-tertiary);
+  border-color: var(--text-secondary);
 }
 
 .modification-buttons button:disabled {
-  opacity: 0.5;
+  opacity: 0.6;
   cursor: not-allowed;
 }
 
 .recipe-actions {
-  border-top: 1px solid var(--border-color);
-  padding-top: 1.5rem;
+  display: flex;
+  justify-content:flex-end;
 }
 
 .delete-btn {
-  background-color: #ff4d4d;
-  color: white;
-  padding: 0.6rem 1rem;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.9rem;
+  background-color: transparent;
+  color: var(--color-danger);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-danger);
+  border-radius: var(--radius-lg);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s;
 }
 
 .delete-btn:hover {
-  background-color: #ff3333;
+  background-color: var(--color-danger);
+  color: white;
 }
 
 .recipe-image-skeleton {
