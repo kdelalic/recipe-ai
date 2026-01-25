@@ -26,7 +26,7 @@ def get_uid_from_token(token: str) -> str | None:
         return None
 
 
-async def get_current_user(authorization: Annotated[str | None, Header()] = None) -> str:
+def get_current_user(authorization: Annotated[str | None, Header()] = None) -> str:
     """FastAPI dependency to require authentication and return user UID."""
     if not authorization:
         raise HTTPException(status_code=401, detail="Authorization header missing")
@@ -40,7 +40,7 @@ async def get_current_user(authorization: Annotated[str | None, Header()] = None
     return uid
 
 
-async def get_current_user_optional(
+def get_current_user_optional(
     authorization: Annotated[str | None, Header()] = None,
 ) -> str | None:
     """FastAPI dependency to optionally get user UID (returns None if not authenticated)."""

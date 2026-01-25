@@ -34,7 +34,7 @@ limiter = Limiter(key_func=get_remote_address)
 
 @router.post("/generate-recipe", response_model=GenerateRecipeResponse)
 @limiter.limit("10/minute")
-async def generate_recipe(
+def generate_recipe(
     request: Request,
     data: RecipeRequest,
     uid: Annotated[str, Depends(get_current_user)],
@@ -79,7 +79,7 @@ async def generate_recipe(
 
 @router.post("/update-recipe", response_model=UpdateRecipeResponse)
 @limiter.limit("10/minute")
-async def update_recipe(
+def update_recipe(
     request: Request,
     data: UpdateRecipeRequest,
     uid: Annotated[str, Depends(get_current_user)],
@@ -128,7 +128,7 @@ async def update_recipe(
 
 
 @router.get("/recipe/{recipe_id}", response_model=GetRecipeResponse)
-async def get_recipe(
+def get_recipe(
     recipe_id: str,
     current_uid: Annotated[str | None, Depends(get_current_user_optional)] = None,
 ):
@@ -183,7 +183,7 @@ async def get_recipe(
 
 
 @router.get("/recipe-history", response_model=RecipeHistoryResponse)
-async def get_recipe_history(
+def get_recipe_history(
     uid: Annotated[str, Depends(get_current_user)],
     limit: Annotated[int, Query(le=50)] = 20,
     offset: int = 0,
@@ -222,7 +222,7 @@ async def get_recipe_history(
 
 
 @router.patch("/recipe/{recipe_id}/archive", response_model=MessageResponse)
-async def archive_recipe(
+def archive_recipe(
     recipe_id: str,
     uid: Annotated[str, Depends(get_current_user)],
 ):

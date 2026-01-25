@@ -344,6 +344,21 @@ body.no-scroll {
   gap: 0.125rem;
 }
 
+/* When a dropdown is open, disable hover effects on other items */
+.history-list.dropdown-open .history-item:not(:has(.history-item-menu-btn.active)) {
+  pointer-events: none;
+}
+
+/* Keep pointer events on the item with active dropdown */
+.history-list.dropdown-open .history-item:has(.history-item-menu-btn.active) {
+  pointer-events: auto;
+}
+
+/* The dropdown itself should always receive pointer events */
+.history-list.dropdown-open .history-item-dropdown {
+  pointer-events: auto;
+}
+
 .history-item {
   display: flex;
   align-items: center;
@@ -370,7 +385,8 @@ body.no-scroll {
   min-width: 0;
 }
 
-.history-item:hover {
+.history-item:hover,
+.history-item:has(.history-item-menu-btn.active) {
   background-color: var(--sidebar-hover);
   color: var(--sidebar-text-light);
   transform: translateX(2px);
@@ -408,7 +424,8 @@ body.no-scroll {
 
 .history-item:hover .history-item-menu-btn,
 .history-item-menu-btn:focus,
-.history-item-menu-btn.active {
+.history-item-menu-btn.active,
+.history-item-menu-container:hover .history-item-menu-btn {
   opacity: 1;
 }
 

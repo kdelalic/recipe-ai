@@ -15,7 +15,7 @@ router = APIRouter(prefix="/api", tags=["favorites"])
 
 
 @router.get("/favorites", response_model=FavoritesResponse)
-async def get_favorites(uid: Annotated[str, Depends(get_current_user)]):
+def get_favorites(uid: Annotated[str, Depends(get_current_user)]):
     """Get the list of favorited recipes for the current user.
 
     Returns favorites as a list of objects with id and title.
@@ -52,7 +52,7 @@ async def get_favorites(uid: Annotated[str, Depends(get_current_user)]):
 
 
 @router.post("/favorites/{recipe_id}", response_model=FavoritesResponse)
-async def add_favorite(
+def add_favorite(
     recipe_id: str,
     uid: Annotated[str, Depends(get_current_user)],
     data: AddFavoriteRequest,
@@ -97,7 +97,7 @@ async def add_favorite(
 
 
 @router.delete("/favorites/{recipe_id}", response_model=FavoritesResponse)
-async def remove_favorite(
+def remove_favorite(
     recipe_id: str,
     uid: Annotated[str, Depends(get_current_user)],
 ):

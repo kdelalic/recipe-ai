@@ -403,7 +403,7 @@ function Layout({ children, user }) {
           {historyLoading ? (
             <HistorySkeleton />
           ) : filteredHistory.length > 0 ? (
-            <div className="history-list">
+            <div className={`history-list ${historyMenuOpen !== null ? 'dropdown-open' : ''}`}>
               {filteredHistory.map((item, index) => (
                 <Link
                   key={index}

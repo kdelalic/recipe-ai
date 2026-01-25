@@ -16,7 +16,7 @@ limiter = Limiter(key_func=get_remote_address)
 
 @router.get("/health", response_model=HealthResponse)
 @limiter.limit("30/minute")
-async def health(request: Request):
+def health(request: Request):
     """Simple health check to verify services are up."""
     services_status = ServicesStatus()
 

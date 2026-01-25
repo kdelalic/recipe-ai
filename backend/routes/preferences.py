@@ -13,7 +13,7 @@ router = APIRouter(prefix="/api", tags=["preferences"])
 
 
 @router.get("/preferences", response_model=PreferencesResponse)
-async def get_preferences(uid: Annotated[str, Depends(get_current_user)]):
+def get_preferences(uid: Annotated[str, Depends(get_current_user)]):
     """Get the user's preferences."""
     try:
         user_ref = db.collection("users").document(uid)
@@ -33,7 +33,7 @@ async def get_preferences(uid: Annotated[str, Depends(get_current_user)]):
 
 
 @router.put("/preferences", response_model=PreferencesResponse)
-async def update_preferences(
+def update_preferences(
     uid: Annotated[str, Depends(get_current_user)],
     data: PreferencesUpdate,
 ):

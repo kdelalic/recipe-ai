@@ -26,7 +26,7 @@ gemini_client = genai.Client(api_key=GOOGLE_API_KEY)
 
 @router.post("/generate-image", response_model=GenerateImageResponse)
 @limiter.limit("5/minute")
-async def generate_image(
+def generate_image(
     request: Request,
     data: GenerateImageRequest,
     uid: Annotated[str, Depends(get_current_user)],
