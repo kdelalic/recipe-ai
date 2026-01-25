@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback, cloneElement, isValidElement } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { HiOutlineMenuAlt2, HiOutlinePlus, HiOutlineDotsVertical, HiOutlineTrash } from 'react-icons/hi';
-import { FaUserCircle, FaStar, FaRegStar } from 'react-icons/fa';
+import { FaUserCircle, FaStar, FaRegStar, FaSignInAlt, FaUserPlus, FaSignOutAlt, FaCog } from 'react-icons/fa';
 import { HiOutlineMoon, HiOutlineSun } from 'react-icons/hi';
 import { auth } from '../utils/firebase';
 import api from '../utils/api';
@@ -497,15 +497,18 @@ function Layout({ children, user }) {
               <div className="profile-dropdown">
                 {isLoggedIn && (
                   <Link to="/preferences" className="dropdown-item" onClick={() => setDropdownOpen(false)}>
+                    <FaCog className="dropdown-icon" />
                     Preferences
                   </Link>
                 )}
                 {user.isAnonymous && (
                   <button onClick={handleSignUp} className="dropdown-item">
+                    <FaUserPlus className="dropdown-icon" />
                     Sign Up
                   </button>
                 )}
                 <button onClick={handleSignOut} className="dropdown-item">
+                  <FaSignOutAlt className="dropdown-icon" />
                   {user.isAnonymous ? 'Exit Guest Mode' : 'Sign Out'}
                 </button>
               </div>
@@ -514,9 +517,11 @@ function Layout({ children, user }) {
         ) : (
           <div className={`sidebar-footer auth-actions ${sidebarCollapsed ? 'collapsed' : ''}`}>
              <Link to="/login" className="login-btn">
+               <FaSignInAlt className="btn-icon" />
                Sign In
              </Link>
              <Link to="/signup" className="signup-btn">
+               <FaUserPlus className="btn-icon" />
                Sign Up
              </Link>
           </div>

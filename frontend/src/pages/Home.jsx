@@ -1,5 +1,6 @@
 import { useState, useRef, useMemo, useEffect } from 'react';
 import { HiOutlineMenuAlt2 } from 'react-icons/hi';
+import { FaMagic, FaRedo, FaEdit, FaUserPlus, FaTimes } from 'react-icons/fa';
 import ChefHatIcon from '../components/ChefHatIcon';
 import RecipeView from '../components/RecipeView';
 import RecipeSkeleton from '../components/RecipeSkeleton';
@@ -309,6 +310,7 @@ function Home({ user, isMobile, sidebarCollapsed, onToggleSidebar, favoriteIds, 
           />
         </div>
         <button type="submit" disabled={loading} className="generate-btn">
+          <FaMagic className="btn-icon" />
           {loading ? 'Generating...' : 'Generate Recipe'}
         </button>
       </form>
@@ -347,9 +349,11 @@ function Home({ user, isMobile, sidebarCollapsed, onToggleSidebar, favoriteIds, 
               />
               <div className="modification-buttons">
                 <button type="submit" onClick={handleUpdateRecipe} disabled={loading || !modification}>
+                  <FaEdit className="btn-icon" />
                   {loading ? 'Updating...' : 'Update Recipe'}
                 </button>
                 <button type="button" onClick={handleRegenerate} disabled={loading} className="regenerate-btn">
+                  <FaRedo className="btn-icon" />
                   {loading ? 'Regenerating...' : 'Regenerate'}
                 </button>
               </div>
@@ -364,11 +368,15 @@ function Home({ user, isMobile, sidebarCollapsed, onToggleSidebar, favoriteIds, 
             <h2>Ready specifically for more?</h2>
             <p>Guest users can only generate one free recipe. Sign up to reset your limit and create unlimited recipes!</p>
             <div className="modal-actions">
-              <Link to="/signup" className="modal-btn primary">Sign Up</Link>
+              <Link to="/signup" className="modal-btn primary">
+                <FaUserPlus className="btn-icon" />
+                Sign Up
+              </Link>
               <button 
                 className="modal-btn secondary"
                 onClick={() => setShowSignupPrompt(false)}
               >
+                <FaTimes className="btn-icon" />
                 Maybe Later
               </button>
             </div>

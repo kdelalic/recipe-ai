@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { FaEdit, FaRedo, FaTrash } from 'react-icons/fa';
 import RecipeView from '../components/RecipeView';
 import RecipeSkeleton from '../components/RecipeSkeleton';
 import api from '../utils/api';
@@ -150,21 +151,24 @@ function RecipeDetail({ user, favoriteIds = [], toggleFavorite, isMobile, sideba
                   value={modification}
                   onChange={(e) => setModification(e.target.value)}
                 />
-                <div className="modification-buttons">
-                  <button type="submit" onClick={handleUpdateRecipe} disabled={updateLoading || regenerateLoading || !modification}>
-                    {updateLoading ? 'Updating...' : 'Update Recipe'}
-                  </button>
-                  {prompt && (
-                    <button type="button" onClick={handleRegenerate} disabled={updateLoading || regenerateLoading} className="regenerate-btn">
-                      {regenerateLoading ? 'Regenerating...' : 'Regenerate'}
+                <div className="management-actions">
+                  <div className="modification-buttons">
+                    <button type="submit" onClick={handleUpdateRecipe} disabled={updateLoading || regenerateLoading || !modification}>
+                      <FaEdit className="btn-icon" />
+                      {updateLoading ? 'Updating...' : 'Update Recipe'}
                     </button>
-                  )}
+                    {prompt && (
+                      <button type="button" onClick={handleRegenerate} disabled={updateLoading || regenerateLoading} className="regenerate-btn">
+                        <FaRedo className="btn-icon" />
+                        {regenerateLoading ? 'Regenerating...' : 'Regenerate'}
+                      </button>
+                    )}
+                  </div>
+                  <button onClick={handleDelete} className="delete-btn">
+                    <FaTrash className="btn-icon" />
+                    Delete Recipe
+                  </button>
                 </div>
-              </div>
-              <div className="recipe-actions">
-                <button onClick={handleDelete} className="delete-btn">
-                  Delete Recipe
-                </button>
               </div>
             </div>
           )}

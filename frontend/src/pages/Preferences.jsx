@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { FaSave, FaArrowLeft } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
@@ -104,12 +105,14 @@ function Preferences({ user, imageGenerationEnabled = true, setImageGenerationEn
           onClick={handleSave}
           disabled={saving || !isLoggedIn}
         >
+          <FaSave className="btn-icon" />
           {saving ? 'Saving...' : 'Save Preferences'}
         </button>
         <button
           className="back-button"
           onClick={() => navigate('/')}
         >
+          <FaArrowLeft className="btn-icon" />
           Back to Recipes
         </button>
       </div>

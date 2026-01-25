@@ -43,6 +43,10 @@
 }
 
 .generate-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
   width: auto;
   padding: var(--space-3) var(--space-8);
   font-size: var(--font-size-lg);
@@ -144,7 +148,18 @@ button:disabled {
   gap: var(--space-3);
 }
 
+.modification-buttons button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
 .regenerate-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
   background-color: transparent;
   color: var(--text-primary);
   border: 1px solid var(--border-color);
@@ -366,6 +381,7 @@ button:disabled {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.5rem;
   padding: 0.75rem 1rem;
   border-radius: 8px;
   font-weight: 600;

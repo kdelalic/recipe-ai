@@ -48,7 +48,6 @@
 .recipe-view {
   line-height: var(--line-height-relaxed);
   margin: 0 auto;
-  max-width: 800px;
 }
 
 .recipe-view h1 {
@@ -522,6 +521,10 @@
 }
 
 .modification-buttons button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
   padding: var(--space-2) var(--space-4);
   font-size: var(--font-size-sm);
   font-weight: 500;
@@ -557,12 +560,19 @@
   cursor: not-allowed;
 }
 
-.recipe-actions {
+.management-actions {
   display: flex;
-  justify-content:flex-end;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
 }
 
 .delete-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
   background-color: transparent;
   color: var(--color-danger);
   padding: var(--space-2) var(--space-4);
