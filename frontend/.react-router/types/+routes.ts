@@ -28,6 +28,9 @@ type Pages = {
   "/signup": {
     params: {};
   };
+  "/health": {
+    params: {};
+  };
   "/*": {
     params: {
       "*": string;
@@ -38,7 +41,7 @@ type Pages = {
 type RouteFiles = {
   "root.jsx": {
     id: "root";
-    page: "/" | "/recipe/:id" | "/preferences" | "/login" | "/signup" | "/*";
+    page: "/" | "/recipe/:id" | "/preferences" | "/login" | "/signup" | "/health" | "/*";
   };
   "routes/layout_app.jsx": {
     id: "routes/layout_app";
@@ -64,6 +67,10 @@ type RouteFiles = {
     id: "pages/SignUp";
     page: "/signup";
   };
+  "routes/health.jsx": {
+    id: "routes/health";
+    page: "/health";
+  };
   "pages/NotFound.jsx": {
     id: "pages/NotFound";
     page: "/*";
@@ -78,5 +85,6 @@ type RouteModules = {
   "pages/Preferences": typeof import("./app/pages/Preferences.jsx");
   "pages/Login": typeof import("./app/pages/Login.jsx");
   "pages/SignUp": typeof import("./app/pages/SignUp.jsx");
+  "routes/health": typeof import("./app/routes/health.jsx");
   "pages/NotFound": typeof import("./app/pages/NotFound.jsx");
 };
