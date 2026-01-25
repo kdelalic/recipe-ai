@@ -5,7 +5,7 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 
 from models import HealthResponse, ServicesStatus
-from services.firebase import db
+from services.firebase import db_async
 
 logger = logging.getLogger(__name__)
 
@@ -16,13 +16,15 @@ limiter = Limiter(key_func=get_remote_address)
 
 @router.get("/health", response_model=HealthResponse)
 @limiter.limit("30/minute")
-def health(request: Request):
+async def health(request: Request):
     """Simple health check to verify services are up."""
     services_status = ServicesStatus()
 
     # Check Firebase connection
     try:
-        db.collection("recipes").limit(1).get()
+        query = db_async.collection("recipes").limit(1)
+        async for _ in query.stream():
+            break
     except Exception as e:
         services_status.firebase = "error"
         logger.error(f"Firebase health check failed: {str(e)}")

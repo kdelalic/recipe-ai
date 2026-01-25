@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from auth import get_current_user
 from models import Preferences, PreferencesResponse, PreferencesUpdate
-from services.firebase import db
+from services.firebase import db_async
 
 logger = logging.getLogger(__name__)
 
@@ -13,11 +13,11 @@ router = APIRouter(prefix="/api", tags=["preferences"])
 
 
 @router.get("/preferences", response_model=PreferencesResponse)
-def get_preferences(uid: Annotated[str, Depends(get_current_user)]):
+async def get_preferences(uid: Annotated[str, Depends(get_current_user)]):
     """Get the user's preferences."""
     try:
-        user_ref = db.collection("users").document(uid)
-        user_doc = user_ref.get()
+        user_ref = db_async.collection("users").document(uid)
+        user_doc = await user_ref.get()
 
         if user_doc.exists:
             data = user_doc.to_dict()
@@ -33,19 +33,19 @@ def get_preferences(uid: Annotated[str, Depends(get_current_user)]):
 
 
 @router.put("/preferences", response_model=PreferencesResponse)
-def update_preferences(
+async def update_preferences(
     uid: Annotated[str, Depends(get_current_user)],
     data: PreferencesUpdate,
 ):
     """Update the user's preferences."""
     try:
-        user_ref = db.collection("users").document(uid)
+        user_ref = db_async.collection("users").document(uid)
 
         preferences = Preferences(
             imageGenerationEnabled=data.imageGenerationEnabled,
         )
 
-        user_ref.set({"preferences": preferences.model_dump()}, merge=True)
+        await user_ref.set({"preferences": preferences.model_dump()}, merge=True)
 
         logger.info(f"Updated preferences for user {uid}")
         return PreferencesResponse(preferences=preferences)

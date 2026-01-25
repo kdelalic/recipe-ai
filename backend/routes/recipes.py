@@ -22,7 +22,7 @@ from models import (
     UpdateRecipeResponse,
 )
 from services.cache import recipe_cache
-from services.firebase import db
+from services.firebase import db_async
 from services.llm import generate_recipe_from_prompt, update_recipe_with_modifications
 
 logger = logging.getLogger(__name__)
@@ -34,7 +34,7 @@ limiter = Limiter(key_func=get_remote_address)
 
 @router.post("/generate-recipe", response_model=GenerateRecipeResponse)
 @limiter.limit("10/minute")
-def generate_recipe(
+async def generate_recipe(
     request: Request,
     data: RecipeRequest,
     uid: Annotated[str, Depends(get_current_user)],
@@ -42,7 +42,7 @@ def generate_recipe(
     logger.info(f"Generate recipe request from user {uid}")
 
     try:
-        recipe, _ = generate_recipe_from_prompt(
+        recipe, _ = await generate_recipe_from_prompt(
             data.prompt,
             complexity=data.complexity,
             diet=data.diet,
@@ -64,7 +64,7 @@ def generate_recipe(
             "archived": False,
         }
 
-        _, doc_ref = db.collection("recipes").add(recipe_data)
+        _, doc_ref = await db_async.collection("recipes").add(recipe_data)
         recipe_id = doc_ref.id
 
         # Update cache
@@ -79,7 +79,7 @@ def generate_recipe(
 
 @router.post("/update-recipe", response_model=UpdateRecipeResponse)
 @limiter.limit("10/minute")
-def update_recipe(
+async def update_recipe(
     request: Request,
     data: UpdateRecipeRequest,
     uid: Annotated[str, Depends(get_current_user)],
@@ -89,8 +89,8 @@ def update_recipe(
 
     logger.info(f"Update recipe request for recipe {recipe_id} from user {uid}")
 
-    doc_ref = db.collection("recipes").document(recipe_id)
-    doc = doc_ref.get()
+    doc_ref = db_async.collection("recipes").document(recipe_id)
+    doc = await doc_ref.get()
     if not doc.exists:
         raise HTTPException(status_code=404, detail="Recipe not found")
 
@@ -104,13 +104,13 @@ def update_recipe(
         raise HTTPException(status_code=403, detail="Unauthorized access")
 
     try:
-        updated_recipe, _ = update_recipe_with_modifications(
+        updated_recipe, _ = await update_recipe_with_modifications(
             data.original_recipe.model_dump(), modifications
         )
         updated_recipe_dict = updated_recipe.model_dump()
 
         # Update the existing document in Firestore
-        doc_ref.update(
+        await doc_ref.update(
             {
                 "recipe": updated_recipe_dict,
                 "timestamp": datetime.datetime.now(datetime.timezone.utc),
@@ -128,7 +128,7 @@ def update_recipe(
 
 
 @router.get("/recipe/{recipe_id}", response_model=GetRecipeResponse)
-def get_recipe(
+async def get_recipe(
     recipe_id: str,
     current_uid: Annotated[str | None, Depends(get_current_user_optional)] = None,
 ):
@@ -137,8 +137,8 @@ def get_recipe(
         if not re.match(r"^[a-zA-Z0-9]+$", recipe_id):
             raise HTTPException(status_code=400, detail="Invalid recipe ID format")
 
-        doc_ref = db.collection("recipes").document(recipe_id)
-        doc = doc_ref.get()
+        doc_ref = db_async.collection("recipes").document(recipe_id)
+        doc = await doc_ref.get()
         if not doc.exists:
             raise HTTPException(status_code=404, detail="Recipe not found")
 
@@ -183,7 +183,7 @@ def get_recipe(
 
 
 @router.get("/recipe-history", response_model=RecipeHistoryResponse)
-def get_recipe_history(
+async def get_recipe_history(
     uid: Annotated[str, Depends(get_current_user)],
     limit: Annotated[int, Query(le=50)] = 20,
     offset: int = 0,
@@ -193,7 +193,7 @@ def get_recipe_history(
     try:
         # Create an efficient query with pagination
         recipes_ref = (
-            db.collection("recipes")
+            db_async.collection("recipes")
             .where(filter=FieldFilter("uid", "==", uid))
             .where(filter=FieldFilter("archived", "==", False))
             .order_by("timestamp", direction=firestore.Query.DESCENDING)
@@ -204,7 +204,7 @@ def get_recipe_history(
         docs = recipes_ref.stream()
         history = []
 
-        for doc in docs:
+        async for doc in docs:
             data = doc.to_dict()
             recipe = data.get("recipe", {})
             history.append(
@@ -222,7 +222,7 @@ def get_recipe_history(
 
 
 @router.patch("/recipe/{recipe_id}/archive", response_model=MessageResponse)
-def archive_recipe(
+async def archive_recipe(
     recipe_id: str,
     uid: Annotated[str, Depends(get_current_user)],
 ):
@@ -233,8 +233,8 @@ def archive_recipe(
     logger.info(f"Archive recipe request for recipe {recipe_id} from user {uid}")
 
     try:
-        doc_ref = db.collection("recipes").document(recipe_id)
-        doc = doc_ref.get()
+        doc_ref = db_async.collection("recipes").document(recipe_id)
+        doc = await doc_ref.get()
         if not doc.exists:
             raise HTTPException(status_code=404, detail="Recipe not found")
 
@@ -245,7 +245,7 @@ def archive_recipe(
             )
             raise HTTPException(status_code=403, detail="Unauthorized access")
 
-        doc_ref.update(
+        await doc_ref.update(
             {
                 "archived": True,
                 "archivedAt": datetime.datetime.now(datetime.timezone.utc),

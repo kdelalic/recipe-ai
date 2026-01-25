@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from auth import get_current_user
 from models import AddFavoriteRequest, FavoriteItem, FavoritesResponse
-from services.firebase import db
+from services.firebase import db_async
 
 logger = logging.getLogger(__name__)
 
@@ -15,15 +15,15 @@ router = APIRouter(prefix="/api", tags=["favorites"])
 
 
 @router.get("/favorites", response_model=FavoritesResponse)
-def get_favorites(uid: Annotated[str, Depends(get_current_user)]):
+async def get_favorites(uid: Annotated[str, Depends(get_current_user)]):
     """Get the list of favorited recipes for the current user.
 
     Returns favorites as a list of objects with id and title.
     Also returns a list of just IDs for backward compatibility.
     """
     try:
-        user_ref = db.collection("users").document(uid)
-        user_doc = user_ref.get()
+        user_ref = db_async.collection("users").document(uid)
+        user_doc = await user_ref.get()
 
         if user_doc.exists:
             data = user_doc.to_dict()
@@ -52,7 +52,7 @@ def get_favorites(uid: Annotated[str, Depends(get_current_user)]):
 
 
 @router.post("/favorites/{recipe_id}", response_model=FavoritesResponse)
-def add_favorite(
+async def add_favorite(
     recipe_id: str,
     uid: Annotated[str, Depends(get_current_user)],
     data: AddFavoriteRequest,
@@ -65,8 +65,8 @@ def add_favorite(
     title = data.title
 
     try:
-        user_ref = db.collection("users").document(uid)
-        user_doc = user_ref.get()
+        user_ref = db_async.collection("users").document(uid)
+        user_doc = await user_ref.get()
 
         if user_doc.exists:
             favorites = user_doc.to_dict().get("favorites", [])
@@ -80,7 +80,7 @@ def add_favorite(
                 raise HTTPException(status_code=400, detail="Maximum 500 favorites allowed")
             timestamp = datetime.now(timezone.utc).isoformat()
             favorites.append({"id": recipe_id, "title": title, "timestamp": timestamp})
-            user_ref.set({"favorites": favorites}, merge=True)
+            await user_ref.set({"favorites": favorites}, merge=True)
 
         favorite_ids = [f["id"] if isinstance(f, dict) else f for f in favorites]
         favorite_items = [
@@ -97,7 +97,7 @@ def add_favorite(
 
 
 @router.delete("/favorites/{recipe_id}", response_model=FavoritesResponse)
-def remove_favorite(
+async def remove_favorite(
     recipe_id: str,
     uid: Annotated[str, Depends(get_current_user)],
 ):
@@ -107,8 +107,8 @@ def remove_favorite(
         raise HTTPException(status_code=400, detail="Invalid recipe ID format")
 
     try:
-        user_ref = db.collection("users").document(uid)
-        user_doc = user_ref.get()
+        user_ref = db_async.collection("users").document(uid)
+        user_doc = await user_ref.get()
 
         if user_doc.exists:
             favorites = user_doc.to_dict().get("favorites", [])
@@ -118,7 +118,7 @@ def remove_favorite(
                 for f in favorites
                 if (f["id"] if isinstance(f, dict) else f) != recipe_id
             ]
-            user_ref.set({"favorites": favorites}, merge=True)
+            await user_ref.set({"favorites": favorites}, merge=True)
         else:
             favorites = []
 

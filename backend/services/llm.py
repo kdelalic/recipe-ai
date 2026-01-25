@@ -25,7 +25,7 @@ UPDATE_SYSTEM_MESSAGE = """You are a meticulous test kitchen editor. Your goal i
 """
 
 
-def generate_recipe_from_prompt(
+async def generate_recipe_from_prompt(
     prompt: str,
     complexity: str = "standard",
     diet: str = "standard",
@@ -56,7 +56,7 @@ def generate_recipe_from_prompt(
     
     full_prompt += "\n\nPlease create a detailed, step-by-step recipe following the system guidelines."
 
-    response = litellm.completion(
+    response = await litellm.acompletion(
         model=LLM_MODEL,
         messages=[
             {"role": "system", "content": system_msg},
@@ -75,7 +75,7 @@ def generate_recipe_from_prompt(
     return recipe, {"prompt_tokens": usage.prompt_tokens, "completion_tokens": usage.completion_tokens}
 
 
-def update_recipe_with_modifications(original_recipe: dict, modifications: str) -> tuple[Recipe, dict]:
+async def update_recipe_with_modifications(original_recipe: dict, modifications: str) -> tuple[Recipe, dict]:
     """
     Update an existing recipe based on modification instructions.
     Returns (updated_recipe, usage_info).
@@ -105,7 +105,7 @@ def update_recipe_with_modifications(original_recipe: dict, modifications: str) 
         "Please rewrite the recipe to incorporate these changes. Keep the rest of the recipe consistent with the original style."
     )
 
-    response = litellm.completion(
+    response = await litellm.acompletion(
         model=LLM_MODEL,
         messages=[
             {"role": "system", "content": UPDATE_SYSTEM_MESSAGE},

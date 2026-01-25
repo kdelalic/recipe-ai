@@ -82,4 +82,4 @@ if __name__ == "__main__":
 
     # Use a production ASGI server in production!
     # For development only:
-    uvicorn.run(app, host="0.0.0.0", port=PORT)
+    uvicorn.run("app:app", host="0.0.0.0", port=PORT, reload=True)
