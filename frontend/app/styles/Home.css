@@ -48,7 +48,7 @@
   width: 100%;
   max-width: 650px;
   gap: var(--space-6);
-  margin: 0 auto;
+  margin: var(--space-2) auto;
 }
 
 .generate-btn {

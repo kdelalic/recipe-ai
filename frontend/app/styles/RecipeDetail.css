@@ -15,12 +15,12 @@
 .recipe-mobile-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
-  padding: var(--space-3) var(--space-4);
+  padding: calc(var(--space-3) + env(safe-area-inset-top)) var(--space-4) var(--space-3) calc(56px + var(--space-4)); /* 56px = hamburger (40px) + left-padding (16px) */
   background-color: rgba(255, 255, 255, 0.85); /* Fallback */
   background-color: var(--glass-bg);
   backdrop-filter: blur(var(--blur-md));
@@ -190,6 +190,7 @@
   box-shadow: var(--shadow-md);
   transition: var(--transition-base);
   margin-bottom: var(--space-8);
+  list-style: none;
 }
 
 .ingredient-groups:hover,
@@ -202,6 +203,13 @@
 /* Ingredients */
 .ingredient-group {
   margin-bottom: var(--space-6);
+}
+
+.ingredient-group ul,
+.recipe-view > ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
 .ingredient-group:last-child {
@@ -293,6 +301,11 @@
 }
 
 /* Notes */
+.notes-list {
+  margin: 0;
+  padding: var(--space-8);
+}
+
 .notes-list li {
   margin-bottom: var(--space-4);
   line-height: 1.7;
@@ -452,5 +465,21 @@
   .delete-btn {
     width: 100%;
     margin-left: 0;
+  }
+
+  .management-actions {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+
+  .modification-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .modification-buttons button,
+  .modification-buttons .regenerate-btn {
+    width: 100%;
   }
 }

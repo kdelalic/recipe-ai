@@ -606,9 +606,9 @@ body.sidebar-open {
 /* Mobile Menu Toggle */
 .mobile-menu-toggle {
   position: fixed;
-  top: 1rem; /* Adjust based on safe area if needed */
-  left: 1rem;
-  z-index: 40; /* Lower than sidebar (50) but high enough */
+  top: calc(var(--space-3) + env(safe-area-inset-top));
+  left: var(--space-4);
+  z-index: 101; /* Above recipe-mobile-header (100) but below sidebar (1000) */
   width: 40px;
   height: 40px;
   border-radius: var(--radius-lg);
