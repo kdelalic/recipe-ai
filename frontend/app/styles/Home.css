@@ -10,6 +10,9 @@
   overscroll-behavior: none;
   touch-action: none;
   background: radial-gradient(circle at 50% 10%, rgba(16, 185, 129, 0.05), transparent 70%);
+  width: 100%;
+  max-width: none;
+  padding: 0 1.5rem;
 }
 
 .greeting-row {
@@ -38,8 +41,9 @@
   flex-direction: column;
   align-items: center;
   width: 100%;
+  max-width: 700px;
   gap: var(--space-4);
-  margin-bottom: var(--space-6);
+  margin: 0 auto var(--space-6) auto;
 }
 
 .generate-btn {
@@ -284,7 +288,7 @@ button:disabled {
 /* Mobile-specific styling */
 @media (max-width: 768px) {
   .home-page:not(.centered) {
-    padding-top: 3rem;
+    padding-top: calc(4rem + env(safe-area-inset-top));
   }
 
   .home-page.centered {

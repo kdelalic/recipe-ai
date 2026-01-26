@@ -2,6 +2,7 @@
   max-width: 600px;
   margin: 2rem auto;
   padding: 2rem;
+  height: fit-content;
   background-color: var(--bg-secondary);
   border-radius: 4px;
   box-shadow: 0 0 10px var(--shadow-color);

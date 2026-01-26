@@ -9,6 +9,7 @@ import {
 import AuthProvider from "./components/AuthProvider";
 import ThemeProvider from "./components/ThemeProvider";
 import "./styles/variables.css";
+import "./styles/index.css";
 
 export function meta() {
   return [
@@ -31,7 +32,7 @@ export function links() {
 
 export function Layout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
         <Meta />
