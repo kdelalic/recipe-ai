@@ -45,6 +45,10 @@
 }
 
 /* Recipe View Styling */
+.recipe-detail-page {
+  padding-bottom: var(--space-10);
+}
+
 .recipe-view {
   line-height: var(--line-height-relaxed);
   margin: 0 auto;
