@@ -1,7 +1,7 @@
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import '../styles/RecipeSkeleton.css';
-import { HiOutlineMenuAlt2 } from 'react-icons/hi';
+
 import { useTheme } from './ThemeProvider';
 
 function RecipeSkeleton({ isMobile, sidebarCollapsed, onToggleSidebar, showImageSkeleton = true }) {
@@ -20,15 +20,6 @@ function RecipeSkeleton({ isMobile, sidebarCollapsed, onToggleSidebar, showImage
           {/* Mobile header - matches RecipeView structure */}
           {isMobile && (
             <div className="recipe-mobile-header">
-              {sidebarCollapsed && onToggleSidebar && (
-                <button
-                  className="mobile-menu-btn"
-                  onClick={onToggleSidebar}
-                  aria-label="Open menu"
-                >
-                  <HiOutlineMenuAlt2 size={20} />
-                </button>
-              )}
               <div className="recipe-action-buttons">
                 <span className="sk-icon"><Skeleton width={32} height={32} borderRadius={4} /></span>
                 <span className="sk-icon"><Skeleton width={32} height={32} borderRadius={4} /></span>

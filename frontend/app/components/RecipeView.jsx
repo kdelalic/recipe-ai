@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { FaStar, FaRegStar, FaPrint, FaShareAlt } from 'react-icons/fa';
-import { HiOutlineMenuAlt2, HiOutlineEye, HiOutlineEyeOff } from 'react-icons/hi';
+import { HiOutlineEye, HiOutlineEyeOff } from 'react-icons/hi';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
 import { useTheme } from './ThemeProvider';
@@ -64,15 +64,6 @@ function RecipeView({ recipe, author, timestamp, isFavorite, onToggleFavorite, r
     <div className="recipe-view">
       {isMobile && (
         <div className="recipe-mobile-header">
-          {sidebarCollapsed && onToggleSidebar && (
-            <button
-              className="mobile-menu-btn"
-              onClick={onToggleSidebar}
-              aria-label="Open menu"
-            >
-              <HiOutlineMenuAlt2 size={20} />
-            </button>
-          )}
           <div className="recipe-action-buttons">
             {onToggleFavorite && (
               <button

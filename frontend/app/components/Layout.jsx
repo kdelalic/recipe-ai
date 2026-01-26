@@ -398,6 +398,17 @@ function Layout({ children, user }) {
   return (
     <LayoutContext.Provider value={contextValue}>
     <div className={`layout ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+      {/* Mobile Menu Toggle - visible when sidebar is collapsed on mobile */}
+      {isMobile && sidebarCollapsed && (
+        <button
+          className="mobile-menu-toggle"
+          onClick={() => setSidebarCollapsed(false)}
+          aria-label="Open menu"
+        >
+          <HiOutlineMenuAlt2 size={24} />
+        </button>
+      )}
+
       {/* Overlay for mobile */}
       {isMobile && !sidebarCollapsed && (
         <div className="sidebar-overlay" onClick={() => setSidebarCollapsed(true)} />

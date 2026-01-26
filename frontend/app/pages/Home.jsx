@@ -1,5 +1,4 @@
 import { useState, useRef, useMemo, useEffect } from 'react';
-import { HiOutlineMenuAlt2 } from 'react-icons/hi';
 import { FaMagic, FaRedo, FaEdit, FaUserPlus, FaTimes } from 'react-icons/fa';
 import ChefHatIcon from '../components/ChefHatIcon';
 import RecipeView from '../components/RecipeView';
@@ -247,15 +246,6 @@ function Home() {
 
   return (
     <div className={`home-page ${!hasRecipe ? 'centered' : ''}`}>
-      {!hasRecipe && isMobile && sidebarCollapsed && onToggleSidebar && (
-        <button
-          className="mobile-menu-btn top-left"
-          onClick={onToggleSidebar}
-          aria-label="Open menu"
-        >
-          <HiOutlineMenuAlt2 size={20} />
-        </button>
-      )}
       {!hasRecipe && (
         <>
           <ChefHatIcon className="home-icon" size={64} />

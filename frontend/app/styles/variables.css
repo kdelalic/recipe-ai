@@ -1,18 +1,29 @@
 :root {
-  /* Colors - Emerald Primary */
-  --color-primary: #10b981;
-  --color-primary-hover: #059669;
-  --color-primary-light: #d1fae5;
-  --color-primary-dark: #064e3b;
+  /* 
+   * Color Palette - Premium "Emerald & Slate" Theme
+   * Designed for high contrast, richness, and visual depth.
+   */
   
+  /* Primary Colors (Rich Emerald) */
+  --color-primary: #059669;        /* Deep, rich emerald */
+  --color-primary-hover: #047857;  /* darker interaction state */
+  --color-primary-active: #065f46; /* pressed state */
+  --color-primary-light: #d1fae5;  /* subtle backgrounds */
+  --color-primary-subtle: #ecfdf5; /* faintest tint */
+  
+  /* Accent Colors (Golden / Warmth) */
+  --color-accent: #f59e0b;         /* Amber/Gold for highlights */
+  --color-accent-hover: #d97706;
+
   /* Semantic Colors */
   --color-danger: #ef4444;
   --color-danger-hover: #dc2626;
-  --color-warning: #f59e0b;
+  --color-danger-light: #fee2e2;
   --color-success: #10b981;
   --color-info: #3b82f6;
+  --color-warning: #f59e0b;
 
-  /* Neutral Scale (Slate) */
+  /* Neutral Scale (Slate - Cool & Modern) */
   --color-gray-50: #f8fafc;
   --color-gray-100: #f1f5f9;
   --color-gray-200: #e2e8f0;
@@ -23,8 +34,20 @@
   --color-gray-700: #334155;
   --color-gray-800: #1e293b;
   --color-gray-900: #0f172a;
+  --color-gray-950: #020617; 
+
+  /* Layout & Surfaces */
+  --bg-body: var(--color-gray-50);
+  --bg-surface: #ffffff;
+  --bg-surface-subtle: var(--color-gray-50);
   
-  /* Spacing */
+  /* Glassmorphism */
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(255, 255, 255, 0.5);
+  --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
+  --blur-md: 12px;
+
+  /* Spacing System */
   --space-0-5: 0.125rem;
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -36,39 +59,52 @@
   --space-10: 2.5rem;
   --space-12: 3rem;
   --space-16: 4rem;
+  --space-20: 5rem;
   
   /* Radii */
-  --radius-xs: 0.125rem;
-  --radius-sm: 0.25rem;
-  --radius-md: 0.375rem;
-  --radius-lg: 0.5rem;
-  --radius-xl: 0.75rem;
-  --radius-2xl: 1rem;
+  --radius-xs: 0.25rem;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+  --radius-3xl: 2rem;
   --radius-full: 9999px;
   
-  /* Shadows (Softer, more depth) */
+  /* Shadows (Tuned for Depth) */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-  --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.06);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.04);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.08), 0 8px 10px -6px rgb(0 0 0 / 0.02);
+  --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
+  --shadow-glow: 0 0 0 3px rgba(5, 150, 105, 0.2); /* Focus ring */
   
   /* Typography */
   --font-family-base: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-family-heading: 'Outfit', var(--font-family-base); /* If we add Outfit later, otherwise falls back */
+  
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
   --font-size-base: 1rem;
   --font-size-lg: 1.125rem;
   --font-size-xl: 1.25rem;
   --font-size-2xl: 1.5rem;
-  --font-size-3xl: 1.875rem;
-  --font-size-4xl: 2.25rem;
+  --font-size-3xl: 2rem;
+  --font-size-4xl: 2.5rem;
+  --font-size-5xl: 3rem;
   
-  --line-height-tight: 1.25;
+  --line-height-tight: 1.1;
+  --line-height-snug: 1.3;
   --line-height-base: 1.5;
   --line-height-relaxed: 1.75;
   
+  /* Transitions */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-bounce: 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  
   /* Component Specific */
   --recipe-image-aspect-ratio: 16 / 9;
-  --transition-base: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  --header-height: 64px;
 }
