@@ -20,14 +20,14 @@ export function meta() {
     { name: "theme-color", content: "#ffffff", media: "(prefers-color-scheme: light)" },
     { property: "og:title", content: "RecipeLab - AI Recipe Generator" },
     { property: "og:description", content: "Generate delicious recipes instantly with AI." },
-    { property: "og:image", content: "/og-image.png" },
+    { property: "og:image", content: "/og-image.svg" },
     { property: "og:url", content: "https://recipelab.app" },
     { property: "og:site_name", content: "RecipeLab" },
     { property: "og:type", content: "website" },
     { name: "twitter:card", content: "summary_large_image" },
     { name: "twitter:title", content: "RecipeLab - AI Recipe Generator" },
     { name: "twitter:description", content: "Generate delicious recipes instantly with AI." },
-    { name: "twitter:image", content: "/og-image.png" },
+    { name: "twitter:image", content: "/og-image.svg" },
   ];
 }
 
