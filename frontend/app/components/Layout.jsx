@@ -296,6 +296,9 @@ function Layout({ children, user }) {
   useEffect(() => {
     if (user) {
       fetchHistory();
+    } else {
+      setHistoryLoading(false);
+      setHistory([]);
     }
   }, [user]);
 
@@ -360,6 +363,8 @@ function Layout({ children, user }) {
     };
   }, [isMobile, sidebarCollapsed]);
 
+  const [sidebarHidden, setSidebarHidden] = useState(false);
+
   // Infinite scroll handler
   const handleScroll = () => {
     const el = historyListRef.current;
@@ -393,13 +398,14 @@ function Layout({ children, user }) {
       imageGenerationEnabled,
       setImageGenerationEnabled,
       preferencesLoading,
+      setSidebarHidden,
   };
 
   return (
     <LayoutContext.Provider value={contextValue}>
-    <div className={`layout ${sidebarCollapsed ? 'sidebar-collapsed' : ''}`}>
+    <div className={`layout ${sidebarCollapsed ? 'sidebar-collapsed' : ''} ${sidebarHidden ? 'sidebar-hidden' : ''}`}>
       {/* Mobile Menu Toggle - visible when sidebar is collapsed on mobile */}
-      {isMobile && sidebarCollapsed && (
+      {isMobile && sidebarCollapsed && !sidebarHidden && (
         <button
           className="mobile-menu-toggle"
           onClick={() => setSidebarCollapsed(false)}
@@ -410,11 +416,12 @@ function Layout({ children, user }) {
       )}
 
       {/* Overlay for mobile */}
-      {isMobile && !sidebarCollapsed && (
+      {isMobile && !sidebarCollapsed && !sidebarHidden && (
         <div className="sidebar-overlay" onClick={() => setSidebarCollapsed(true)} />
       )}
 
-      <aside className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
+      {!sidebarHidden && (
+        <aside className={`sidebar ${sidebarCollapsed ? 'collapsed' : ''}`}>
         <div className="sidebar-header">
           <div className="sidebar-logo-container">
             <ChefHatIcon className="sidebar-logo-icon" size={32} />
@@ -484,11 +491,11 @@ function Layout({ children, user }) {
                 <Link
                   key={index}
                   to={`/recipe/${item.id}`}
-                  className={`history-item ${currentRecipeId === item.id ? 'active' : ''}`}
+                  className={`history-item ${currentRecipeId === item.id ? 'active' : ''} ${favoriteIds.includes(item.id) ? 'favorite-item' : ''}`}
                   onClick={() => isMobile && setSidebarCollapsed(true)}
                 >
                   <span className="history-item-title">{item.title}</span>
-                  {isLoggedIn && !showFavoritesOnly && (
+                  {isLoggedIn && (
                     <div 
                       className="history-item-menu-container"
                       ref={historyMenuOpen === item.id ? historyMenuRef : null}
@@ -579,6 +586,7 @@ function Layout({ children, user }) {
           </div>
         )}
       </aside>
+      )}
       <main className="main-content">
         {children}
       </main>

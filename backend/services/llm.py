@@ -2,8 +2,8 @@ import logging
 
 import litellm
 
-from config import LLM_MODEL
-from models import Recipe
+from config import LLM_MODEL, MOCK_MODE
+from models import IngredientGroup, Recipe
 
 logger = logging.getLogger(__name__)
 
@@ -36,6 +36,47 @@ async def generate_recipe_from_prompt(
     Generate a recipe from a user prompt with modifiers.
     Returns (recipe, usage_info).
     """
+    if MOCK_MODE:
+        logger.info("MOCK_MODE enabled: Returning mock recipe")
+        mock_recipe = Recipe(
+            title="Mock Spaghetti Carbonara",
+            description="A classic Roman pasta dish made with eggs, hard cheese, cured pork, and black pepper. This is a mock recipe for testing.",
+            prep_time="15 minutes",
+            cook_time="20 minutes",
+            servings="4",
+            macros={"calories": 650, "protein": 25, "carbs": 70, "fat": 30},
+            ingredients=[
+                IngredientGroup(
+                    group_name="Main",
+                    items=[
+                        "400g spaghetti",
+                        "200g guanciale or pancetta, cubed",
+                        "100g Pecorino Romano, grated",
+                    ],
+                ),
+                IngredientGroup(
+                    group_name="Sauce",
+                    items=[
+                        "4 large eggs",
+                        "Freshly ground black pepper",
+                    ],
+                ),
+            ],
+            instructions=[
+                "Bring a large pot of salted water to a <strong>boil</strong>.",
+                "Cook the spaghetti until <strong>al dente</strong>.",
+                "Meanwhile, fry the guanciale/pancetta over <strong>medium heat</strong> until <strong>crispy</strong>.",
+                "Whisk eggs and cheese together in a bowl with plenty of pepper.",
+                "Drain pasta, reserving some water. Toss pasta with pork fat.",
+                "Remove from heat and quickly mix in the egg mixture to create a <strong>creamy sauce</strong>.",
+                "Serve immediately with more cheese and pepper.",
+            ],
+            notes=[
+                "Do not scramble the eggs! Remove pan from heat before adding.",
+                "Use high quality cheese for best results.",
+            ],
+        )
+        return mock_recipe, {"prompt_tokens": 0, "completion_tokens": 0}
 
     modifiers = []
     if complexity != "standard":
@@ -80,6 +121,14 @@ async def update_recipe_with_modifications(original_recipe: dict, modifications:
     Update an existing recipe based on modification instructions.
     Returns (updated_recipe, usage_info).
     """
+    if MOCK_MODE:
+        logger.info("MOCK_MODE enabled: Returning mock updated recipe")
+        # Just return the original recipe with a slight modification to title for proof
+        original_recipe_obj = Recipe(**original_recipe) if isinstance(original_recipe, dict) else original_recipe
+        if hasattr(original_recipe_obj, "title"):
+            original_recipe_obj.title += " (Modified)"
+        return original_recipe_obj, {"prompt_tokens": 0, "completion_tokens": 0}
+
     # Convert recipe dict to formatted string for the prompt
     original_recipe_str = (
         f"Title: {original_recipe.get('title', '')}\n"

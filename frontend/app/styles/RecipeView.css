@@ -61,12 +61,6 @@
   font-size: var(--font-size-base);
 }
 
-.recipe-stats .stat-divider {
-  width: 1px;
-  height: 20px;
-  background-color: var(--border-color);
-}
-
 .macros-row {
   display: flex;
   align-items: center;
@@ -94,7 +88,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.6rem;
+  padding: var(--space-3);
   background: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
@@ -144,8 +138,14 @@
 }
 
 /* Section Styling */
+.recipe-image-skeleton {
+  width: 100%;
+  aspect-ratio: var(--recipe-image-aspect-ratio, 16 / 9);
+  display: block;
+}
+
 .recipe-view h2 {
-  margin-top: var(--space-12);
+  margin-top: var(--space-8);
   margin-bottom: var(--space-6);
   font-family: var(--font-family-heading);
   font-size: var(--font-size-2xl);
@@ -160,8 +160,7 @@
 
 /* Ingredient & Instruction Cards */
 .ingredient-groups,
-.instructions-list,
-.notes-list {
+.instructions-list {
   background-color: var(--bg-surface);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-2xl);
@@ -173,8 +172,7 @@
 }
 
 .ingredient-groups:hover,
-.instructions-list:hover,
-.notes-list:hover {
+.instructions-list:hover {
   box-shadow: var(--shadow-lg);
   border-color: var(--color-primary-light);
 }
@@ -220,8 +218,8 @@
 }
 
 .ingredient-checkbox {
-  width: 1.25rem;
-  height: 1.25rem;
+  width: var(--space-5);
+  height: var(--space-5);
   margin-top: 0.15rem;
   accent-color: var(--color-primary);
   cursor: pointer;
@@ -266,8 +264,8 @@
   position: absolute;
   left: 0;
   top: 0;
-  width: 28px;
-  height: 28px;
+  width: var(--space-7, 1.75rem);
+  height: var(--space-7, 1.75rem);
   background-color: var(--bg-tertiary);
   color: var(--color-primary);
   border-radius: 50%;
@@ -281,20 +279,29 @@
 
 /* Notes */
 .notes-list {
-  margin: 0;
-  padding: var(--space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  margin-bottom: var(--space-8);
+  list-style: none;
+  padding: 0;
 }
 
 .notes-list li {
-  margin-bottom: var(--space-4);
+  position: relative;
   line-height: 1.7;
   color: var(--text-secondary);
-  font-style: italic;
-  padding-left: var(--space-4);
+  padding: var(--space-2) var(--space-4);
   border-left: 3px solid var(--color-accent);
-  background-color: rgba(245, 158, 11, 0.05);
-  padding: var(--space-3) var(--space-4);
-  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+  background-color: transparent;
+  border-radius: 0;
+  transition: var(--transition-fast);
+}
+
+.notes-list li:hover {
+  background-color: var(--bg-tertiary);
+  color: var(--text-primary);
+  border-radius: var(--radius-md);
 }
 
 /* Mobile-specific styling */
@@ -322,10 +329,6 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 0;
-  }
-
-  .recipe-stats .stat-divider {
-    display: none;
   }
 
   .macros-row {

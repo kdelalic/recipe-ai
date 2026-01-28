@@ -9,7 +9,7 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 
 from auth import get_current_user
-from config import ENABLE_IMAGE_GENERATION, GEMINI_IMAGE_MODEL, GOOGLE_API_KEY
+from config import ENABLE_IMAGE_GENERATION, GEMINI_IMAGE_MODEL, GOOGLE_API_KEY, MOCK_MODE
 from models import GenerateImageRequest, GenerateImageResponse
 from services.firebase import db_async
 from services.storage import compress_image, storage_bucket
@@ -33,6 +33,11 @@ async def generate_image(
 ):
     if not ENABLE_IMAGE_GENERATION:
         raise HTTPException(status_code=403, detail="Image generation feature is disabled.")
+
+    if MOCK_MODE:
+        logger.info("MOCK_MODE enabled: Returning mock image")
+        # Return a nice placeholder food image
+        return {"image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c"}
 
     if not storage_bucket:
         raise HTTPException(status_code=503, detail="Cloud Storage not configured.")

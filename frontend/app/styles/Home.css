@@ -47,7 +47,7 @@
   align-items: center;
   width: 100%;
   max-width: 650px;
-  gap: var(--space-6);
+  gap: var(--space-4);
   margin: var(--space-2) auto;
 }
 
@@ -68,7 +68,6 @@
   transition: var(--transition-bounce);
   border: none;
   cursor: pointer;
-  margin-top: var(--space-4);
 }
 
 .generate-btn:hover:not(:disabled) {
@@ -153,10 +152,6 @@ button {
 
   .generate-btn {
     width: 100%;
-  }
-
-  .recipe-form {
-    gap: var(--space-4);
   }
 }
 

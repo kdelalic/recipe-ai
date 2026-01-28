@@ -1,7 +1,7 @@
 
 .recipe-detail-page {
   padding-bottom: var(--space-20);
-  max-width: 900px;
+  max-width: var(--content-max-width, 900px);
   margin: 0 auto;
 }
 
@@ -16,110 +16,17 @@
 
 /* Modification Section */
 
-/* Modification Section */
-.recipe-management-section {
-  margin-top: var(--space-16);
-  padding-top: var(--space-8);
-  border-top: 1px solid var(--border-color);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-8);
-}
 
-.update-section {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  background-color: var(--bg-surface);
-  padding: var(--space-6);
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--border-color);
-}
-
-.modification-input {
-  width: 100%;
-  padding: 1rem;
-  background-color: var(--bg-surface);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-lg);
-  color: var(--text-primary);
-  font-size: var(--font-size-base);
-  box-sizing: border-box;
-  transition: var(--transition-base);
-}
-
-.modification-input:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: var(--shadow-glow);
-}
-
-.management-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-  margin-top: var(--space-4);
-}
-
-.modification-buttons {
-  display: flex;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-}
-
-.modification-buttons button {
-  padding: 0.75rem 1.25rem;
-  font-weight: 600;
-  border-radius: var(--radius-lg);
-  font-size: var(--font-size-sm);
-}
-
-.modification-buttons button[type="submit"] {
-  background-color: var(--color-primary);
-  color: white;
-  box-shadow: var(--shadow-sm);
-}
-
-.modification-buttons button[type="submit"]:hover:not(:disabled) {
-  background-color: var(--color-primary-hover);
-  box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
-}
-
-.delete-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  background-color: transparent;
-  color: var(--color-danger);
-  padding: 0.75rem 1.25rem;
-  border: 1px solid var(--color-danger);
-  border-radius: var(--radius-lg);
-  font-size: var(--font-size-sm);
-  font-weight: 600;
-  cursor: pointer;
-  transition: var(--transition-base);
-  margin-left: auto; /* Push to right */
-}
-
-.delete-btn:hover {
-  background-color: var(--color-danger);
-  color: white;
-  box-shadow: var(--shadow-md);
-}
 
 /* Diffs */
 .diff-added {
-  background-color: rgba(16, 185, 129, 0.2);
+  background-color: var(--color-diff-added-bg);
   border-radius: 2px;
   padding: 0 2px;
 }
 
 .diff-removed {
-  background-color: rgba(239, 68, 68, 0.2);
+  background-color: var(--color-diff-removed-bg);
   text-decoration: line-through;
   border-radius: 2px;
   padding: 0 2px;
@@ -141,24 +48,5 @@
   }
   
   
-  .delete-btn {
-    width: 100%;
-    margin-left: 0;
-  }
 
-  .management-actions {
-    flex-direction: column;
-    align-items: stretch;
-    width: 100%;
-  }
-
-  .modification-buttons {
-    flex-direction: column;
-    width: 100%;
-  }
-
-  .modification-buttons button,
-  .modification-buttons .regenerate-btn {
-    width: 100%;
-  }
 }

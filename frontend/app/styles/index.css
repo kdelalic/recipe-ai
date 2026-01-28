@@ -24,6 +24,11 @@
   
   --skeleton-base: var(--color-gray-200);
   --skeleton-highlight: var(--color-gray-50);
+  
+  --color-diff-added-bg: rgba(16, 185, 129, 0.2);
+  --color-diff-removed-bg: rgba(239, 68, 68, 0.2);
+
+  --content-max-width: 900px;
 
   /* Gradient Backgrounds */
   --bg-gradient: radial-gradient(circle at top right, rgba(16, 185, 129, 0.05), transparent 40%),
@@ -58,6 +63,9 @@
 
   --skeleton-base: var(--color-gray-800);
   --skeleton-highlight: var(--color-gray-700);
+
+  --color-diff-added-bg: rgba(16, 185, 129, 0.15);
+  --color-diff-removed-bg: rgba(239, 68, 68, 0.15);
 
   --bg-gradient: radial-gradient(circle at top right, rgba(16, 185, 129, 0.1), transparent 40%),
                  radial-gradient(circle at bottom left, rgba(30, 41, 59, 1), transparent 100%);
@@ -156,6 +164,7 @@ body.no-scroll {
 }
 
 .recipe-image img {
+  display: block;
   width: 100%;
   aspect-ratio: var(--recipe-image-aspect-ratio);
   object-fit: cover;

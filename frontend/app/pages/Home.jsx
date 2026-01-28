@@ -6,6 +6,7 @@ import RecipeSkeleton from '../components/RecipeSkeleton';
 import api from '../utils/api';
 import '../styles/Home.css';
 import ModifierChip from '../components/ModifierChip';
+import LandingPage from '../components/LandingPage';
 import { computeRecipeDiffAsHtml } from '../utils/diffHelper';
 
 const GREETINGS = [
@@ -41,7 +42,8 @@ function Home() {
     wakeLockEnabled, 
     onToggleWakeLock, 
     refreshHistory, 
-    imageGenerationEnabled = true 
+    imageGenerationEnabled = true,
+    setSidebarHidden,
   } = useLayoutContext() || {};
 
   const location = useLocation();
@@ -56,7 +58,9 @@ function Home() {
   const [imageUrl, setImageUrl] = useState('');
   const [imageLoading, setImageLoading] = useState(false);
   const [modification, setModification] = useState('');
+
   const [showSignupPrompt, setShowSignupPrompt] = useState(false);
+  const [showDemo, setShowDemo] = useState(false);
   
   // Modifiers state
   const [complexity, setComplexity] = useState('standard');
@@ -64,9 +68,18 @@ function Home() {
   const [time, setTime] = useState('any');
   const [servings, setServings] = useState('standard');
 
+  // Handle sidebar visibility based on landing page state
+  useEffect(() => {
+    if (setSidebarHidden) {
+      const isLandingPage = !user && !showDemo;
+      setSidebarHidden(isLandingPage);
+    }
+  }, [user, showDemo, setSidebarHidden]);
+
   // Handle reset from navigation (New Recipe button)
   useEffect(() => {
     if (location.state?.reset) {
+      setShowDemo(true);
       setInput('');
       setCurrentId('');
       setCurrentRecipe('');
@@ -244,6 +257,10 @@ function Home() {
     ? computeRecipeDiffAsHtml(prevRecipe, currentRecipe)
     : currentRecipe;
 
+  if (!user && !showDemo) {
+    return <LandingPage onTryDemo={() => setShowDemo(true)} />;
+  }
+
   return (
     <div className={`home-page ${!hasRecipe ? 'centered' : ''}`}>
       {!hasRecipe && (
@@ -345,22 +362,27 @@ function Home() {
               imageUrl={imageUrl}
               imageLoading={envEnableImageGeneration && imageGenerationEnabled && imageLoading}
             />
-            <div className="modification-section">
-              <input
-                type="text"
-                placeholder="Enter modifications (e.g., remove onions)"
-                value={modification}
-                onChange={(e) => setModification(e.target.value)}
-              />
-              <div className="modification-buttons">
-                <button type="submit" onClick={handleUpdateRecipe} disabled={loading || !modification}>
-                  <FaEdit className="btn-icon" />
-                  {loading ? 'Updating...' : 'Update Recipe'}
-                </button>
-                <button type="button" onClick={handleRegenerate} disabled={loading} className="regenerate-btn">
-                  <FaRedo className="btn-icon" />
-                  {loading ? 'Regenerating...' : 'Regenerate'}
-                </button>
+            <div className="recipe-management-section">
+              <div className="update-section">
+                <input
+                  type="text"
+                  className="modification-input"
+                  placeholder="Enter modifications (e.g., remove onions)"
+                  value={modification}
+                  onChange={(e) => setModification(e.target.value)}
+                />
+                <div className="management-actions">
+                  <div className="modification-buttons">
+                    <button type="submit" onClick={handleUpdateRecipe} disabled={loading || !modification}>
+                      <FaEdit className="btn-icon" />
+                      {loading ? 'Updating...' : 'Update Recipe'}
+                    </button>
+                    <button type="button" onClick={handleRegenerate} disabled={loading} className="regenerate-btn">
+                      <FaRedo className="btn-icon" />
+                      {loading ? 'Regenerating...' : 'Regenerate'}
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

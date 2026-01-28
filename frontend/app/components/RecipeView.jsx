@@ -228,7 +228,6 @@ function RecipeView({ recipe, author, timestamp, isFavorite, onToggleFavorite, r
           )}
           {recipe.macros && (
             <>
-              <span className="stat-divider">|</span>
               <span className="macros-row">
                 <span className="stat-item">
                   <span className="stat-value">{recipe.macros.calories}</span>

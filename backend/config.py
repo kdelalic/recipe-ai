@@ -27,6 +27,7 @@ GCS_BUCKET_NAME = os.getenv("GCS_BUCKET_NAME", "")
 
 # Feature flags
 ENABLE_IMAGE_GENERATION = os.getenv("ENABLE_IMAGE_GENERATION", "false").lower() == "true"
+MOCK_MODE = os.getenv("MOCK_MODE", "false").lower() == "true"
 
 # Flask configuration
 PORT = int(os.getenv("PORT", 5001))
