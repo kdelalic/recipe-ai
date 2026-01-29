@@ -325,22 +325,21 @@
 
   /* Simplified card styling - keep background, remove border/shadow */
   .ingredient-groups,
-  .instructions-list {
+  .instructions-list,
+  .notes-list {
     border: none;
     box-shadow: none;
     border-radius: var(--radius-lg);
     padding: var(--space-4) var(--space-2);
     margin-bottom: var(--space-6);
+    background-color: transparent;
   }
 
   .ingredient-groups:hover,
-  .instructions-list:hover {
+  .instructions-list:hover,
+  .notes-list:hover {
     box-shadow: none;
     border-color: transparent;
-  }
-
-  .notes-list {
-    padding: var(--space-4);
   }
 
   /* More breathing room for ingredient items */
