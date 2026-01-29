@@ -6,7 +6,7 @@ import 'react-loading-skeleton/dist/skeleton.css';
 import { useTheme } from './ThemeProvider';
 import '../styles/RecipeView.css';
 
-function RecipeView({ recipe, author, timestamp, isFavorite, onToggleFavorite, recipeId, isMobile, sidebarCollapsed, onToggleSidebar, wakeLockEnabled, onToggleWakeLock, shareUrl, imageUrl, imageLoading }) {
+function RecipeView({ recipe, author, timestamp, isFavorite, onToggleFavorite, recipeId, wakeLockEnabled, onToggleWakeLock, shareUrl, imageUrl, imageLoading }) {
   const [checkedIngredients, setCheckedIngredients] = useState(new Set());
   const { darkMode } = useTheme();
   const skeletonBaseColor = (typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--skeleton-base').trim() : '') || (darkMode ? '#1e293b' : '#e5e7eb');
@@ -61,64 +61,67 @@ function RecipeView({ recipe, author, timestamp, isFavorite, onToggleFavorite, r
     );
   };
 
+  const actionButtons = (
+    <div className="recipe-action-buttons">
+      {onToggleFavorite && (
+        <button
+          className={`recipe-action-btn ${isFavorite ? 'is-favorite' : ''}`}
+          onClick={(e) => onToggleFavorite(recipeId, recipe.title, e)}
+          aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+          data-tooltip-id="tooltip"
+          data-tooltip-content={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+        >
+          {isFavorite ? <FaStar size={14} /> : <FaRegStar size={14} />}
+        </button>
+      )}
+      {onToggleWakeLock && (
+        <button
+          className={`recipe-action-btn ${wakeLockEnabled ? 'is-active' : ''}`}
+          onClick={onToggleWakeLock}
+          aria-label={wakeLockEnabled ? 'Disable keep screen awake' : 'Keep screen awake'}
+          data-tooltip-id="tooltip"
+          data-tooltip-content={wakeLockEnabled ? 'Screen will stay awake' : 'Keep screen awake'}
+        >
+          {wakeLockEnabled ? <HiOutlineEye size={14} /> : <HiOutlineEyeOff size={14} />}
+        </button>
+      )}
+      <button
+        className="recipe-action-btn"
+        onClick={() => window.print()}
+        aria-label="Print recipe"
+        data-tooltip-id="tooltip"
+        data-tooltip-content="Print recipe"
+      >
+        <FaPrint size={14} />
+      </button>
+      <button
+        className="recipe-action-btn"
+        onClick={() => {
+          const url = shareUrl || window.location.href;
+          if (navigator.share) {
+            navigator.share({
+              title: recipe.title?.replace(/<[^>]*>/g, '') || 'Recipe',
+              url,
+            });
+          } else {
+            navigator.clipboard.writeText(url);
+          }
+        }}
+        aria-label="Share recipe"
+        data-tooltip-id="tooltip"
+        data-tooltip-content="Share recipe"
+      >
+        <FaShareAlt size={14} />
+      </button>
+    </div>
+  );
+
   return (
     <div className="recipe-view">
-      {isMobile && (
-        <div className="recipe-mobile-header">
-          <div className="recipe-action-buttons">
-            {onToggleFavorite && (
-              <button
-                className={`recipe-action-btn ${isFavorite ? 'is-favorite' : ''}`}
-                onClick={(e) => onToggleFavorite(recipeId, recipe.title, e)}
-                aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-                data-tooltip-id="tooltip"
-                data-tooltip-content={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-              >
-                {isFavorite ? <FaStar size={14} /> : <FaRegStar size={14} />}
-              </button>
-            )}
-            {onToggleWakeLock && (
-              <button
-                className={`recipe-action-btn ${wakeLockEnabled ? 'is-active' : ''}`}
-                onClick={onToggleWakeLock}
-                aria-label={wakeLockEnabled ? 'Disable keep screen awake' : 'Keep screen awake'}
-                data-tooltip-id="tooltip"
-                data-tooltip-content={wakeLockEnabled ? 'Screen will stay awake' : 'Keep screen awake'}
-              >
-                {wakeLockEnabled ? <HiOutlineEye size={14} /> : <HiOutlineEyeOff size={14} />}
-              </button>
-            )}
-            <button
-              className="recipe-action-btn"
-              onClick={() => window.print()}
-              aria-label="Print recipe"
-              data-tooltip-id="tooltip"
-              data-tooltip-content="Print recipe"
-            >
-              <FaPrint size={14} />
-            </button>
-            <button
-              className="recipe-action-btn"
-              onClick={() => {
-                const url = shareUrl || window.location.href;
-                if (navigator.share) {
-                  navigator.share({
-                    title: recipe.title?.replace(/<[^>]*>/g, '') || 'Recipe',
-                    url,
-                  });
-                } else {
-                  navigator.clipboard.writeText(url);
-                }
-              }}
-              aria-label="Share recipe"
-              data-tooltip-id="tooltip"
-              data-tooltip-content="Share recipe"
-            >
-              <FaShareAlt size={14} />
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Mobile: buttons in fixed top bar */}
+      <div className="recipe-mobile-header">
+        {actionButtons}
+      </div>
 
       <h1 dangerouslySetInnerHTML={{ __html: recipe.title }} />
       {author && (
@@ -136,60 +139,10 @@ function RecipeView({ recipe, author, timestamp, isFavorite, onToggleFavorite, r
         </p>
       )}
 
-      {!isMobile && (
-        <div className="recipe-action-buttons">
-          {onToggleFavorite && (
-            <button
-              className={`recipe-action-btn ${isFavorite ? 'is-favorite' : ''}`}
-              onClick={(e) => onToggleFavorite(recipeId, recipe.title, e)}
-              aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-              data-tooltip-id="tooltip"
-              data-tooltip-content={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
-            >
-              {isFavorite ? <FaStar size={14} /> : <FaRegStar size={14} />}
-            </button>
-          )}
-          {onToggleWakeLock && (
-            <button
-              className={`recipe-action-btn ${wakeLockEnabled ? 'is-active' : ''}`}
-              onClick={onToggleWakeLock}
-              aria-label={wakeLockEnabled ? 'Disable keep screen awake' : 'Keep screen awake'}
-              data-tooltip-id="tooltip"
-              data-tooltip-content={wakeLockEnabled ? 'Screen will stay awake' : 'Keep screen awake'}
-            >
-              {wakeLockEnabled ? <HiOutlineEye size={14} /> : <HiOutlineEyeOff size={14} />}
-            </button>
-          )}
-          <button
-            className="recipe-action-btn"
-            onClick={() => window.print()}
-            aria-label="Print recipe"
-            data-tooltip-id="tooltip"
-            data-tooltip-content="Print recipe"
-          >
-            <FaPrint size={14} />
-          </button>
-          <button
-            className="recipe-action-btn"
-            onClick={() => {
-              const url = shareUrl || window.location.href;
-              if (navigator.share) {
-                navigator.share({
-                  title: recipe.title?.replace(/<[^>]*>/g, '') || 'Recipe',
-                  url,
-                });
-              } else {
-                navigator.clipboard.writeText(url);
-              }
-            }}
-            aria-label="Share recipe"
-            data-tooltip-id="tooltip"
-            data-tooltip-content="Share recipe"
-          >
-            <FaShareAlt size={14} />
-          </button>
-        </div>
-      )}
+      {/* Desktop: buttons inline below byline */}
+      <div className="recipe-action-buttons-desktop">
+        {actionButtons}
+      </div>
 
       {(imageUrl || imageLoading) && (
         <div className="recipe-image">

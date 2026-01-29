@@ -42,11 +42,8 @@
   .recipe-detail-page {
     padding: 0 var(--space-1) var(--space-20) var(--space-1);
   }
-  
+
   .recipe-detail-page .recipe-view {
     padding-top: calc(64px + env(safe-area-inset-top));
   }
-  
-  
-
 }
