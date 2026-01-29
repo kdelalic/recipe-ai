@@ -93,7 +93,7 @@ body {
   background-attachment: fixed;
   color: var(--text-primary);
   transition: background-color var(--transition-base), color var(--transition-base);
-  height: 100%;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   -webkit-font-smoothing: antialiased;
@@ -101,7 +101,8 @@ body {
 }
 
 html {
-  height: 100%;
+  min-height: 100%;
+  background-color: var(--bg-primary);
 }
 
 body.no-scroll {

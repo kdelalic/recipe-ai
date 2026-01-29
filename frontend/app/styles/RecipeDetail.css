@@ -1,6 +1,5 @@
 
 .recipe-detail-page {
-  padding-bottom: var(--space-20);
   max-width: var(--content-max-width, 900px);
   margin: 0 auto;
 }
@@ -40,7 +39,7 @@
 /* Mobile-specific styling */
 @media (max-width: 768px) {
   .recipe-detail-page {
-    padding: 0 var(--space-1) var(--space-20) var(--space-1);
+    padding: 0 var(--space-1) 0 var(--space-1);
   }
 
   .recipe-detail-page .recipe-view {

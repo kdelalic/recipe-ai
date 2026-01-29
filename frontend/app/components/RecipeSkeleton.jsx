@@ -25,12 +25,12 @@ function RecipeSkeleton({ showImageSkeleton = true }) {
   return (
     <SkeletonTheme baseColor={baseColor} highlightColor={highlightColor}>
       <div className="recipe recipe-skeleton">
-        <div className="recipe-view">
-          {/* Mobile header - always rendered, CSS handles visibility */}
-          <div className="recipe-mobile-header">
-            {actionButtonsSkeleton}
-          </div>
+        {/* Mobile header - always rendered, CSS handles visibility - MOVED outside view to prevent animation snap */}
+        <div className="recipe-mobile-header">
+          {actionButtonsSkeleton}
+        </div>
 
+        <div className="recipe-view">
           {/* Title */}
           <Skeleton height={36} width="70%" className="mb-2" />
 

@@ -122,158 +122,160 @@ function RecipeView({ recipe, author, timestamp, isFavorite, onToggleFavorite, r
   );
 
   return (
-    <div className="recipe-view">
-      {/* Mobile: buttons in fixed top bar */}
+    <>
+      {/* Mobile: buttons in fixed top bar - rendered OUTSIDE the animated view */}
       <div className="recipe-mobile-header">
         {actionButtons}
       </div>
 
-      <h1 dangerouslySetInnerHTML={{ __html: recipe.title }} />
-      {author && (
-        <p className="recipe-byline">
-          {author}
-          {timestamp && (
-            <span className="recipe-date">
-              {' '}· {new Date(timestamp).toLocaleDateString(undefined, {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric',
-              })}
-            </span>
-          )}
-        </p>
-      )}
+      <div className="recipe-view">
+        <h1 dangerouslySetInnerHTML={{ __html: recipe.title }} />
+        {author && (
+          <p className="recipe-byline">
+            {author}
+            {timestamp && (
+              <span className="recipe-date">
+                {' '}· {new Date(timestamp).toLocaleDateString(undefined, {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                })}
+              </span>
+            )}
+          </p>
+        )}
 
-      {/* Desktop: buttons inline below byline */}
-      <div className="recipe-action-buttons-desktop">
-        {actionButtons}
-      </div>
+        {/* Desktop: buttons inline below byline */}
+        <div className="recipe-action-buttons-desktop">
+          {actionButtons}
+        </div>
 
-      {/* Image rendering with click handler */}
-      {(imageUrl || imageLoading) && (
-        <>
-          <div 
-            className={`recipe-image ${!imageLoading ? 'clickable' : ''}`}
-            onClick={() => !imageLoading && toggleImageExpanded()}
-            role="button"
-            tabIndex={!imageLoading ? 0 : -1}
-            onKeyDown={(e) => {
-              if (!imageLoading && (e.key === 'Enter' || e.key === ' ')) {
-                toggleImageExpanded();
-              }
-            }}
-          >
-            {imageLoading ? (
-              <SkeletonTheme baseColor={skeletonBaseColor} highlightColor={skeletonHighlightColor}>
-                <Skeleton width="100%" height="100%" className="recipe-image-skeleton" borderRadius={8} />
-              </SkeletonTheme>
-            ) : (
-              <img src={imageUrl} alt={recipe.title?.replace(/<[^>]*>/g, '') || 'Recipe'} />
+        {/* Image rendering with click handler */}
+        {(imageUrl || imageLoading) && (
+          <>
+            <div 
+              className={`recipe-image ${!imageLoading ? 'clickable' : ''}`}
+              onClick={() => !imageLoading && toggleImageExpanded()}
+              role="button"
+              tabIndex={!imageLoading ? 0 : -1}
+              onKeyDown={(e) => {
+                if (!imageLoading && (e.key === 'Enter' || e.key === ' ')) {
+                  toggleImageExpanded();
+                }
+              }}
+            >
+              {imageLoading ? (
+                <SkeletonTheme baseColor={skeletonBaseColor} highlightColor={skeletonHighlightColor}>
+                  <Skeleton width="100%" height="100%" className="recipe-image-skeleton" borderRadius={8} />
+                </SkeletonTheme>
+              ) : (
+                <img src={imageUrl} alt={recipe.title?.replace(/<[^>]*>/g, '') || 'Recipe'} />
+              )}
+            </div>
+
+            {/* Full Screen Image Overlay */}
+            {isImageExpanded && (
+              <div className="recipe-image-overlay" onClick={toggleImageExpanded}>
+                <div className="recipe-image-overlay-content" onClick={(e) => e.stopPropagation()}>
+                  <button 
+                    className="close-overlay-btn" 
+                    onClick={toggleImageExpanded}
+                    aria-label="Close full screen image"
+                  >
+                    <FaTimes size={20} />
+                  </button>
+                  <img src={imageUrl} alt={recipe.title?.replace(/<[^>]*>/g, '') || 'Recipe'} />
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        <p className="recipe-description" dangerouslySetInnerHTML={{ __html: recipe.description }} />
+
+        {/* Recipe stats: time, servings, and macros */}
+        {(recipe.prep_time || recipe.cook_time || recipe.servings || recipe.macros) && (
+          <div className="recipe-stats">
+            {recipe.prep_time && (
+              <span className="stat-item">
+                <span className="stat-label">Prep</span>
+                <span className="stat-value">{recipe.prep_time}</span>
+              </span>
+            )}
+            {recipe.cook_time && (
+              <span className="stat-item">
+                <span className="stat-label">Cook</span>
+                <span className="stat-value">{recipe.cook_time}</span>
+              </span>
+            )}
+            {recipe.servings && (
+              <span className="stat-item">
+                <span className="stat-label">Servings</span>
+                <span className="stat-value">{recipe.servings}</span>
+              </span>
+            )}
+            {recipe.macros && (
+              <>
+                <span className="macros-row">
+                  <span className="stat-item">
+                    <span className="stat-value">{recipe.macros.calories}</span>
+                    <span className="stat-label">cal</span>
+                  </span>
+                  <span className="stat-item">
+                    <span className="stat-value">{recipe.macros.protein}g</span>
+                    <span className="stat-label">protein</span>
+                  </span>
+                  <span className="stat-item">
+                    <span className="stat-value">{recipe.macros.carbs}g</span>
+                    <span className="stat-label">carbs</span>
+                  </span>
+                  <span className="stat-item">
+                    <span className="stat-value">{recipe.macros.fat}g</span>
+                    <span className="stat-label">fat</span>
+                  </span>
+                </span>
+              </>
             )}
           </div>
+        )}
 
-          {/* Full Screen Image Overlay */}
-          {isImageExpanded && (
-            <div className="recipe-image-overlay" onClick={toggleImageExpanded}>
-              <div className="recipe-image-overlay-content" onClick={(e) => e.stopPropagation()}>
-                <button 
-                  className="close-overlay-btn" 
-                  onClick={toggleImageExpanded}
-                  aria-label="Close full screen image"
-                >
-                  <FaTimes size={20} />
-                </button>
-                <img src={imageUrl} alt={recipe.title?.replace(/<[^>]*>/g, '') || 'Recipe'} />
+        <h2>Ingredients</h2>
+        {hasGroupedIngredients ? (
+          <div className="ingredient-groups">
+            {recipe.ingredients.map((group, groupIdx) => (
+              <div key={groupIdx} className="ingredient-group">
+                <h3 className="ingredient-group-title">{group.group_name}</h3>
+                <ul>
+                  {group.items.map((item, idx) => renderIngredient(item, idx, groupIdx))}
+                </ul>
               </div>
-            </div>
-          )}
-        </>
-      )}
-
-      <p className="recipe-description" dangerouslySetInnerHTML={{ __html: recipe.description }} />
-
-      {/* Recipe stats: time, servings, and macros */}
-      {(recipe.prep_time || recipe.cook_time || recipe.servings || recipe.macros) && (
-        <div className="recipe-stats">
-          {recipe.prep_time && (
-            <span className="stat-item">
-              <span className="stat-label">Prep</span>
-              <span className="stat-value">{recipe.prep_time}</span>
-            </span>
-          )}
-          {recipe.cook_time && (
-            <span className="stat-item">
-              <span className="stat-label">Cook</span>
-              <span className="stat-value">{recipe.cook_time}</span>
-            </span>
-          )}
-          {recipe.servings && (
-            <span className="stat-item">
-              <span className="stat-label">Servings</span>
-              <span className="stat-value">{recipe.servings}</span>
-            </span>
-          )}
-          {recipe.macros && (
-            <>
-              <span className="macros-row">
-                <span className="stat-item">
-                  <span className="stat-value">{recipe.macros.calories}</span>
-                  <span className="stat-label">cal</span>
-                </span>
-                <span className="stat-item">
-                  <span className="stat-value">{recipe.macros.protein}g</span>
-                  <span className="stat-label">protein</span>
-                </span>
-                <span className="stat-item">
-                  <span className="stat-value">{recipe.macros.carbs}g</span>
-                  <span className="stat-label">carbs</span>
-                </span>
-                <span className="stat-item">
-                  <span className="stat-value">{recipe.macros.fat}g</span>
-                  <span className="stat-label">fat</span>
-                </span>
-              </span>
-            </>
-          )}
-        </div>
-      )}
-
-      <h2>Ingredients</h2>
-      {hasGroupedIngredients ? (
-        <div className="ingredient-groups">
-          {recipe.ingredients.map((group, groupIdx) => (
-            <div key={groupIdx} className="ingredient-group">
-              <h3 className="ingredient-group-title">{group.group_name}</h3>
-              <ul>
-                {group.items.map((item, idx) => renderIngredient(item, idx, groupIdx))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <ul>
-          {recipe.ingredients.map((ingredientHtml, idx) => renderIngredient(ingredientHtml, idx))}
-        </ul>
-      )}
-
-      <h2>Instructions</h2>
-      <ol className="instructions-list">
-        {recipe.instructions.map((instructionHtml, idx) => (
-          <li key={idx} dangerouslySetInnerHTML={{ __html: instructionHtml }} />
-        ))}
-      </ol>
-
-      {recipe.notes && recipe.notes.length > 0 && (
-        <>
-          <h2>Notes</h2>
-          <ul className="notes-list">
-            {recipe.notes.map((noteHtml, idx) => (
-              <li key={idx} dangerouslySetInnerHTML={{ __html: noteHtml }} />
             ))}
+          </div>
+        ) : (
+          <ul>
+            {recipe.ingredients.map((ingredientHtml, idx) => renderIngredient(ingredientHtml, idx))}
           </ul>
-        </>
-      )}
-    </div>
+        )}
+
+        <h2>Instructions</h2>
+        <ol className="instructions-list">
+          {recipe.instructions.map((instructionHtml, idx) => (
+            <li key={idx} dangerouslySetInnerHTML={{ __html: instructionHtml }} />
+          ))}
+        </ol>
+
+        {recipe.notes && recipe.notes.length > 0 && (
+          <>
+            <h2>Notes</h2>
+            <ul className="notes-list">
+              {recipe.notes.map((noteHtml, idx) => (
+                <li key={idx} dangerouslySetInnerHTML={{ __html: noteHtml }} />
+              ))}
+            </ul>
+          </>
+        )}
+      </div>
+    </>
   );
 }
 
