@@ -13,12 +13,16 @@ function RecipeSkeleton({ showImageSkeleton = true }) {
   const instructionWidths = ['95%', '88%', '92%', '85%', '90%', '80%'];
   const noteWidths = ['70%', '85%', '60%'];
 
+  /* Use actual button classes to ensure identical sizing (padding, min-width) */
+  /* Real buttons are 44x44 on mobile (14px icon + 12px padding*2 = 38px, but min-width is 44px) */
+  /* Real buttons: 12px padding. 20px skeleton + 24px padding = 44px. */
   const actionButtonsSkeleton = (
     <div className="recipe-action-buttons">
-      <span className="sk-icon"><Skeleton width={32} height={32} borderRadius={4} /></span>
-      <span className="sk-icon"><Skeleton width={32} height={32} borderRadius={4} /></span>
-      <span className="sk-icon"><Skeleton width={32} height={32} borderRadius={4} /></span>
-      <span className="sk-icon"><Skeleton width={32} height={32} borderRadius={4} /></span>
+      {[...Array(4)].map((_, i) => (
+        <div key={i} className="recipe-action-btn" style={{ pointerEvents: 'none', border: 'none', boxShadow: 'none' }}>
+           <Skeleton width={18} height={18} borderRadius={4} />
+        </div>
+      ))}
     </div>
   );
 
