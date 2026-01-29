@@ -1,13 +1,11 @@
+import asyncio
 import logging
 import re
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from google import genai
-from google.genai import types
-from slowapi import Limiter
-from slowapi.util import get_remote_address
-
+from services.limiter import limiter
 from auth import get_current_user
 from config import ENABLE_IMAGE_GENERATION, GEMINI_IMAGE_MODEL, GOOGLE_API_KEY, MOCK_MODE
 from models import GenerateImageRequest, GenerateImageResponse
@@ -17,8 +15,6 @@ from services.storage import compress_image, storage_bucket
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api", tags=["images"])
-
-limiter = Limiter(key_func=get_remote_address)
 
 # Initialize Gemini client (for image generation)
 gemini_client = genai.Client(api_key=GOOGLE_API_KEY)
@@ -36,6 +32,7 @@ async def generate_image(
 
     if MOCK_MODE:
         logger.info("MOCK_MODE enabled: Returning mock image")
+        await asyncio.sleep(2)
         # Return a nice placeholder food image
         return {"image_url": "https://images.unsplash.com/photo-1546069901-ba9599a7e63c"}
 

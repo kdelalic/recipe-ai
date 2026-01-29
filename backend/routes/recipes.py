@@ -7,8 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from firebase_admin import auth as firebase_auth
 from firebase_admin import firestore
 from google.cloud.firestore_v1.base_query import FieldFilter
-from slowapi import Limiter
-from slowapi.util import get_remote_address
+from services.limiter import limiter
 
 from auth import get_current_user, get_current_user_optional
 from models import (
@@ -29,8 +28,6 @@ from services.usage import usage_tracker
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api", tags=["recipes"])
-
-limiter = Limiter(key_func=get_remote_address)
 
 
 @router.post("/generate-recipe", response_model=GenerateRecipeResponse)

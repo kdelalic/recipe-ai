@@ -4,7 +4,7 @@ import '../styles/RecipeSkeleton.css';
 
 import { useTheme } from './ThemeProvider';
 
-function RecipeSkeleton({ isMobile, sidebarCollapsed, onToggleSidebar, showImageSkeleton = true }) {
+function RecipeSkeleton({ showImageSkeleton = true }) {
   const { darkMode } = useTheme();
   const baseColor = getComputedStyle(document.documentElement).getPropertyValue('--skeleton-base').trim() || (darkMode ? '#1e293b' : '#e5e7eb');
   const highlightColor = getComputedStyle(document.documentElement).getPropertyValue('--skeleton-highlight').trim() || (darkMode ? '#334155' : '#f3f4f6');
@@ -13,21 +13,23 @@ function RecipeSkeleton({ isMobile, sidebarCollapsed, onToggleSidebar, showImage
   const instructionWidths = ['95%', '88%', '92%', '85%', '90%', '80%'];
   const noteWidths = ['70%', '85%', '60%'];
 
+  const actionButtonsSkeleton = (
+    <div className="recipe-action-buttons">
+      <span className="sk-icon"><Skeleton width={32} height={32} borderRadius={4} /></span>
+      <span className="sk-icon"><Skeleton width={32} height={32} borderRadius={4} /></span>
+      <span className="sk-icon"><Skeleton width={32} height={32} borderRadius={4} /></span>
+      <span className="sk-icon"><Skeleton width={32} height={32} borderRadius={4} /></span>
+    </div>
+  );
+
   return (
     <SkeletonTheme baseColor={baseColor} highlightColor={highlightColor}>
       <div className="recipe recipe-skeleton">
         <div className="recipe-view">
-          {/* Mobile header - matches RecipeView structure */}
-          {isMobile && (
-            <div className="recipe-mobile-header">
-              <div className="recipe-action-buttons">
-                <span className="sk-icon"><Skeleton width={32} height={32} borderRadius={4} /></span>
-                <span className="sk-icon"><Skeleton width={32} height={32} borderRadius={4} /></span>
-                <span className="sk-icon"><Skeleton width={32} height={32} borderRadius={4} /></span>
-                <span className="sk-icon"><Skeleton width={32} height={32} borderRadius={4} /></span>
-              </div>
-            </div>
-          )}
+          {/* Mobile header - always rendered, CSS handles visibility */}
+          <div className="recipe-mobile-header">
+            {actionButtonsSkeleton}
+          </div>
 
           {/* Title */}
           <Skeleton height={36} width="70%" className="mb-2" />
@@ -35,15 +37,10 @@ function RecipeSkeleton({ isMobile, sidebarCollapsed, onToggleSidebar, showImage
           {/* Byline */}
           <Skeleton height={16} width="35%" className="mb-3" />
 
-          {/* Action buttons (desktop) */}
-          {!isMobile && (
-            <div className="recipe-action-buttons">
-              <span className="sk-icon"><Skeleton width={32} height={32} borderRadius={4} /></span>
-              <span className="sk-icon"><Skeleton width={32} height={32} borderRadius={4} /></span>
-              <span className="sk-icon"><Skeleton width={32} height={32} borderRadius={4} /></span>
-              <span className="sk-icon"><Skeleton width={32} height={32} borderRadius={4} /></span>
-            </div>
-          )}
+          {/* Desktop action buttons - always rendered, CSS handles visibility */}
+          <div className="recipe-action-buttons-desktop">
+            {actionButtonsSkeleton}
+          </div>
 
           {/* Image skeleton */}
           {showImageSkeleton && (

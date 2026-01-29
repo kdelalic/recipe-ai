@@ -340,9 +340,6 @@ function Home() {
 
       {loading && !currentRecipe ? (
         <RecipeSkeleton
-          isMobile={isMobile}
-          sidebarCollapsed={sidebarCollapsed}
-          onToggleSidebar={onToggleSidebar}
           showImageSkeleton={envEnableImageGeneration && imageGenerationEnabled}
         />
       ) : (

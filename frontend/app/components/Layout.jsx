@@ -23,6 +23,7 @@ function Layout({ children, user }) {
   const { darkMode, toggleDarkMode } = useTheme();
   const [history, setHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(true);
+  const [historyError, setHistoryError] = useState(null);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [offset, setOffset] = useState(0);
@@ -269,11 +270,13 @@ function Layout({ children, user }) {
   const fetchHistory = async (currentOffset = 0, append = false) => {
     if (append) {
       setLoadingMore(true);
+    } else {
+      setHistoryError(null);
     }
     try {
       const response = await api.get(`/api/recipe-history?limit=${LIMIT}&offset=${currentOffset}`);
       if (response.status !== 200) {
-        throw new Error('Network response was not ok');
+        throw new Error('Failed to fetch history');
       }
       const data = await response.data;
       const newHistory = data.history || [];
@@ -288,6 +291,9 @@ function Layout({ children, user }) {
       setOffset(currentOffset + newHistory.length);
     } catch (err) {
       console.error('Error fetching history:', err);
+      if (!append) {
+        setHistoryError('Could not load history. Please try again.');
+      }
     }
     setHistoryLoading(false);
     setLoadingMore(false);
@@ -298,6 +304,7 @@ function Layout({ children, user }) {
       fetchHistory();
     } else {
       setHistoryLoading(false);
+      setHistoryError(null);
       setHistory([]);
     }
   }, [user]);
@@ -485,6 +492,11 @@ function Layout({ children, user }) {
         >
           {historyLoading ? (
             <HistorySkeleton />
+          ) : historyError ? (
+            <div className="history-error">
+              <p>{historyError}</p>
+              <button onClick={() => fetchHistory(0, false)}>Retry</button>
+            </div>
           ) : filteredHistory.length > 0 ? (
             <div className={`history-list ${historyMenuOpen !== null ? 'dropdown-open' : ''}`}>
               {filteredHistory.map((item, index) => (

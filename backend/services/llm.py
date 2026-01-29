@@ -1,3 +1,4 @@
+import asyncio
 import logging
 
 import litellm
@@ -38,6 +39,7 @@ async def generate_recipe_from_prompt(
     """
     if MOCK_MODE:
         logger.info("MOCK_MODE enabled: Returning mock recipe")
+        await asyncio.sleep(1.5)
         mock_recipe = Recipe(
             title="Mock Spaghetti Carbonara",
             description="A classic Roman pasta dish made with eggs, hard cheese, cured pork, and black pepper. This is a mock recipe for testing.",
@@ -123,6 +125,7 @@ async def update_recipe_with_modifications(original_recipe: dict, modifications:
     """
     if MOCK_MODE:
         logger.info("MOCK_MODE enabled: Returning mock updated recipe")
+        await asyncio.sleep(1.5)
         # Just return the original recipe with a slight modification to title for proof
         original_recipe_obj = Recipe(**original_recipe) if isinstance(original_recipe, dict) else original_recipe
         if hasattr(original_recipe_obj, "title"):

@@ -183,9 +183,6 @@ function RecipeDetail() {
     <div className="recipe-detail-page">
       {loading ? (
         <RecipeSkeleton
-          isMobile={isMobile}
-          sidebarCollapsed={sidebarCollapsed}
-          onToggleSidebar={onToggleSidebar}
           showImageSkeleton={import.meta.env.VITE_ENABLE_IMAGE_GENERATION === 'true'}
         />
       ) : error ? (

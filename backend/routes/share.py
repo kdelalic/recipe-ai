@@ -4,9 +4,7 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import HTMLResponse
-from slowapi import Limiter
-from slowapi.util import get_remote_address
-
+from services.limiter import limiter
 from config import FRONTEND_URLS, IS_LOCAL
 from services.cache import recipe_cache
 from services.firebase import db_async
@@ -14,8 +12,6 @@ from services.firebase import db_async
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api", tags=["share"])
-
-limiter = Limiter(key_func=get_remote_address)
 
 
 def get_frontend_url():

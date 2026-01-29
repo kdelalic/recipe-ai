@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { FaStar, FaRegStar, FaPrint, FaShareAlt } from 'react-icons/fa';
+import { FaStar, FaRegStar, FaPrint, FaShareAlt, FaTimes } from 'react-icons/fa';
 import { HiOutlineEye, HiOutlineEyeOff } from 'react-icons/hi';
 import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import 'react-loading-skeleton/dist/skeleton.css';
@@ -8,6 +8,11 @@ import '../styles/RecipeView.css';
 
 function RecipeView({ recipe, author, timestamp, isFavorite, onToggleFavorite, recipeId, wakeLockEnabled, onToggleWakeLock, shareUrl, imageUrl, imageLoading }) {
   const [checkedIngredients, setCheckedIngredients] = useState(new Set());
+  const [isImageExpanded, setIsImageExpanded] = useState(false);
+
+  const toggleImageExpanded = () => {
+    setIsImageExpanded(!isImageExpanded);
+  };
   const { darkMode } = useTheme();
   const skeletonBaseColor = (typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--skeleton-base').trim() : '') || (darkMode ? '#1e293b' : '#e5e7eb');
   const skeletonHighlightColor = (typeof window !== 'undefined' ? getComputedStyle(document.documentElement).getPropertyValue('--skeleton-highlight').trim() : '') || (darkMode ? '#334155' : '#f3f4f6');
@@ -144,16 +149,45 @@ function RecipeView({ recipe, author, timestamp, isFavorite, onToggleFavorite, r
         {actionButtons}
       </div>
 
+      {/* Image rendering with click handler */}
       {(imageUrl || imageLoading) && (
-        <div className="recipe-image">
-          {imageLoading ? (
-            <SkeletonTheme baseColor={skeletonBaseColor} highlightColor={skeletonHighlightColor}>
-              <Skeleton width="100%" className="recipe-image-skeleton" borderRadius={8} />
-            </SkeletonTheme>
-          ) : (
-            <img src={imageUrl} alt={recipe.title?.replace(/<[^>]*>/g, '') || 'Recipe'} />
+        <>
+          <div 
+            className={`recipe-image ${!imageLoading ? 'clickable' : ''}`}
+            onClick={() => !imageLoading && toggleImageExpanded()}
+            role="button"
+            tabIndex={!imageLoading ? 0 : -1}
+            onKeyDown={(e) => {
+              if (!imageLoading && (e.key === 'Enter' || e.key === ' ')) {
+                toggleImageExpanded();
+              }
+            }}
+          >
+            {imageLoading ? (
+              <SkeletonTheme baseColor={skeletonBaseColor} highlightColor={skeletonHighlightColor}>
+                <Skeleton width="100%" height="100%" className="recipe-image-skeleton" borderRadius={8} />
+              </SkeletonTheme>
+            ) : (
+              <img src={imageUrl} alt={recipe.title?.replace(/<[^>]*>/g, '') || 'Recipe'} />
+            )}
+          </div>
+
+          {/* Full Screen Image Overlay */}
+          {isImageExpanded && (
+            <div className="recipe-image-overlay" onClick={toggleImageExpanded}>
+              <div className="recipe-image-overlay-content" onClick={(e) => e.stopPropagation()}>
+                <button 
+                  className="close-overlay-btn" 
+                  onClick={toggleImageExpanded}
+                  aria-label="Close full screen image"
+                >
+                  <FaTimes size={20} />
+                </button>
+                <img src={imageUrl} alt={recipe.title?.replace(/<[^>]*>/g, '') || 'Recipe'} />
+              </div>
+            </div>
           )}
-        </div>
+        </>
       )}
 
       <p className="recipe-description" dangerouslySetInnerHTML={{ __html: recipe.description }} />

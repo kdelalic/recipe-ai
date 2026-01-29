@@ -1,42 +1,26 @@
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, HTMLResponse
-from fastapi.staticfiles import StaticFiles
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from fastapi.responses import JSONResponse
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from slowapi.util import get_remote_address
 import os
-import re
-from pathlib import Path
 
-# Import services to initialize them
-from services.cache import recipe_cache
-from services.firebase import db_async
-import services.firebase  # noqa: F401
-from config import FRONTEND_URLS, IS_LOCAL, PORT
+# Import services
+from services.limiter import limiter
+from config import FRONTEND_URLS, PORT
+
+# Import route routers
+from routes.recipes import router as recipes_router
 from routes.favorites import router as favorites_router
 from routes.health import router as health_router
 from routes.images import router as images_router
 from routes.preferences import router as preferences_router
 from routes.share import router as share_router
 
-# Import route routers
-from routes.recipes import router as recipes_router
-
 logger = logging.getLogger(__name__)
-
-# Setup rate limiting (disabled in local development)
-limiter = Limiter(
-    key_func=get_remote_address,
-    default_limits=[] if IS_LOCAL else ["200 per day", "50 per hour"],
-    enabled=not IS_LOCAL,
-)
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
